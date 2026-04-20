@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(mkdir -p /Users/nirfeinstein/Documents/GitHub/cloudbot-panel/.claude)",
+      "Bash(cat)",
+      "Bash(mkdir -p /Users/nirfeinstein/Documents/GitHub/phone-agent/.claude)"
+    ]
+  }
+}

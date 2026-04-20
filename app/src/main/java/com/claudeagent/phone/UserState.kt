@@ -16,6 +16,7 @@ object UserState {
     private const val KEY_TRIAL_START = "trial_started_at"
     private const val KEY_PAIR_CODE = "hub_pair_code"
     private const val KEY_HUB_TOKEN = "hub_device_token"
+    private const val KEY_MACHINE_ID = "hub_machine_id"
 
     @Volatile
     private var cached: SharedPreferences? = null
@@ -92,6 +93,13 @@ object UserState {
 
     fun setHubToken(context: Context, token: String?) {
         prefs(context).edit().putString(KEY_HUB_TOKEN, token).apply()
+    }
+
+    fun machineId(context: Context): String? =
+        prefs(context).getString(KEY_MACHINE_ID, null)?.takeIf { it.isNotBlank() }
+
+    fun setMachineId(context: Context, id: String?) {
+        prefs(context).edit().putString(KEY_MACHINE_ID, id).apply()
     }
 
     fun clearAll(context: Context) {

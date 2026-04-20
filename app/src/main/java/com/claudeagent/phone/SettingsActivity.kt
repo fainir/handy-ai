@@ -128,7 +128,9 @@ class SettingsActivity : AppCompatActivity() {
         val token = UserState.hubToken(this)
         if (!token.isNullOrBlank()) {
             UserState.setHubToken(this, null)
+            UserState.setMachineId(this, null)
             UserState.setPairCode(this, null)
+            HubConnection.stop()
             refreshHubStatus()
             return
         }
