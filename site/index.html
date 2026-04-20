@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Handy AI — Hand your phone a task</title>
+<meta name="description" content="An AI assistant that gets things done on your phone. Describe it by voice or text; Handy AI carries it out.">
+<meta property="og:title" content="Handy AI">
+<meta property="og:description" content="Hand your phone a task. Voice or text. Handy does it.">
+<meta property="og:image" content="feature.png">
+<meta name="theme-color" content="#F4E9D4">
+<link rel="icon" type="image/png" href="icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream: #F4E9D4;
+    --cream-2: #EADFC6;
+    --ink: #1A1A1A;
+    --ink-2: #3A3530;
+    --muted: #5A544C;
+    --accent: #E66A3A;
+    --border: #D4C6A8;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background: var(--cream);
+    color: var(--ink);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: inherit; }
+  .wrap { max-width: 1120px; margin: 0 auto; padding: 0 24px; }
+  nav {
+    padding: 24px 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-family: 'Fraunces', serif;
+    font-weight: 700;
+    font-size: 22px;
+    letter-spacing: -0.02em;
+  }
+  .logo-mark {
+    width: 36px; height: 36px;
+    background: var(--ink); color: var(--cream);
+    border-radius: 8px;
+    display: grid; place-items: center;
+    font-family: 'Fraunces', serif;
+    font-weight: 700;
+    font-size: 20px;
+    position: relative;
+  }
+  .logo-mark::after {
+    content: ""; position: absolute;
+    top: 5px; right: 5px;
+    width: 7px; height: 7px;
+    background: var(--accent);
+    border-radius: 50%;
+  }
+  .nav-links { display: flex; gap: 28px; font-size: 15px; color: var(--muted); }
+  .nav-links a { text-decoration: none; }
+  .nav-links a:hover { color: var(--ink); }
+  .hero { padding: 80px 0 60px; }
+  .hero h1 {
+    font-family: 'Fraunces', serif;
+    font-weight: 700;
+    font-size: clamp(52px, 8vw, 104px);
+    line-height: 1.02;
+    letter-spacing: -0.03em;
+    margin-bottom: 24px;
+  }
+  .hero h1 em {
+    font-style: italic;
+    color: var(--ink-2);
+  }
+  .hero .sub {
+    font-size: 22px;
+    color: var(--muted);
+    max-width: 620px;
+    margin-bottom: 40px;
+  }
+  .cta-row {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 16px 24px;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    text-decoration: none;
+    transition: transform 0.12s ease, background 0.12s ease;
+    border: 1px solid transparent;
+  }
+  .btn:active { transform: translateY(1px); }
+  .btn-primary {
+    background: var(--ink);
+    color: var(--cream);
+  }
+  .btn-primary:hover { background: var(--ink-2); }
+  .btn-secondary {
+    background: transparent;
+    color: var(--ink);
+    border-color: var(--border);
+  }
+  .btn-secondary:hover { background: rgba(26,26,26,0.04); }
+  .hero-art {
+    margin-top: 60px;
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: 48px;
+  }
+  .hero-art .line {
+    height: 1px; background: var(--border);
+  }
+  .hero-art .mark {
+    width: 72px; height: 72px;
+    background: var(--ink); color: var(--cream);
+    border-radius: 18px;
+    display: grid; place-items: center;
+    font-family: 'Fraunces', serif;
+    font-weight: 700;
+    font-size: 42px;
+    position: relative;
+  }
+  .hero-art .mark::after {
+    content: ""; position: absolute;
+    top: 10px; right: 10px;
+    width: 14px; height: 14px;
+    background: var(--accent);
+    border-radius: 50%;
+  }
+  section { padding: 80px 0; border-top: 1px solid var(--border); }
+  section h2 {
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: clamp(36px, 5vw, 56px);
+    line-height: 1.08;
+    letter-spacing: -0.02em;
+    margin-bottom: 24px;
+    max-width: 800px;
+  }
+  section .lede {
+    font-size: 19px;
+    color: var(--muted);
+    max-width: 640px;
+    margin-bottom: 48px;
+  }
+  .grid-3 {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 24px;
+  }
+  .card {
+    background: var(--cream-2);
+    border-radius: 16px;
+    padding: 28px;
+  }
+  .card h3 {
+    font-family: 'Fraunces', serif;
+    font-weight: 600;
+    font-size: 22px;
+    margin-bottom: 10px;
+    letter-spacing: -0.01em;
+  }
+  .card p { color: var(--muted); font-size: 15px; line-height: 1.6; }
+  .pricing {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+  }
+  .price-card {
+    background: var(--cream-2);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 32px;
+    position: relative;
+  }
+  .price-card.featured {
+    background: var(--ink);
+    color: var(--cream);
+    border-color: var(--ink);
+  }
+  .price-card .badge {
+    display: inline-block;
+    background: var(--ink);
+    color: var(--cream);
+    font-size: 11px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+    font-weight: 700;
+  }
+  .price-card.featured .badge {
+    background: var(--accent);
+    color: var(--cream);
+  }
+  .price-card h3 {
+    font-family: 'Fraunces', serif;
+    font-size: 28px;
+    margin-bottom: 8px;
+  }
+  .price-card .price {
+    font-size: 44px;
+    font-family: 'Fraunces', serif;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin: 8px 0 4px;
+  }
+  .price-card .price small { font-size: 16px; font-weight: 500; opacity: 0.7; }
+  .price-card .desc { font-size: 14px; opacity: 0.85; margin-bottom: 20px; line-height: 1.55; }
+  .price-card ul {
+    list-style: none;
+    margin-bottom: 28px;
+    padding: 0;
+    font-size: 14px;
+  }
+  .price-card li {
+    padding-left: 22px;
+    margin-bottom: 10px;
+    position: relative;
+  }
+  .price-card li::before {
+    content: "—";
+    position: absolute;
+    left: 0;
+    opacity: 0.5;
+  }
+  .price-card .btn {
+    width: 100%;
+    justify-content: center;
+  }
+  .price-card.featured .btn-primary {
+    background: var(--cream);
+    color: var(--ink);
+  }
+  .price-card.featured .btn-primary:hover {
+    background: var(--cream-2);
+  }
+  .install-steps {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 32px;
+    counter-reset: step;
+  }
+  .step {
+    counter-increment: step;
+    padding-top: 8px;
+    border-top: 2px solid var(--ink);
+  }
+  .step::before {
+    content: counter(step, decimal-leading-zero);
+    font-family: 'Fraunces', serif;
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: 0.08em;
+    color: var(--accent);
+    display: block;
+    margin-bottom: 12px;
+  }
+  .step h3 {
+    font-family: 'Fraunces', serif;
+    font-size: 20px;
+    margin-bottom: 8px;
+  }
+  .step p { color: var(--muted); font-size: 15px; }
+  .faq-item {
+    border-top: 1px solid var(--border);
+    padding: 24px 0;
+  }
+  .faq-item:last-child { border-bottom: 1px solid var(--border); }
+  .faq-item h3 {
+    font-family: 'Fraunces', serif;
+    font-size: 22px;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+  .faq-item p { color: var(--muted); }
+  footer {
+    padding: 40px 0 60px;
+    border-top: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 14px;
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+  footer a { text-decoration: none; }
+  footer a:hover { color: var(--ink); }
+  @media (max-width: 640px) {
+    .hero { padding: 48px 0 40px; }
+    section { padding: 56px 0; }
+    .hero-art { grid-template-columns: 1fr; gap: 24px; }
+    .hero-art .line { display: none; }
+    .nav-links { display: none; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <nav>
+    <a href="#" class="logo">
+      <span class="logo-mark">H</span>
+      Handy AI
+    </a>
+    <div class="nav-links">
+      <a href="#how">How it works</a>
+      <a href="#install">Install</a>
+      <a href="#pricing">Pricing</a>
+      <a href="#faq">FAQ</a>
+    </div>
+  </nav>
+
+  <section class="hero" style="border: none; padding-top: 40px;">
+    <h1>Hand your phone<br><em>a task.</em></h1>
+    <p class="sub">Say what you want done. Handy AI does it — taps, types, and follows through on your Android phone so you don't have to.</p>
+    <div class="cta-row">
+      <a class="btn btn-primary" href="#install">Download APK</a>
+      <a class="btn btn-secondary" href="#pricing">See pricing</a>
+    </div>
+
+    <div class="hero-art">
+      <div class="line"></div>
+      <div class="mark">H</div>
+      <div class="line"></div>
+    </div>
+  </section>
+
+  <section id="how">
+    <h2>Stop thumbing. Describe it.</h2>
+    <p class="lede">Handy AI looks at your screen, one step at a time, and decides what to tap. No macros, no automations you have to build — it just works on whatever is in front of it.</p>
+    <div class="grid-3">
+      <div class="card">
+        <h3>Voice or text</h3>
+        <p>Tap the mic and say it. Or type. "Find a pizza place near the office and book 8pm for four."</p>
+      </div>
+      <div class="card">
+        <h3>Sees what you see</h3>
+        <p>Handy takes a screenshot, figures out the next tap, and executes. Then takes another. Until done.</p>
+      </div>
+      <div class="card">
+        <h3>Stops when you say</h3>
+        <p>Big red Stop button. Also won't enter passwords or run destructive actions unless you explicitly tell it to.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="install">
+    <h2>Install in 90 seconds.</h2>
+    <p class="lede">Not on the Play Store (yet). You download the APK directly, enable "Install unknown apps" once for your browser, and you're in.</p>
+    <div class="install-steps">
+      <div class="step">
+        <h3>Download</h3>
+        <p><a class="btn btn-primary" href="HandyAI.apk" download style="padding: 12px 18px; font-size: 14px;">Download APK (13&nbsp;MB)</a></p>
+      </div>
+      <div class="step">
+        <h3>Allow install</h3>
+        <p>Android will ask once — tap "Settings", toggle "Allow from this source", and back out.</p>
+      </div>
+      <div class="step">
+        <h3>Open + sign in</h3>
+        <p>Start the 7-day free trial, or paste your own Anthropic API key. No signup wall either way.</p>
+      </div>
+      <div class="step">
+        <h3>Grant Accessibility</h3>
+        <p>After your first send, Handy asks for Accessibility permission. That's how it taps on your behalf. You can revoke it any time.</p>
+      </div>
+    </div>
+    <p style="margin-top: 32px; font-size: 13px; color: var(--muted);">Auto-updates via <a href="https://obtainium.imranr.dev/" target="_blank" style="color: var(--ink);">Obtainium</a>: point it at <code>https://github.com/fainir/handy-ai/releases</code>.</p>
+  </section>
+
+  <section id="pricing">
+    <h2>Pay what fits.</h2>
+    <p class="lede">One subscription, one free alternative. Pick whichever bothers you less.</p>
+    <div class="pricing">
+      <div class="price-card featured">
+        <span class="badge">7 days free</span>
+        <h3>Handy AI</h3>
+        <div class="price">$9.99<small>&nbsp;/&nbsp;month</small></div>
+        <p class="desc">Unlimited tasks on your phone. No API keys to manage. Cancel any time.</p>
+        <ul>
+          <li>Unlimited tasks</li>
+          <li>No rate limits in regular use</li>
+          <li>Syncs across your devices</li>
+          <li>Works with the Cloudbot desktop agent</li>
+        </ul>
+        <a class="btn btn-primary" href="#" id="subscribe-cta">Start 7-day trial</a>
+      </div>
+      <div class="price-card">
+        <span class="badge">Developers</span>
+        <h3>Bring your own key</h3>
+        <div class="price">$0<small>&nbsp;+ Anthropic usage</small></div>
+        <p class="desc">You pay Anthropic directly. Handy handles the rest. Zero subscription.</p>
+        <ul>
+          <li>No account</li>
+          <li>Same app, same features</li>
+          <li>Your key, stored encrypted on device</li>
+          <li>Best if you already have an Anthropic account</li>
+        </ul>
+        <a class="btn btn-secondary" href="#install">Download APK</a>
+      </div>
+    </div>
+  </section>
+
+  <section id="faq">
+    <h2>Short answers.</h2>
+    <div class="faq-item">
+      <h3>Why isn't this on the Play Store?</h3>
+      <p>Google's policies around general-purpose Accessibility apps are strict and inconsistently enforced. Rather than spend weeks in review roulette, we ship direct. You get updates first, we skip the 30% tax.</p>
+    </div>
+    <div class="faq-item">
+      <h3>Is it safe to install?</h3>
+      <p>Yes — the APK is signed with our release key (fingerprint on GitHub). You're trusting the same code any Play Store reviewer would see. Source is at <a href="https://github.com/fainir/handy-ai" target="_blank">github.com/fainir/handy-ai</a>.</p>
+    </div>
+    <div class="faq-item">
+      <h3>What phones does it work on?</h3>
+      <p>Android 11 and up. The Accessibility screenshot API requires API level 30+.</p>
+    </div>
+    <div class="faq-item">
+      <h3>Can it enter passwords or run payments?</h3>
+      <p>Instructions tell it not to, unless you explicitly ask. It's guidance to the model, not a sandbox — treat it accordingly.</p>
+    </div>
+    <div class="faq-item">
+      <h3>Where does my screen content go?</h3>
+      <p>To Anthropic's Claude API, one screenshot per step, only while a task runs. We never store, proxy, or train on it. See the <a href="privacy.html">privacy policy</a>.</p>
+    </div>
+  </section>
+
+  <footer>
+    <div>© 2026 Handy AI</div>
+    <div>
+      <a href="privacy.html">Privacy</a> &middot;
+      <a href="terms.html">Terms</a> &middot;
+      <a href="https://github.com/fainir/handy-ai" target="_blank">GitHub</a> &middot;
+      <a href="mailto:hi@handyai.app">hi@handyai.app</a>
+    </div>
+  </footer>
+</div>
+
+<script>
+  // Subscribe CTA -> Lemon Squeezy checkout (replace with real URL)
+  document.getElementById('subscribe-cta').addEventListener('click', function(e) {
+    e.preventDefault();
+    window.open('https://handyai.lemonsqueezy.com/buy/PLACEHOLDER_VARIANT_ID', '_blank');
+  });
+</script>
+</body>
+</html>
