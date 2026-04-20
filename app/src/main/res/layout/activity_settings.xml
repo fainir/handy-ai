@@ -180,14 +180,11 @@
             android:textColor="@color/text_primary"
             app:strokeColor="@color/border_soft" />
 
-        <!-- Hub pairing section hidden for v1.0. Re-enable once the Cloudbot hub
-             implements the /api/phone endpoints described in playstore/hub-phone-spec.md. -->
         <LinearLayout
             android:id="@+id/hubSection"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:visibility="gone">
+            android:orientation="vertical">
 
             <View
                 android:layout_width="match_parent"

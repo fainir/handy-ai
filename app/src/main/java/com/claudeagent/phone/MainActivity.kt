@@ -39,6 +39,9 @@ class MainActivity : AppCompatActivity() {
             return
         }
 
+        // If this phone is already paired with the hub, keep the connection open.
+        HubConnection.start(applicationContext)
+
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
