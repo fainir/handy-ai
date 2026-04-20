@@ -1,0 +1,77 @@
+<resources>
+    <string name="app_name">Handy AI</string>
+    <string name="accessibility_service_label">Handy AI</string>
+    <string name="accessibility_service_summary">Lets Handy AI carry out tasks you describe on this device.</string>
+    <string name="accessibility_service_description">This service lets Handy AI read the screen, take screenshots, and perform taps, swipes, and text input on your behalf so it can complete the tasks you describe in the app. You can revoke this at any time from Accessibility settings.</string>
+
+    <string name="settings_title">Settings</string>
+    <string name="section_api_key">Anthropic API key</string>
+    <string name="section_accessibility">Accessibility</string>
+    <string name="api_key_hint">sk-ant-...</string>
+    <string name="api_key_saved_mask">Saved: %1$s</string>
+    <string name="api_key_not_saved">No key saved yet</string>
+    <string name="api_key_missing_banner">Tap the settings icon to add your Anthropic API key</string>
+    <string name="add_api_key">Add API key</string>
+    <string name="grant_accessibility_short">Grant accessibility</string>
+
+    <string name="task_hint">What should the agent do?\n\nExample: Open Chrome, search for \"weather in Tel Aviv\", and tell me the current temperature.</string>
+    <string name="task_hint_short">Describe a task...</string>
+    <string name="hero_prompt">Point me at\na task.</string>
+    <string name="save_key">Save key</string>
+    <string name="clear_key">Clear key</string>
+    <string name="grant_accessibility">Open Accessibility settings</string>
+    <string name="accessibility_granted">Granted</string>
+    <string name="accessibility_not_granted">Not granted</string>
+    <string name="accessibility_explainer">Required so the agent can take screenshots and perform taps/swipes on the phone.</string>
+    <string name="start">Start task</string>
+    <string name="stop">Stop</string>
+    <string name="status_idle">Idle</string>
+    <string name="settings_content_description">Settings</string>
+    <string name="voice_prompt">Describe the task</string>
+    <string name="voice_unavailable">Voice input is not available on this device</string>
+
+    <!-- Onboarding -->
+    <string name="onboarding_tagline">Hand tasks to your phone.</string>
+    <string name="trial_badge">7 DAYS FREE</string>
+    <string name="subscribe_title">Start free trial</string>
+    <string name="subscribe_subtitle">Unlimited tasks. $9.99/mo after. Cancel anytime.</string>
+    <string name="byo_key_title">Use my own API key</string>
+    <string name="byo_key_subtitle">Bring an Anthropic API key. Pay per use, no subscription.</string>
+    <string name="byo_key_hint">Paste your Anthropic API key. It\'s stored encrypted on your device.</string>
+    <string name="license_title">Paste your license key</string>
+    <string name="license_hint">After purchase you\'ll get a license key by email. Paste it here to activate.</string>
+    <string name="license_placeholder">XXXX-XXXX-XXXX-XXXX</string>
+    <string name="activate_license">Activate</string>
+    <string name="open_checkout_again">Reopen checkout</string>
+    <string name="onboarding_continue">Continue</string>
+    <string name="onboarding_footer">By continuing you agree to our Terms and Privacy Policy.</string>
+    <string name="activation_failed">Activation failed: %1$s</string>
+    <string name="activating">Activating…</string>
+    <string name="invalid_key_hint">That doesn\'t look like an Anthropic key (should start with sk-ant-).</string>
+
+    <!-- First-run permission prompt -->
+    <string name="needs_accessibility_title">Let Handy AI control the phone</string>
+    <string name="needs_accessibility_body">Turn on Accessibility for Handy AI, then come back and tap send again.</string>
+    <string name="open_accessibility">Open Accessibility settings</string>
+    <string name="not_now">Not now</string>
+
+    <!-- Settings additions -->
+    <string name="settings_subscription">Subscription</string>
+    <string name="plan_trial">Free trial — %1$d days left</string>
+    <string name="plan_subscribed">Subscribed</string>
+    <string name="plan_byo_key">Using your own API key</string>
+    <string name="manage_subscription">Manage subscription</string>
+    <string name="switch_to_byo_key">Switch to my own key</string>
+    <string name="switch_to_subscription">Switch to subscription</string>
+    <string name="edit_api_key">Edit API key</string>
+    <string name="regrant_accessibility">Re-grant Accessibility</string>
+    <string name="accessibility_status_on">Accessibility: enabled</string>
+    <string name="accessibility_status_off">Accessibility: disabled</string>
+
+    <!-- Hub pairing -->
+    <string name="settings_hub">Cloudbot pairing</string>
+    <string name="hub_not_paired">Not paired</string>
+    <string name="hub_pair_button">Pair with Cloudbot</string>
+    <string name="hub_paired">Paired as %1$s</string>
+    <string name="hub_unpair">Unpair</string>
+</resources>
