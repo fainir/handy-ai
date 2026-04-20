@@ -180,40 +180,49 @@
             android:textColor="@color/text_primary"
             app:strokeColor="@color/border_soft" />
 
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:layout_marginVertical="24dp"
-            android:background="@color/border_soft" />
-
-        <!-- Hub pairing -->
-        <TextView
+        <!-- Hub pairing section hidden for v1.0. Re-enable once the Cloudbot hub
+             implements the /api/phone endpoints described in playstore/hub-phone-spec.md. -->
+        <LinearLayout
+            android:id="@+id/hubSection"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/settings_hub"
-            android:textColor="@color/text_secondary"
-            android:textSize="12sp"
-            android:textAllCaps="true"
-            android:letterSpacing="0.08" />
+            android:orientation="vertical"
+            android:visibility="gone">
 
-        <TextView
-            android:id="@+id/hubStatus"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="6dp"
-            android:textColor="@color/text_primary"
-            android:textSize="15sp"
-            android:text="@string/hub_not_paired" />
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginVertical="24dp"
+                android:background="@color/border_soft" />
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/pairHubButton"
-            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:text="@string/hub_pair_button"
-            android:textColor="@color/text_primary"
-            app:strokeColor="@color/border_soft" />
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/settings_hub"
+                android:textColor="@color/text_secondary"
+                android:textSize="12sp"
+                android:textAllCaps="true"
+                android:letterSpacing="0.08" />
+
+            <TextView
+                android:id="@+id/hubStatus"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:textColor="@color/text_primary"
+                android:textSize="15sp"
+                android:text="@string/hub_not_paired" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/pairHubButton"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="@string/hub_pair_button"
+                android:textColor="@color/text_primary"
+                app:strokeColor="@color/border_soft" />
+        </LinearLayout>
 
     </LinearLayout>
 </androidx.core.widget.NestedScrollView>
