@@ -1,8 +1,10 @@
 package com.claudeagent.phone
 
+import android.accessibilityservice.AccessibilityButtonController
 import android.accessibilityservice.AccessibilityService
 import android.accessibilityservice.GestureDescription
 import android.content.Context
+import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.Path
 import android.os.Bundle
@@ -28,9 +30,32 @@ class AgentAccessibilityService : AccessibilityService() {
     override fun onAccessibilityEvent(event: AccessibilityEvent?) { /* noop */ }
     override fun onInterrupt() { /* noop */ }
 
+    private val accessibilityButtonCallback =
+        object : AccessibilityButtonController.AccessibilityButtonCallback() {
+            // The floating accessibility-shortcut button on the edge of the
+            // screen (declared via flagRequestAccessibilityButton) opens the
+            // Handy AI UI from any app, so the user can start a new task
+            // without hunting for the icon.
+            override fun onClicked(controller: AccessibilityButtonController) {
+                val launch = Intent(this@AgentAccessibilityService, MainActivity::class.java).apply {
+                    addFlags(
+                        Intent.FLAG_ACTIVITY_NEW_TASK or
+                            Intent.FLAG_ACTIVITY_CLEAR_TOP or
+                            Intent.FLAG_ACTIVITY_SINGLE_TOP,
+                    )
+                }
+                startActivity(launch)
+            }
+        }
+
     override fun onServiceConnected() {
         super.onServiceConnected()
         instance = this
+        // Safe to call repeatedly — ChatStore.init is idempotent. Done here so
+        // any path that starts the agent (incl. future hub-triggered runs)
+        // can append to the store without needing a Context handy.
+        ChatStore.init(applicationContext)
+        accessibilityButtonController.registerAccessibilityButtonCallback(accessibilityButtonCallback)
     }
 
     override fun onDestroy() {
@@ -48,7 +73,7 @@ class AgentAccessibilityService : AccessibilityService() {
             try {
                 loop.run(task)
             } catch (t: Throwable) {
-                AgentState.appendLog("✗ Crash: ${t.message}")
+                ChatStore.append("status", "Crash: ${t.message}")
                 AgentState.setState(RunState.Error(t.message.orEmpty()))
                 AgentState.setStatus("Error: ${t.message}")
             }

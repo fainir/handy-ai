@@ -1,0 +1,43 @@
+# Template for local.properties — copy to `local.properties` (gitignored)
+# and fill in real values. Everything here is consumed at gradle-build time
+# via buildConfigField in app/build.gradle.kts.
+#
+# Android SDK — installed by brew:
+sdk.dir=/opt/homebrew/share/android-commandlinetools
+
+# ─────────────────────────────────────────────────────────────────────────
+# Supabase (required for email-OTP trial sign-in)
+#
+# Setup (2 minutes):
+#   1. supabase.com → New project
+#   2. Project Settings → API → copy "Project URL" and "anon public" key
+#   3. Paste below
+#   4. Authentication → Providers → Email → ensure "Enable email provider"
+#      is ON (it is by default). No email template customization needed for
+#      OTP mode — Supabase sends the 6-digit code automatically.
+#
+# The anon key is client-safe (RLS enforces access). Never paste the
+# service_role key — that bypasses RLS.
+SUPABASE_URL=https://YOUR_PROJECT.supabase.co
+SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.YOUR_ANON_KEY
+
+# ─────────────────────────────────────────────────────────────────────────
+# Google sign-in (optional — only if you want the "Continue with Google" CTA)
+#
+# Setup (~15 minutes):
+#   1. Google Cloud Console → APIs & Services → Credentials
+#      → Create Credentials → OAuth Client ID → Web application
+#      → Authorized redirect URI: https://YOUR_PROJECT.supabase.co/auth/v1/callback
+#      → Copy the Client ID (looks like 1234567890-xxxxx.apps.googleusercontent.com)
+#   2. Also create an Android OAuth Client ID in the same screen:
+#      → Package name: com.claudeagent.phone
+#      → SHA-1: run `./gradlew :app:signingReport` and copy the debug/release SHA-1
+#      (The Android client isn't passed to the app, but Supabase uses the
+#       presence of both to accept the ID token.)
+#   3. Supabase → Authentication → Providers → Google → enable,
+#      paste the **Web** Client ID + its client secret.
+#   4. Paste the **Web** Client ID below (not the Android one).
+#
+# If this is left blank the Google sign-in button is hidden and the email
+# OTP flow still works.
+GOOGLE_WEB_CLIENT_ID=

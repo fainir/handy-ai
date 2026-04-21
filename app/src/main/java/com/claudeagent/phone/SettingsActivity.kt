@@ -58,6 +58,8 @@ class SettingsActivity : AppCompatActivity() {
         binding.switchModeButton.setOnClickListener { onSwitchMode() }
 
         binding.pairHubButton.setOnClickListener { onPairHub() }
+
+        binding.signOutButton.setOnClickListener { onSignOut() }
     }
 
     override fun onResume() {
@@ -66,6 +68,40 @@ class SettingsActivity : AppCompatActivity() {
         refreshAccessibilityStatus()
         refreshPlanStatus()
         refreshHubStatus()
+        refreshAccountStatus()
+    }
+
+    private fun refreshAccountStatus() {
+        // The Account section is only meaningful if trial sign-in is wired up.
+        // Hiding it on BYO-key-only builds keeps the settings screen honest.
+        val show = BillingConfig.supabaseConfigured() || AuthStore.isSignedIn(this)
+        binding.accountSection.visibility = if (show) android.view.View.VISIBLE else android.view.View.GONE
+        val email = AuthStore.email(this)
+        binding.accountStatus.text = if (email.isNullOrBlank()) {
+            getString(R.string.account_not_signed_in)
+        } else {
+            getString(R.string.signed_in_as, email)
+        }
+        binding.signOutButton.isEnabled = !email.isNullOrBlank()
+    }
+
+    private fun onSignOut() {
+        AlertDialog.Builder(this)
+            .setTitle(R.string.signout_confirm)
+            .setMessage(R.string.signout_body)
+            .setPositiveButton(R.string.signout) { _, _ ->
+                AuthStore.clear(this)
+                // Keep the API key + other settings in place. Next launch
+                // will route the user back to onboarding's sign-in step.
+                UserState.setOnboarded(this, false)
+                val intent = Intent(this, OnboardingActivity::class.java).apply {
+                    flags = Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_NEW_TASK
+                }
+                startActivity(intent)
+                finish()
+            }
+            .setNegativeButton(R.string.not_now, null)
+            .show()
     }
 
     private fun refreshApiKeyStatus() {

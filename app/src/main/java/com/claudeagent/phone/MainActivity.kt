@@ -17,9 +17,13 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.core.view.GravityCompat
+import androidx.drawerlayout.widget.DrawerLayout
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.claudeagent.phone.databinding.ActivityMainBinding
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -29,6 +33,9 @@ class MainActivity : AppCompatActivity() {
     private lateinit var binding: ActivityMainBinding
     private var currentlyRunning: Boolean = false
     private lateinit var voiceLauncher: ActivityResultLauncher<Intent>
+    private val chatAdapter = ChatAdapter()
+    private lateinit var sessionsAdapter: SessionsAdapter
+    private lateinit var sessionsList: RecyclerView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -39,6 +46,22 @@ class MainActivity : AppCompatActivity() {
             return
         }
 
+        // Legacy-user upgrade: existing SUBSCRIBED users from before sign-in
+        // was required still have Mode.SUBSCRIBED but no AuthStore session.
+        // Once Supabase is configured, ask them to sign in. BYO-key users are
+        // untouched — their mode doesn't require an account.
+        if (BillingConfig.supabaseConfigured() &&
+            UserState.mode(this) == Mode.SUBSCRIBED &&
+            !AuthStore.isSignedIn(this)
+        ) {
+            UserState.setOnboarded(this, false)
+            startActivity(Intent(this, OnboardingActivity::class.java))
+            finish()
+            return
+        }
+
+        ChatStore.init(applicationContext)
+
         // If this phone is already paired with the hub, keep the connection open.
         HubConnection.start(applicationContext)
 
@@ -46,7 +69,35 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         setSupportActionBar(binding.toolbar)
-        supportActionBar?.setDisplayShowTitleEnabled(false)
+        supportActionBar?.setDisplayShowTitleEnabled(true)
+
+        // Chat list
+        binding.chatList.layoutManager = LinearLayoutManager(this).apply {
+            stackFromEnd = true
+        }
+        binding.chatList.adapter = chatAdapter
+
+        // Sessions drawer
+        sessionsAdapter = SessionsAdapter { session ->
+            ChatStore.setActive(session.id)
+            binding.drawerLayout.closeDrawer(GravityCompat.START)
+        }
+        sessionsList = binding.root.findViewById(R.id.sessionsList)
+        sessionsList.layoutManager = LinearLayoutManager(this)
+        sessionsList.adapter = sessionsAdapter
+        binding.root.findViewById<View>(R.id.newSessionButton).setOnClickListener {
+            ChatStore.newSession()
+            binding.drawerLayout.closeDrawer(GravityCompat.START)
+        }
+
+        // Toolbar hamburger opens the drawer
+        binding.toolbar.setNavigationOnClickListener {
+            if (binding.drawerLayout.isDrawerOpen(GravityCompat.START)) {
+                binding.drawerLayout.closeDrawer(GravityCompat.START)
+            } else {
+                binding.drawerLayout.openDrawer(GravityCompat.START)
+            }
+        }
 
         voiceLauncher = registerForActivityResult(
             ActivityResultContracts.StartActivityForResult(),
@@ -57,15 +108,20 @@ class MainActivity : AppCompatActivity() {
                 ?.trim()
                 .orEmpty()
             if (spoken.isNotEmpty()) {
-                val existing = binding.taskInput.text?.toString().orEmpty()
-                val joined = if (existing.isBlank()) spoken else "$existing $spoken"
-                binding.taskInput.setText(joined)
-                binding.taskInput.setSelection(binding.taskInput.text?.length ?: 0)
+                // Voice becomes a user chat message directly — same as a typed
+                // message. We don't paste it into the input field because the
+                // input is for composing; the chat is the conversation record.
+                if (!currentlyRunning) sendTask(spoken)
             }
         }
 
         binding.actionButton.setOnClickListener {
-            if (currentlyRunning) stopTask() else attemptStartTask()
+            if (currentlyRunning) {
+                stopTask()
+            } else {
+                val text = binding.taskInput.text?.toString()?.trim().orEmpty()
+                if (text.isNotEmpty()) sendTask(text)
+            }
         }
         binding.micButton.setOnClickListener { startVoiceInput() }
         binding.taskInput.addTextChangedListener(object : TextWatcher {
@@ -84,10 +140,11 @@ class MainActivity : AppCompatActivity() {
 
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                launch { AgentState.status.collectLatest { binding.statusText.text = it } }
                 launch {
-                    AgentState.log.collectLatest { lines ->
-                        binding.logView.text = lines.joinToString("\n")
+                    AgentState.status.collectLatest { status ->
+                        binding.statusChip.text = status
+                        binding.statusChip.visibility =
+                            if (currentlyRunning) View.VISIBLE else View.GONE
                     }
                 }
                 launch {
@@ -95,7 +152,27 @@ class MainActivity : AppCompatActivity() {
                         val running = s is RunState.Running
                         currentlyRunning = running
                         updateActionButton(running)
-                        updateRunningViews(s)
+                        binding.statusChip.visibility = if (running) View.VISIBLE else View.GONE
+                    }
+                }
+                launch {
+                    ChatStore.activeMessages.collectLatest { messages ->
+                        chatAdapter.submitList(messages) {
+                            if (messages.isNotEmpty()) {
+                                binding.chatList.scrollToPosition(messages.size - 1)
+                            }
+                        }
+                        updateEmptyState(messages.isEmpty())
+                    }
+                }
+                launch {
+                    ChatStore.sessions.collectLatest { sessions ->
+                        sessionsAdapter.submitList(sessions)
+                    }
+                }
+                launch {
+                    ChatStore.activeId.collectLatest { id ->
+                        sessionsAdapter.activeId = id
                     }
                 }
             }
@@ -123,12 +200,25 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    override fun onBackPressed() {
+        if (binding.drawerLayout.isDrawerOpen(GravityCompat.START)) {
+            binding.drawerLayout.closeDrawer(GravityCompat.START)
+        } else {
+            super.onBackPressed()
+        }
+    }
+
     private fun updateActionButton(running: Boolean) {
         val hasText = !binding.taskInput.text?.toString()?.trim().isNullOrEmpty()
         val iconRes = if (running) R.drawable.ic_stop else R.drawable.ic_send
         binding.actionButton.icon = ContextCompat.getDrawable(this, iconRes)
         binding.actionButton.isEnabled = running || hasText
         binding.micButton.isEnabled = !running
+    }
+
+    private fun updateEmptyState(empty: Boolean) {
+        binding.heroText.visibility = if (empty && !currentlyRunning) View.VISIBLE else View.GONE
+        binding.chatList.visibility = if (empty) View.GONE else View.VISIBLE
     }
 
     private fun startVoiceInput() {
@@ -146,24 +236,15 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun updateRunningViews(state: RunState) {
-        val active = state !is RunState.Idle
-        binding.heroText.visibility = if (active) View.GONE else View.VISIBLE
-        binding.statusText.visibility = if (active) View.VISIBLE else View.GONE
-        binding.logView.visibility = if (active) View.VISIBLE else View.GONE
-    }
-
-    private fun attemptStartTask() {
-        val task = binding.taskInput.text?.toString()?.trim().orEmpty()
-        if (task.isBlank()) {
-            toast("Describe the task")
-            return
-        }
-
+    /**
+     * Shared entry point: text and voice both reach this. Appends the user
+     * message to the chat, clears the input, then starts the agent loop —
+     * surfacing the usual missing-key / missing-accessibility dialogs if
+     * something's not ready.
+     */
+    private fun sendTask(task: String) {
         val apiKey = ApiKeyStore.load(this)
         if (apiKey.isNullOrBlank()) {
-            // Subscribed mode: future versions will fetch an ephemeral key from the hub.
-            // For now we direct the user to Settings to paste their key.
             AlertDialog.Builder(this)
                 .setTitle(getString(R.string.edit_api_key))
                 .setMessage("Add your Anthropic API key in Settings to run tasks.")
@@ -193,8 +274,12 @@ class MainActivity : AppCompatActivity() {
             return
         }
 
+        // Ensure we have an active session before the first user message, so
+        // the message lands in it (and, via the title rule, names it).
+        ChatStore.ensureActiveSession()
+        ChatStore.append("user", task)
+        binding.taskInput.text?.clear()
         service.startAgent(apiKey, task)
-        toast("Starting — keep the phone awake and unlocked")
     }
 
     private fun stopTask() {
