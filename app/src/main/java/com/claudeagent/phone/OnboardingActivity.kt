@@ -3,40 +3,67 @@ package com.claudeagent.phone
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.util.Patterns
 import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.credentials.CredentialManager
+import androidx.credentials.CustomCredential
+import androidx.credentials.GetCredentialRequest
+import androidx.credentials.exceptions.GetCredentialCancellationException
+import androidx.credentials.exceptions.GetCredentialException
+import androidx.credentials.exceptions.NoCredentialException
 import androidx.lifecycle.lifecycleScope
 import com.claudeagent.phone.databinding.ActivityOnboardingBinding
+import com.google.android.libraries.identity.googleid.GetGoogleIdOption
+import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
+import com.google.android.libraries.identity.googleid.GoogleIdTokenParsingException
 import kotlinx.coroutines.launch
 
 class OnboardingActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityOnboardingBinding
 
-    private enum class Step { HOME, KEY, LICENSE }
+    private enum class Step { HOME, SIGN_IN_EMAIL, SIGN_IN_OTP, KEY, LICENSE }
 
     private var step: Step = Step.HOME
+    private var pendingEmail: String = ""
+    private val credentialManager by lazy { CredentialManager.create(this) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityOnboardingBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        binding.subscribeCard.setOnClickListener { openCheckout() }
-        binding.openCheckoutAgainButton.setOnClickListener { openCheckout() }
+        // Free trial path now starts with sign-in. Only after auth do we
+        // actually flip the user into SUBSCRIBED mode / open Lemon Squeezy.
+        binding.subscribeCard.setOnClickListener { goTo(Step.SIGN_IN_EMAIL) }
         binding.byoKeyCard.setOnClickListener { goTo(Step.KEY) }
 
         binding.saveKeyButton.setOnClickListener { onSaveKey() }
+
+        // Sign-in handlers.
+        binding.sendCodeButton.setOnClickListener { onSendCode() }
+        binding.verifyButton.setOnClickListener { onVerifyCode() }
+        binding.resendCodeButton.setOnClickListener { onSendCode() }
+        binding.changeEmailButton.setOnClickListener { goTo(Step.SIGN_IN_EMAIL) }
+        binding.googleSignInButton.setOnClickListener { onGoogleSignIn() }
+        // Show Google CTA + "or email" divider only when configured.
+        val googleVisible = BillingConfig.googleSignInConfigured()
+        binding.googleSignInButton.visibility = if (googleVisible) View.VISIBLE else View.GONE
+        binding.signInDivider.visibility = if (googleVisible) View.VISIBLE else View.GONE
+
+        // Kept for paid users who already have a license to paste (after trial).
         binding.activateButton.setOnClickListener { onActivateLicense() }
+        binding.openCheckoutAgainButton.setOnClickListener { openCheckout() }
 
         goTo(Step.HOME)
     }
 
     override fun onResume() {
         super.onResume()
-        // If user completed purchase in browser and came back, assume they have a license
-        // and need to enter it. Only do this if we don't already have a license saved.
+        // If user came back from the Lemon Squeezy checkout we stashed a
+        // breadcrumb, surface the license entry step to paste their key.
         if (step == Step.HOME && UserState.pairCode(this) == "checkout-opened") {
             UserState.setPairCode(this, null)
             goTo(Step.LICENSE)
@@ -46,8 +73,16 @@ class OnboardingActivity : AppCompatActivity() {
     private fun goTo(next: Step) {
         step = next
         binding.homeGroup.visibility = if (next == Step.HOME) View.VISIBLE else View.GONE
+        binding.signInEmailGroup.visibility = if (next == Step.SIGN_IN_EMAIL) View.VISIBLE else View.GONE
+        binding.signInOtpGroup.visibility = if (next == Step.SIGN_IN_OTP) View.VISIBLE else View.GONE
         binding.keyEntryGroup.visibility = if (next == Step.KEY) View.VISIBLE else View.GONE
         binding.licenseEntryGroup.visibility = if (next == Step.LICENSE) View.VISIBLE else View.GONE
+
+        if (next == Step.SIGN_IN_OTP) {
+            binding.otpSubtitle.text = getString(R.string.signin_code_subtitle, pendingEmail)
+            binding.otpInput.setText("")
+            binding.otpInput.requestFocus()
+        }
     }
 
     private fun openCheckout() {
@@ -56,14 +91,14 @@ class OnboardingActivity : AppCompatActivity() {
             startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(BillingConfig.LEMONSQUEEZY_CHECKOUT_URL)))
             goTo(Step.LICENSE)
         } catch (t: Throwable) {
-            Toast.makeText(this, "No browser available", Toast.LENGTH_SHORT).show()
+            toast("No browser available")
         }
     }
 
     private fun onSaveKey() {
         val key = binding.keyInput.text?.toString()?.trim().orEmpty()
         if (!key.startsWith("sk-ant-")) {
-            Toast.makeText(this, R.string.invalid_key_hint, Toast.LENGTH_LONG).show()
+            toast(getString(R.string.invalid_key_hint))
             return
         }
         ApiKeyStore.save(this, key)
@@ -72,10 +107,133 @@ class OnboardingActivity : AppCompatActivity() {
         finishToMain()
     }
 
+    private fun onSendCode() {
+        if (!BillingConfig.supabaseConfigured()) {
+            toast(getString(R.string.signin_not_configured))
+            return
+        }
+        val email = binding.emailInput.text?.toString()?.trim().orEmpty()
+        if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+            toast(getString(R.string.signin_error_invalid_email))
+            return
+        }
+        pendingEmail = email
+        binding.sendCodeButton.isEnabled = false
+        binding.sendCodeButton.setText(R.string.signin_sending_code)
+        lifecycleScope.launch {
+            val result = SupabaseAuth.sendOtp(email)
+            binding.sendCodeButton.isEnabled = true
+            binding.sendCodeButton.setText(R.string.signin_send_code)
+            result.onSuccess {
+                goTo(Step.SIGN_IN_OTP)
+            }.onFailure { e ->
+                toast(getString(R.string.signin_error_send, e.message ?: "unknown"))
+            }
+        }
+    }
+
+    private fun onGoogleSignIn() {
+        if (!BillingConfig.googleSignInConfigured()) {
+            toast(getString(R.string.signin_google_not_configured))
+            return
+        }
+        binding.googleSignInButton.isEnabled = false
+        lifecycleScope.launch {
+            try {
+                val option = GetGoogleIdOption.Builder()
+                    // Filter to accounts that have signed in before = false so
+                    // first-time users see all their Google accounts.
+                    .setFilterByAuthorizedAccounts(false)
+                    .setServerClientId(BillingConfig.GOOGLE_WEB_CLIENT_ID)
+                    .setAutoSelectEnabled(false)
+                    .build()
+
+                val request = GetCredentialRequest.Builder()
+                    .addCredentialOption(option)
+                    .build()
+
+                val response = credentialManager.getCredential(
+                    context = this@OnboardingActivity,
+                    request = request,
+                )
+
+                val cred = response.credential
+                if (cred !is CustomCredential ||
+                    cred.type != GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL
+                ) {
+                    toast(getString(R.string.signin_google_failed, "unexpected credential type"))
+                    return@launch
+                }
+
+                val idToken = try {
+                    GoogleIdTokenCredential.createFrom(cred.data).idToken
+                } catch (e: GoogleIdTokenParsingException) {
+                    toast(getString(R.string.signin_google_failed, e.message ?: "bad token"))
+                    return@launch
+                }
+
+                SupabaseAuth.signInWithGoogleIdToken(idToken)
+                    .onSuccess { session ->
+                        AuthStore.save(this@OnboardingActivity, session)
+                        UserState.setMode(this@OnboardingActivity, Mode.SUBSCRIBED)
+                        UserState.setTrialStartedAt(
+                            this@OnboardingActivity,
+                            System.currentTimeMillis(),
+                        )
+                        UserState.setOnboarded(this@OnboardingActivity, true)
+                        toast(getString(R.string.signed_in_as, session.email))
+                        finishToMain()
+                    }
+                    .onFailure { e ->
+                        toast(getString(R.string.signin_google_failed, e.message ?: "unknown"))
+                    }
+            } catch (e: GetCredentialCancellationException) {
+                toast(getString(R.string.signin_google_cancelled))
+            } catch (e: NoCredentialException) {
+                toast(getString(R.string.signin_google_failed, "no Google accounts on this device"))
+            } catch (e: GetCredentialException) {
+                toast(getString(R.string.signin_google_failed, e.message ?: "unknown"))
+            } finally {
+                binding.googleSignInButton.isEnabled = true
+            }
+        }
+    }
+
+    private fun onVerifyCode() {
+        val code = binding.otpInput.text?.toString()?.trim().orEmpty()
+        if (code.length < 6) {
+            toast(getString(R.string.signin_error_verify, "code must be 6 digits"))
+            return
+        }
+        binding.verifyButton.isEnabled = false
+        binding.verifyButton.setText(R.string.signin_verifying)
+        lifecycleScope.launch {
+            val result = SupabaseAuth.verifyOtp(pendingEmail, code)
+            binding.verifyButton.isEnabled = true
+            binding.verifyButton.setText(R.string.signin_verify)
+            result.onSuccess { session ->
+                AuthStore.save(this@OnboardingActivity, session)
+                // Sign-in opens the 7-day free trial. Lemon Squeezy handles
+                // paid conversion; until then the user is SUBSCRIBED and the
+                // trial clock has started.
+                UserState.setMode(this@OnboardingActivity, Mode.SUBSCRIBED)
+                UserState.setTrialStartedAt(
+                    this@OnboardingActivity,
+                    System.currentTimeMillis(),
+                )
+                UserState.setOnboarded(this@OnboardingActivity, true)
+                toast(getString(R.string.signed_in_as, session.email))
+                finishToMain()
+            }.onFailure { e ->
+                toast(getString(R.string.signin_error_verify, e.message ?: "unknown"))
+            }
+        }
+    }
+
     private fun onActivateLicense() {
         val key = binding.licenseInput.text?.toString()?.trim().orEmpty()
         if (key.length < 10) {
-            Toast.makeText(this, getString(R.string.activation_failed, "key too short"), Toast.LENGTH_SHORT).show()
+            toast(getString(R.string.activation_failed, "key too short"))
             return
         }
         binding.activateButton.isEnabled = false
@@ -92,11 +250,7 @@ class OnboardingActivity : AppCompatActivity() {
                 UserState.setOnboarded(this@OnboardingActivity, true)
                 finishToMain()
             } else {
-                Toast.makeText(
-                    this@OnboardingActivity,
-                    getString(R.string.activation_failed, result.error ?: "unknown"),
-                    Toast.LENGTH_LONG,
-                ).show()
+                toast(getString(R.string.activation_failed, result.error ?: "unknown"))
             }
         }
     }
@@ -109,6 +263,14 @@ class OnboardingActivity : AppCompatActivity() {
     }
 
     override fun onBackPressed() {
-        if (step != Step.HOME) goTo(Step.HOME) else super.onBackPressed()
+        when (step) {
+            Step.SIGN_IN_OTP -> goTo(Step.SIGN_IN_EMAIL)
+            Step.SIGN_IN_EMAIL, Step.KEY, Step.LICENSE -> goTo(Step.HOME)
+            Step.HOME -> super.onBackPressed()
+        }
+    }
+
+    private fun toast(msg: String) {
+        Toast.makeText(this, msg, Toast.LENGTH_LONG).show()
     }
 }

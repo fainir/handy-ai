@@ -4,10 +4,12 @@
     android:height="96dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
+    <!-- In-app H + period mark. Both ink for a clean monochrome logo
+         that matches the cream-on-ink app theme. -->
     <path
-        android:fillColor="#1A1A1A"
+        android:fillColor="#111111"
         android:pathData="M38,32 L46,32 L46,50 L62,50 L62,32 L70,32 L70,76 L62,76 L62,58 L46,58 L46,76 L38,76 Z" />
     <path
-        android:fillColor="#E66A3A"
+        android:fillColor="#111111"
         android:pathData="M76,32 m-4,0 a4,4 0 1,0 8,0 a4,4 0 1,0 -8,0" />
 </vector>

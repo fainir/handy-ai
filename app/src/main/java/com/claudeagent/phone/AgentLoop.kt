@@ -24,13 +24,14 @@ class AgentLoop(
     private val messages = mutableListOf<JsonObject>()
 
     suspend fun run(task: String) {
-        AgentState.clearLog()
         AgentState.setState(RunState.Running)
         AgentState.setStatus("Preparing...")
-        log("Task: $task")
 
+        // The user message itself is appended by the UI before this loop
+        // starts, so we don't echo it here. We just quietly note the screen
+        // size as a status line — handy in logs, invisible as a bubble.
         val (w, h) = service.screenSize()
-        log("Screen: ${w}x${h}")
+        appendStatus("Screen: ${w}x${h}")
 
         val firstBitmap = captureOrFail() ?: return fail("Could not capture initial screenshot")
 
@@ -74,7 +75,7 @@ class AgentLoop(
             }
             textBlocks.forEach {
                 val t = it.jsonObject["text"]?.jsonPrimitive?.content.orEmpty().trim()
-                if (t.isNotEmpty()) log("💭 $t")
+                if (t.isNotEmpty()) appendAssistant(t)
             }
 
             val toolUses = assistantContent.filter {
@@ -82,7 +83,7 @@ class AgentLoop(
             }
 
             if (toolUses.isEmpty()) {
-                log("⚠ Model stopped without calling a tool.")
+                appendStatus("Model stopped without calling a tool.")
                 AgentState.setState(RunState.Finished(success = false, summary = "Model returned no action."))
                 AgentState.setStatus("Stopped: no action from model")
                 return
@@ -97,7 +98,7 @@ class AgentLoop(
                 val name = obj["name"]?.jsonPrimitive?.content ?: continue
                 val input = obj["input"]?.jsonObject ?: buildJsonObject { }
 
-                log("▶ $name(${input})")
+                appendAction("$name(${input})")
                 AgentState.setStatus("Step $step: $name")
 
                 if (name == "finish") {
@@ -147,14 +148,16 @@ class AgentLoop(
             if (finished != null) {
                 AgentState.setState(finished)
                 AgentState.setStatus(if (finished.success) "Done: ${finished.summary}" else "Stopped: ${finished.summary}")
-                log(if (finished.success) "✓ ${finished.summary}" else "✗ ${finished.summary}")
+                if (finished.summary.isNotBlank()) {
+                    appendAssistant(finished.summary)
+                }
                 return
             }
         }
 
         AgentState.setState(RunState.Finished(false, "Reached step limit"))
         AgentState.setStatus("Stopped: step limit reached")
-        log("⚠ Reached max step limit ($MAX_STEPS)")
+        appendStatus("Reached max step limit ($MAX_STEPS)")
     }
 
     private suspend fun executeAction(name: String, input: JsonObject): Pair<Boolean, String> {
@@ -254,20 +257,20 @@ class AgentLoop(
     }
 
     private fun fail(msg: String) {
-        log("✗ $msg")
+        appendStatus("Error: $msg")
         AgentState.setState(RunState.Error(msg))
         AgentState.setStatus("Error: $msg")
     }
 
     private fun stopped() {
-        log("■ Stopped by user")
+        appendStatus("Stopped by user")
         AgentState.setState(RunState.Stopped)
         AgentState.setStatus("Stopped")
     }
 
-    private fun log(line: String) {
-        AgentState.appendLog(line)
-    }
+    private fun appendAssistant(text: String) { ChatStore.append("assistant", text) }
+    private fun appendAction(text: String) { ChatStore.append("action", text) }
+    private fun appendStatus(text: String) { ChatStore.append("status", text) }
 
     private fun textBlock(text: String): JsonObject = buildJsonObject {
         put("type", JsonPrimitive("text"))
@@ -315,7 +318,7 @@ How to work:
 - When the task is complete, or you decide it cannot be completed, call finish with success and a short summary. Do not keep acting after calling finish.
 - Do not enter passwords, credit card numbers, or perform destructive actions (delete, uninstall, purchase, send money) without an explicit request from the user for that specific action.
 - Prefer fewer, higher-quality actions over many small ones. Wait only if the UI is still loading.
-- A small floating circular accessibility button may appear in the screenshots (usually near an edge). Ignore it; it is a system overlay, not part of any app, and tapping it opens accessibility settings.
+- A small floating circular accessibility button (the Handy AI "H" icon) may appear in the screenshots near an edge. Ignore it; it is the system shortcut for this app, not part of the app you are operating on.
 - If an app is in a first-run/setup flow (welcome screens, permission dialogs), dismiss or complete them first, then continue the task.
 
 You have at most ${MAX_STEPS} steps total.

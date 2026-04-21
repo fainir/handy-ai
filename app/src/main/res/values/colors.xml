@@ -3,22 +3,42 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
 
-    <color name="bg">#FF1E1C1B</color>
-    <color name="bg_elevated">#FF2A2826</color>
-    <color name="bg_pill">#FF2A2826</color>
-    <color name="text_primary">#FFECECEC</color>
-    <color name="text_secondary">#FF9F9F9D</color>
-    <color name="text_muted">#FF6A6A6A</color>
-    <color name="accent">#FF8B5CF6</color>
-    <color name="accent_dark">#FF7C3AED</color>
-    <color name="on_accent">#FFFFFFFF</color>
-    <color name="border_soft">#FF3A3835</color>
-    <color name="error">#FFD93B3B</color>
+    <!--
+    Monochrome cream-on-ink. Two tones do all the work: ink for surfaces,
+    cream for content and actions. No chromatic accent — restraint is the
+    brand (A24 / Aesop / editorial-print energy). Anything that wants to
+    "pop" pops by being cream against ink, not by being colorful.
 
-    <color name="primary">#FF8B5CF6</color>
-    <color name="primary_dark">#FF7C3AED</color>
-    <color name="on_primary">#FFFFFFFF</color>
-    <color name="surface">#FF1E1C1B</color>
-    <color name="on_surface">#FFECECEC</color>
-    <color name="muted">#FF9F9F9D</color>
+      ink       #111111 (app bg)
+      ink-hi    #1B1B1B (cards, pills, elevated)
+      cream     #EDE6D6 (text + accent + primary button fill)
+      cream-dim #D5CFBF (pressed state)
+    -->
+    <color name="bg">#FF111111</color>
+    <color name="bg_elevated">#FF1B1B1B</color>
+    <color name="bg_pill">#FF1B1B1B</color>
+    <color name="text_primary">#FFEDE6D6</color>
+    <color name="text_secondary">#FF8F8A7D</color>
+    <color name="text_muted">#FF5F5B51</color>
+
+    <!-- Cream IS the accent. "on_accent" = ink, since buttons are cream-filled. -->
+    <color name="accent">#FFEDE6D6</color>
+    <color name="accent_dark">#FFD5CFBF</color>
+    <color name="on_accent">#FF111111</color>
+
+    <color name="border_soft">#FF2A2825</color>
+    <color name="error">#FFD08A6B</color>
+
+    <!-- Aliases kept for any third-party / Material internals that look them up. -->
+    <color name="primary">#FFEDE6D6</color>
+    <color name="primary_dark">#FFD5CFBF</color>
+    <color name="on_primary">#FF111111</color>
+    <color name="surface">#FF111111</color>
+    <color name="on_surface">#FFEDE6D6</color>
+    <color name="muted">#FF8F8A7D</color>
+
+    <!-- Logo colors. Same palette, explicit names so the launcher icon and
+         any logo usages don't accidentally drift from the app theme. -->
+    <color name="logo_cream">#FFEDE6D6</color>
+    <color name="logo_ink">#FF111111</color>
 </resources>
