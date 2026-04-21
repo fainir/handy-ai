@@ -279,7 +279,41 @@ class MainActivity : AppCompatActivity() {
         ChatStore.ensureActiveSession()
         ChatStore.append("user", task)
         binding.taskInput.text?.clear()
-        service.startAgent(apiKey, task)
+
+        // Server-side entitlement check: only for SUBSCRIBED (trial/paid)
+        // users signed in against Supabase. BYO-key users bring their own
+        // Anthropic credentials and are never gated.
+        if (UserState.mode(this) == Mode.SUBSCRIBED && AuthStore.isSignedIn(this)) {
+            lifecycleScope.launch {
+                val ent = EntitlementClient.fetch(this@MainActivity)
+                if (ent != null && !ent.isEntitled) {
+                    ChatStore.append("status", "Trial ended. Subscribe to keep using Handy AI.")
+                    showTrialEndedDialog()
+                } else {
+                    service.startAgent(apiKey, task)
+                }
+            }
+        } else {
+            service.startAgent(apiKey, task)
+        }
+    }
+
+    private fun showTrialEndedDialog() {
+        AlertDialog.Builder(this)
+            .setTitle(R.string.trial_expired_title)
+            .setMessage(R.string.trial_expired_body)
+            .setPositiveButton(R.string.subscribe_now) { _, _ ->
+                startActivity(
+                    Intent(
+                        Intent.ACTION_VIEW,
+                        android.net.Uri.parse(
+                            BillingConfig.checkoutUrlFor(AuthStore.userId(this)),
+                        ),
+                    ),
+                )
+            }
+            .setNegativeButton(R.string.not_now, null)
+            .show()
     }
 
     private fun stopTask() {

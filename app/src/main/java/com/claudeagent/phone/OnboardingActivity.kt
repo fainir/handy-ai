@@ -88,7 +88,7 @@ class OnboardingActivity : AppCompatActivity() {
     private fun openCheckout() {
         UserState.setPairCode(this, "checkout-opened")
         try {
-            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(BillingConfig.LEMONSQUEEZY_CHECKOUT_URL)))
+            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(BillingConfig.checkoutUrlFor(AuthStore.userId(this)))))
             goTo(Step.LICENSE)
         } catch (t: Throwable) {
             toast("No browser available")

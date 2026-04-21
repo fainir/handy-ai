@@ -47,6 +47,15 @@ object ChatStore {
     private const val KEY_ACTIVE = "active_session"
     private const val KEY_MESSAGES_PREFIX = "messages_v1_"
 
+    /** Ring buffer per session. SharedPreferences stays under ~200KB per
+     *  session even at the cap, so writes remain fast. Older messages fall
+     *  off silently — we don't advertise "full history" anywhere. */
+    private const val MAX_MESSAGES_PER_SESSION = 500
+
+    /** Hard cap on how many sessions we keep. Old sessions (least recently
+     *  updated) are pruned when this is exceeded. */
+    private const val MAX_SESSIONS = 100
+
     private val json = Json { ignoreUnknownKeys = true }
 
     private var prefs: SharedPreferences? = null
@@ -128,9 +137,16 @@ object ChatStore {
             createdAt = System.currentTimeMillis(),
             updatedAt = System.currentTimeMillis(),
         )
-        val list = (_sessions.value + s).sortedByDescending { it.updatedAt }
-        _sessions.value = list
-        saveSessions(list)
+        val all = (_sessions.value + s).sortedByDescending { it.updatedAt }
+        val (kept, dropped) = all.chunked(MAX_SESSIONS).let { parts ->
+            parts.first() to parts.drop(1).flatten()
+        }
+        _sessions.value = kept
+        saveSessions(kept)
+        // Drop message blobs for any session that fell off the tail.
+        dropped.forEach {
+            requirePrefs().edit().remove(KEY_MESSAGES_PREFIX + it.id).apply()
+        }
         _activeId.value = s.id
         _activeMessages.value = emptyList()
         requirePrefs().edit().putString(KEY_ACTIVE, s.id).apply()
@@ -155,7 +171,9 @@ object ChatStore {
             text = text,
             timestamp = System.currentTimeMillis(),
         )
-        val updated = _activeMessages.value + msg
+        // Cap applied on append so the live flow never emits a list larger
+        // than the limit (avoids a one-frame jank when the UI trims).
+        val updated = (_activeMessages.value + msg).takeLast(MAX_MESSAGES_PER_SESSION)
         _activeMessages.value = updated
         saveMessages(sessionId, updated)
 
