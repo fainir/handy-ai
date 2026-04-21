@@ -109,6 +109,35 @@ object SupabaseAuth {
         parseSession(raw)
     }
 
+    /**
+     * Invalidates the current refresh token on the server so a stolen token
+     * cannot be used after the user signs out. Fire-and-forget: we clear
+     * local state regardless of whether this succeeds (network could be down
+     * and the user still wants to be signed out on device).
+     */
+    suspend fun signOut(accessToken: String): Result<Unit> = withContext(Dispatchers.IO) {
+        if (!BillingConfig.supabaseConfigured()) {
+            return@withContext Result.failure(AuthError.NotConfigured())
+        }
+        val req = Request.Builder()
+            .url(BillingConfig.SUPABASE_URL.trimEnd('/') + "/auth/v1/logout")
+            .header("apikey", BillingConfig.SUPABASE_ANON_KEY)
+            .header("Authorization", "Bearer $accessToken")
+            .header("Content-Type", "application/json")
+            .post("{}".toRequestBody(JSON_MEDIA))
+            .build()
+        try {
+            client.newCall(req).execute().use { resp ->
+                // GoTrue returns 204 on success, 401 if the token was already
+                // invalid — either is fine from our perspective.
+                if (resp.code in 200..299 || resp.code == 401) Result.success(Unit)
+                else Result.failure(AuthError.Server(resp.code, resp.body?.string().orEmpty()))
+            }
+        } catch (e: IOException) {
+            Result.failure(AuthError.Network(e))
+        }
+    }
+
     // ----- internals -----
 
     private suspend inline fun <T> runRequest(crossinline block: suspend () -> T): Result<T> =

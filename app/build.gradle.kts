@@ -30,8 +30,8 @@ android {
         applicationId = "com.claudeagent.phone"
         minSdk = 30
         targetSdk = 34
-        versionCode = 3
-        versionName = "1.2"
+        versionCode = 4
+        versionName = "1.3"
 
         // These ship into BuildConfig.kt at compile time. See local.properties
         // for where to put real values. Safe-by-default placeholders make a
@@ -50,6 +50,11 @@ android {
             "String",
             "GOOGLE_WEB_CLIENT_ID",
             "\"${secret("GOOGLE_WEB_CLIENT_ID", "")}\"",
+        )
+        buildConfigField(
+            "String",
+            "SENTRY_DSN",
+            "\"${secret("SENTRY_DSN", "")}\"",
         )
     }
 
@@ -108,4 +113,9 @@ dependencies {
     implementation("androidx.credentials:credentials:1.3.0")
     implementation("androidx.credentials:credentials-play-services-auth:1.3.0")
     implementation("com.google.android.libraries.identity.googleid:googleid:1.1.1")
+
+    // Crash reporting. Sentry auto-captures uncaught exceptions + ANRs
+    // as soon as Sentry.init() runs with a real DSN. DSN-gated in
+    // [HandyAIApplication] so debug builds without a DSN stay silent.
+    implementation("io.sentry:sentry-android:7.14.0")
 }

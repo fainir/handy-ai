@@ -8,8 +8,10 @@ import android.text.TextUtils
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import com.claudeagent.phone.databinding.ActivitySettingsBinding
 import java.util.concurrent.TimeUnit
+import kotlinx.coroutines.launch
 
 class SettingsActivity : AppCompatActivity() {
 
@@ -51,7 +53,7 @@ class SettingsActivity : AppCompatActivity() {
         }
 
         binding.manageSubscriptionButton.setOnClickListener {
-            val url = BillingConfig.LEMONSQUEEZY_CHECKOUT_URL
+            val url = BillingConfig.checkoutUrlFor(AuthStore.userId(this))
             startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
         }
 
@@ -90,6 +92,13 @@ class SettingsActivity : AppCompatActivity() {
             .setTitle(R.string.signout_confirm)
             .setMessage(R.string.signout_body)
             .setPositiveButton(R.string.signout) { _, _ ->
+                val accessToken = AuthStore.accessToken(this)
+                // Fire-and-forget server-side revocation — we don't wait for
+                // it before clearing local state so a flaky network can't
+                // strand the user in a "half signed-out" state.
+                if (!accessToken.isNullOrBlank()) {
+                    lifecycleScope.launch { SupabaseAuth.signOut(accessToken) }
+                }
                 AuthStore.clear(this)
                 // Keep the API key + other settings in place. Next launch
                 // will route the user back to onboarding's sign-in step.
@@ -155,7 +164,8 @@ class SettingsActivity : AppCompatActivity() {
         val target = if (current == Mode.SUBSCRIBED) Mode.BYO_KEY else Mode.SUBSCRIBED
         UserState.setMode(this, target)
         if (target == Mode.SUBSCRIBED && UserState.licenseKey(this).isNullOrBlank()) {
-            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(BillingConfig.LEMONSQUEEZY_CHECKOUT_URL)))
+            val url = BillingConfig.checkoutUrlFor(AuthStore.userId(this))
+            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
         }
         refreshPlanStatus()
     }
