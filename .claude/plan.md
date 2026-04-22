@@ -16,8 +16,10 @@
 - [x] Replace orange theme with monochrome cream-on-ink (S)
 - [x] Make email + Google auth production-ready (L)
 - [x] Provision live Supabase project + verify sign-in end-to-end (M)
-- [~] Production hardening sprint (XL)
+- [x] Production hardening sprint (XL)
   - DoD: landing-page APK matches current monochrome build; server-side trial gate so `pm clear` can't reset the clock; real Lemon Squeezy product + checkout URL; Resend SMTP on Supabase (rate limit lifted); Sentry hooked up.
+  - Done: v1.3 APK live on Railway; profiles/RLS/my_entitlement view + EntitlementClient gate; Handy-AI-branded OTP email template saved on Supabase; SupabaseAuth.signOut + SettingsActivity server-side revocation; ChatStore capped at 500 msgs / 100 sessions; Sentry SDK wired + DSN-gated in HandyAIApplication; Lemon Squeezy Edge Function ready to deploy; user_id threaded through checkout URLs.
+  - User-action blockers: Resend signup → API key; Google Cloud OAuth web client; Lemon Squeezy product + webhook signing secret; Sentry project → DSN.
   - DoD: `handy-ai` project exists on Supabase fainir's Org (eu-central-1); SUPABASE_URL + anon key committed to local.properties (NOT to git); APK built from those; /auth/v1/otp returns 200 and creates the user record in auth.users.
   - Verified: curl POST /otp → 200 → fainir2006@gmail.com appears in auth/users with UID da77b31f-25a8-4a8e-aac3-3b9f7c3f69b3. APK v1.1 installed with BuildConfig.SUPABASE_URL = https://lahxcictftleizekgzhu.supabase.co baked in.
   - Phone-UI loop not rerun because the current user is BYO_KEY (legacy guard correctly skips). To exercise on phone: Settings → Switch to subscription → kill+relaunch → hit sign-in flow.
