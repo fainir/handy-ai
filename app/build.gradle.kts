@@ -24,14 +24,14 @@ fun secret(key: String, fallback: String): String =
 
 android {
     namespace = "com.claudeagent.phone"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "com.claudeagent.phone"
         minSdk = 30
-        targetSdk = 34
-        versionCode = 5
-        versionName = "1.4"
+        targetSdk = 35
+        versionCode = 6
+        versionName = "1.4.1"
 
         // These ship into BuildConfig.kt at compile time. See local.properties
         // for where to put real values. Safe-by-default placeholders make a

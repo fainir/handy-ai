@@ -15,8 +15,12 @@
     <string name="grant_accessibility_short">Grant accessibility</string>
 
     <string name="task_hint">What should the agent do?\n\nExample: Open Chrome, search for \"weather in Tel Aviv\", and tell me the current temperature.</string>
-    <string name="task_hint_short">Describe a task...</string>
-    <string name="hero_prompt">Point me at\na task.</string>
+    <string name="task_hint_short">Tell me what to do on your phone…</string>
+    <string name="hero_prompt">What should I do on your phone?</string>
+    <string name="hero_subtitle">Type or tap the mic. I\'ll open the apps, tap, type, and swipe until it\'s done.</string>
+    <string name="hero_example_1">\"Message Sarah on WhatsApp that I\'m running late.\"</string>
+    <string name="hero_example_2">\"Open Instagram and save the top post on my feed.\"</string>
+    <string name="hero_example_3">\"Search Google Maps for sushi near me.\"</string>
     <string name="save_key">Save key</string>
     <string name="clear_key">Clear key</string>
     <string name="grant_accessibility">Open Accessibility settings</string>
@@ -67,13 +71,25 @@
     <string name="subscribe_now">Subscribe</string>
 
     <!-- Onboarding -->
-    <string name="onboarding_tagline">Hand tasks to your phone.</string>
+    <string name="onboarding_tagline">An AI that actually uses your phone for you.</string>
     <string name="trial_badge">7 DAYS FREE</string>
     <string name="subscribe_title">Start free trial</string>
     <string name="subscribe_subtitle">Unlimited tasks. $9.99/mo after. Cancel anytime.</string>
-    <string name="byo_key_title">Use my own API key</string>
+    <string name="byo_key_title">Paste your Anthropic API key</string>
     <string name="byo_key_subtitle">Bring an Anthropic API key. Pay per use, no subscription.</string>
-    <string name="byo_key_hint">Paste your Anthropic API key. It\'s stored encrypted on your device.</string>
+    <string name="byo_key_hint">Handy AI uses Claude to understand your task and control your phone. You pay Anthropic directly — usually a few cents per task — and nothing goes through us.</string>
+    <string name="byo_key_how_to">Get a key → console.anthropic.com → \"API keys\" → Create key. Your key lives encrypted on this phone only.</string>
+    <string name="onboarding_how_it_works_title">How it works</string>
+    <string name="onboarding_how_it_works_body">Type or speak a task in plain English. Handy AI watches your screen and taps, types, and swipes through your apps until it\'s done. Works with any app you have installed.</string>
+    <string name="onboarding_next_step_hint">Next: you\'ll turn on Accessibility once so Handy AI can see and operate the screen.</string>
+    <string name="add_key_cta">Add your Anthropic API key</string>
+    <string name="setup_card_title">One-time setup</string>
+    <string name="setup_card_body">Add an Anthropic API key so Handy AI can understand your tasks. Takes 30 seconds.</string>
+    <string name="get_key_button">Get a key → console.anthropic.com</string>
+    <string name="anthropic_keys_url" translatable="false">https://console.anthropic.com/settings/keys</string>
+    <string name="get_key_link">Get a key → console.anthropic.com</string>
+    <string name="api_key_bar_hint">Paste your Anthropic API key to start</string>
+    <string name="save_api_key">Save key</string>
     <string name="license_title">Paste your license key</string>
     <string name="license_hint">After purchase you\'ll get a license key by email. Paste it here to activate.</string>
     <string name="license_placeholder">XXXX-XXXX-XXXX-XXXX</string>

@@ -2,8 +2,11 @@ package com.claudeagent.phone
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
+import kotlin.coroutines.resume
+import kotlin.coroutines.resumeWithException
 import kotlinx.serialization.json.JsonArray
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
@@ -68,7 +71,7 @@ class AnthropicClient(private val apiKey: String) {
         var lastError: Throwable? = null
         repeat(MAX_ATTEMPTS) { attempt ->
             try {
-                http.newCall(request).execute().use { resp ->
+                awaitCall(http.newCall(request)).use { resp ->
                     val text = resp.body?.string().orEmpty()
                     if (resp.code in RETRYABLE_STATUS) {
                         lastError = RuntimeException("API ${resp.code}: ${text.take(200)}")
@@ -91,6 +94,29 @@ class AnthropicClient(private val apiKey: String) {
         }
         throw lastError ?: RuntimeException("Anthropic request failed")
     }
+
+    /**
+     * OkHttp's blocking [okhttp3.Call.execute] can't be interrupted mid-request
+     * by a coroutine cancel, so Stop would wait up to the 120s read timeout.
+     * Enqueuing instead and wiring `invokeOnCancellation` → `call.cancel()`
+     * makes cancellation propagate to the socket immediately. On cancel, the
+     * continuation is simply discarded — we don't resume it, so the enclosing
+     * coroutine throws `CancellationException` and short-circuits the retry
+     * loop (the `IOException("Canceled")` OkHttp surfaces via `onFailure` is
+     * ignored because the continuation is already inactive).
+     */
+    private suspend fun awaitCall(call: okhttp3.Call): okhttp3.Response =
+        suspendCancellableCoroutine { cont ->
+            cont.invokeOnCancellation { runCatching { call.cancel() } }
+            call.enqueue(object : okhttp3.Callback {
+                override fun onFailure(c: okhttp3.Call, e: IOException) {
+                    if (cont.isActive) cont.resumeWithException(e)
+                }
+                override fun onResponse(c: okhttp3.Call, response: okhttp3.Response) {
+                    if (cont.isActive) cont.resume(response) else response.close()
+                }
+            })
+        }
 
     companion object {
         private const val MAX_ATTEMPTS = 4

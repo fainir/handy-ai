@@ -83,6 +83,13 @@ class AgentAccessibilityService : AccessibilityService() {
     fun stopAgent() {
         currentJob?.cancel()
         currentJob = null
+        // Flip the agent state synchronously so the UI's stop→send swap
+        // happens immediately, without waiting for the coroutine to wake up
+        // from whatever suspension it's in (HTTP read, gesture, etc.).
+        // The AgentLoop's own stopped() path will still run and append the
+        // "Stopped by user" chat row once cancellation actually propagates.
+        AgentState.setState(RunState.Stopped)
+        AgentState.setStatus("Stopped")
     }
 
     val isAgentRunning: Boolean
