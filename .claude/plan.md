@@ -16,6 +16,10 @@
 - [x] Replace orange theme with monochrome cream-on-ink (S)
 - [x] Make email + Google auth production-ready (L)
 - [x] Provision live Supabase project + verify sign-in end-to-end (M)
+- [x] Wire Google Sign-In end-to-end (M)
+  - DoD: Handy AI Google Cloud project created; Web + Android OAuth clients; Supabase Google provider enabled with Web Client ID + secret; GOOGLE_WEB_CLIENT_ID baked into BuildConfig; v1.4 APK built + staged to docs/; "Continue with Google" button visible in onboarding once installed.
+  - Done: GCP project `handy-ai-494116`; OAuth consent screen (External, Handy AI); Web OAuth Client `103501871882-0fujas5tkn9maeu21f763283oka6ir9t.apps.googleusercontent.com` with redirect `https://lahxcictftleizekgzhu.supabase.co/auth/v1/callback`; Android OAuth Client with package `com.claudeagent.phone` + release SHA-1; Supabase Auth → Providers → Google enabled with Client ID + secret; local.properties updated; v1.4 release APK built + swapped into docs/HandyAI.apk.
+  - Pending (when Pixel reconnects): `adb install -r app-debug.apk`.
 - [x] Production hardening sprint (XL)
   - DoD: landing-page APK matches current monochrome build; server-side trial gate so `pm clear` can't reset the clock; real Lemon Squeezy product + checkout URL; Resend SMTP on Supabase (rate limit lifted); Sentry hooked up.
   - Done: v1.3 APK live on Railway; profiles/RLS/my_entitlement view + EntitlementClient gate; Handy-AI-branded OTP email template saved on Supabase; SupabaseAuth.signOut + SettingsActivity server-side revocation; ChatStore capped at 500 msgs / 100 sessions; Sentry SDK wired + DSN-gated in HandyAIApplication; Lemon Squeezy Edge Function ready to deploy; user_id threaded through checkout URLs.

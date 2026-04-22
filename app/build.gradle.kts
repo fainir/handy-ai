@@ -30,8 +30,8 @@ android {
         applicationId = "com.claudeagent.phone"
         minSdk = 30
         targetSdk = 34
-        versionCode = 4
-        versionName = "1.3"
+        versionCode = 5
+        versionName = "1.4"
 
         // These ship into BuildConfig.kt at compile time. See local.properties
         // for where to put real values. Safe-by-default placeholders make a
