@@ -41,6 +41,21 @@ class OnboardingActivity : AppCompatActivity() {
         binding.byoKeyCard.setOnClickListener { goTo(Step.KEY) }
 
         binding.saveKeyButton.setOnClickListener { onSaveKey() }
+        binding.getKeyButton.setOnClickListener {
+            // Kick users straight to the API-keys page in the Anthropic
+            // console. Small graceful fallback if there's somehow no browser
+            // on the device (unlikely, but harmless).
+            try {
+                startActivity(
+                    Intent(
+                        Intent.ACTION_VIEW,
+                        Uri.parse(getString(R.string.anthropic_keys_url)),
+                    ),
+                )
+            } catch (t: Throwable) {
+                toast("No browser available")
+            }
+        }
 
         // Sign-in handlers.
         binding.sendCodeButton.setOnClickListener { onSendCode() }
@@ -57,7 +72,10 @@ class OnboardingActivity : AppCompatActivity() {
         binding.activateButton.setOnClickListener { onActivateLicense() }
         binding.openCheckoutAgainButton.setOnClickListener { openCheckout() }
 
-        goTo(Step.HOME)
+        // v1 ships API-key-only. The HOME / SIGN_IN_* / LICENSE steps stay
+        // wired in code so we can flip them back on later (paid tier, trial)
+        // without a big diff — they're just not reachable from the UI today.
+        goTo(Step.KEY)
     }
 
     override fun onResume() {
@@ -263,10 +281,12 @@ class OnboardingActivity : AppCompatActivity() {
     }
 
     override fun onBackPressed() {
+        // In v1 the KEY step is the only entry point — back exits the app
+        // rather than dumping the user onto the hidden HOME chooser.
         when (step) {
             Step.SIGN_IN_OTP -> goTo(Step.SIGN_IN_EMAIL)
-            Step.SIGN_IN_EMAIL, Step.KEY, Step.LICENSE -> goTo(Step.HOME)
-            Step.HOME -> super.onBackPressed()
+            Step.SIGN_IN_EMAIL, Step.LICENSE -> goTo(Step.HOME)
+            Step.KEY, Step.HOME -> super.onBackPressed()
         }
     }
 

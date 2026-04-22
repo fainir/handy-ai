@@ -3,10 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Handy AI — Hand your phone a task</title>
-<meta name="description" content="An AI assistant that gets things done on your phone. Describe it by voice or text; Handy AI carries it out.">
+<title>Handy AI — Hand tasks to your phone</title>
+<meta name="description" content="An AI agent that actually uses your Android phone for you. Type or speak a task; Handy AI taps, types, and swipes through your apps until it's done.">
 <meta property="og:title" content="Handy AI">
-<meta property="og:description" content="Hand your phone a task. Voice or text. Handy does it.">
+<meta property="og:description" content="Hand tasks to your phone. Type or speak — Handy AI does the rest.">
 <meta property="og:image" content="feature.png">
 <meta name="theme-color" content="#F4E9D4">
 <link rel="icon" type="image/png" href="icon.png">
@@ -20,7 +20,6 @@
     --ink: #1A1A1A;
     --ink-2: #3A3530;
     --muted: #5A544C;
-    --accent: #E66A3A;
     --border: #D4C6A8;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -48,6 +47,7 @@
     font-weight: 700;
     font-size: 22px;
     letter-spacing: -0.02em;
+    text-decoration: none;
   }
   .logo-mark {
     width: 36px; height: 36px;
@@ -57,14 +57,6 @@
     font-family: 'Fraunces', serif;
     font-weight: 700;
     font-size: 20px;
-    position: relative;
-  }
-  .logo-mark::after {
-    content: ""; position: absolute;
-    top: 5px; right: 5px;
-    width: 7px; height: 7px;
-    background: var(--accent);
-    border-radius: 50%;
   }
   .nav-links { display: flex; gap: 28px; font-size: 15px; color: var(--muted); }
   .nav-links a { text-decoration: none; }
@@ -92,11 +84,12 @@
     display: flex;
     gap: 12px;
     flex-wrap: wrap;
+    align-items: stretch;
   }
   .btn {
     display: inline-flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
     padding: 16px 24px;
     border-radius: 12px;
     font-size: 16px;
@@ -104,6 +97,8 @@
     text-decoration: none;
     transition: transform 0.12s ease, background 0.12s ease;
     border: 1px solid transparent;
+    cursor: pointer;
+    font-family: inherit;
   }
   .btn:active { transform: translateY(1px); }
   .btn-primary {
@@ -117,8 +112,31 @@
     border-color: var(--border);
   }
   .btn-secondary:hover { background: rgba(26,26,26,0.04); }
+  .btn-disabled {
+    background: transparent;
+    color: var(--muted);
+    border-color: var(--border);
+    cursor: not-allowed;
+    opacity: 0.75;
+  }
+  .btn-disabled:hover { background: transparent; transform: none; }
+  .btn small {
+    display: block;
+    font-size: 11px;
+    font-weight: 500;
+    opacity: 0.65;
+    letter-spacing: 0.03em;
+    margin-top: 1px;
+  }
+  .btn .store-label {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    line-height: 1.15;
+  }
+  .btn svg { flex-shrink: 0; }
   .hero-art {
-    margin-top: 60px;
+    margin-top: 72px;
     display: grid;
     grid-template-columns: 1fr auto 1fr;
     align-items: center;
@@ -128,21 +146,13 @@
     height: 1px; background: var(--border);
   }
   .hero-art .mark {
-    width: 72px; height: 72px;
+    width: 80px; height: 80px;
     background: var(--ink); color: var(--cream);
-    border-radius: 18px;
+    border-radius: 20px;
     display: grid; place-items: center;
     font-family: 'Fraunces', serif;
     font-weight: 700;
-    font-size: 42px;
-    position: relative;
-  }
-  .hero-art .mark::after {
-    content: ""; position: absolute;
-    top: 10px; right: 10px;
-    width: 14px; height: 14px;
-    background: var(--accent);
-    border-radius: 50%;
+    font-size: 46px;
   }
   section { padding: 80px 0; border-top: 1px solid var(--border); }
   section h2 {
@@ -178,81 +188,6 @@
     letter-spacing: -0.01em;
   }
   .card p { color: var(--muted); font-size: 15px; line-height: 1.6; }
-  .pricing {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 20px;
-  }
-  .price-card {
-    background: var(--cream-2);
-    border: 1px solid var(--border);
-    border-radius: 20px;
-    padding: 32px;
-    position: relative;
-  }
-  .price-card.featured {
-    background: var(--ink);
-    color: var(--cream);
-    border-color: var(--ink);
-  }
-  .price-card .badge {
-    display: inline-block;
-    background: var(--ink);
-    color: var(--cream);
-    font-size: 11px;
-    padding: 4px 10px;
-    border-radius: 999px;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    margin-bottom: 16px;
-    font-weight: 700;
-  }
-  .price-card.featured .badge {
-    background: var(--accent);
-    color: var(--cream);
-  }
-  .price-card h3 {
-    font-family: 'Fraunces', serif;
-    font-size: 28px;
-    margin-bottom: 8px;
-  }
-  .price-card .price {
-    font-size: 44px;
-    font-family: 'Fraunces', serif;
-    font-weight: 700;
-    letter-spacing: -0.02em;
-    margin: 8px 0 4px;
-  }
-  .price-card .price small { font-size: 16px; font-weight: 500; opacity: 0.7; }
-  .price-card .desc { font-size: 14px; opacity: 0.85; margin-bottom: 20px; line-height: 1.55; }
-  .price-card ul {
-    list-style: none;
-    margin-bottom: 28px;
-    padding: 0;
-    font-size: 14px;
-  }
-  .price-card li {
-    padding-left: 22px;
-    margin-bottom: 10px;
-    position: relative;
-  }
-  .price-card li::before {
-    content: "—";
-    position: absolute;
-    left: 0;
-    opacity: 0.5;
-  }
-  .price-card .btn {
-    width: 100%;
-    justify-content: center;
-  }
-  .price-card.featured .btn-primary {
-    background: var(--cream);
-    color: var(--ink);
-  }
-  .price-card.featured .btn-primary:hover {
-    background: var(--cream-2);
-  }
   .install-steps {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
@@ -270,7 +205,7 @@
     font-weight: 700;
     font-size: 14px;
     letter-spacing: 0.08em;
-    color: var(--accent);
+    color: var(--ink);
     display: block;
     margin-bottom: 12px;
   }
@@ -280,6 +215,7 @@
     margin-bottom: 8px;
   }
   .step p { color: var(--muted); font-size: 15px; }
+  .step a { color: var(--ink); font-weight: 500; }
   .faq-item {
     border-top: 1px solid var(--border);
     padding: 24px 0;
@@ -292,6 +228,7 @@
     margin-bottom: 8px;
   }
   .faq-item p { color: var(--muted); }
+  .faq-item a { color: var(--ink); }
   footer {
     padding: 40px 0 60px;
     border-top: 1px solid var(--border);
@@ -316,24 +253,29 @@
 <body>
 <div class="wrap">
   <nav>
-    <a href="#" class="logo">
+    <a href="/" class="logo">
       <span class="logo-mark">H</span>
       Handy AI
     </a>
     <div class="nav-links">
       <a href="#how">How it works</a>
       <a href="#install">Install</a>
-      <a href="#pricing">Pricing</a>
       <a href="#faq">FAQ</a>
     </div>
   </nav>
 
   <section class="hero" style="border: none; padding-top: 40px;">
-    <h1>Hand your phone<br><em>a task.</em></h1>
-    <p class="sub">Say what you want done. Handy AI does it — taps, types, and follows through on your Android phone so you don't have to.</p>
+    <h1>Hand tasks<br><em>to your phone.</em></h1>
+    <p class="sub">An AI agent that actually uses your Android phone for you. Type or speak a task — Handy AI watches your screen and taps, types, and swipes through your apps until it's done.</p>
     <div class="cta-row">
-      <a class="btn btn-primary" href="#install">Download APK</a>
-      <a class="btn btn-secondary" href="#pricing">See pricing</a>
+      <a class="btn btn-primary" href="HandyAI.apk" download>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        <span class="store-label">Download APK<small>Direct install · 21 MB</small></span>
+      </a>
+      <span class="btn btn-disabled" aria-disabled="true" title="Google Play release in review">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M3.5 2.1a1 1 0 0 0-.5.87v18.06a1 1 0 0 0 .5.87l10.8-9.9L3.5 2.1zm12.2 9.17L5.4 21.34l9.1-5.22 2.7 2.48a.85.85 0 0 0 1.18-.04l2.32-2.12a.93.93 0 0 0 0-1.35l-3.12-2.86zm0-2.53l3.12-2.86a.93.93 0 0 0 0-1.35L16.5 2.41a.85.85 0 0 0-1.18-.04L5.4 2.66l10.3 6.08z"/></svg>
+        <span class="store-label">Coming to Google Play<small>In review</small></span>
+      </span>
     </div>
 
     <div class="hero-art">
@@ -344,77 +286,43 @@
   </section>
 
   <section id="how">
-    <h2>Stop thumbing. Describe it.</h2>
-    <p class="lede">Handy AI looks at your screen, one step at a time, and decides what to tap. No macros, no automations you have to build — it just works on whatever is in front of it.</p>
+    <h2>Describe it. Handy does it.</h2>
+    <p class="lede">No macros, no workflows you have to build. Handy AI looks at your screen, one step at a time, decides the next tap, and keeps going until the task is done.</p>
     <div class="grid-3">
       <div class="card">
         <h3>Voice or text</h3>
-        <p>Tap the mic and say it. Or type. "Find a pizza place near the office and book 8pm for four."</p>
+        <p>Tap the mic and say it. Or type. <em>"Message Sarah on WhatsApp that I'm running late."</em></p>
       </div>
       <div class="card">
         <h3>Sees what you see</h3>
-        <p>Handy takes a screenshot, figures out the next tap, and executes. Then takes another. Until done.</p>
+        <p>Handy takes a screenshot, figures out the next tap, and executes. Then takes another. Until it's done.</p>
       </div>
       <div class="card">
         <h3>Stops when you say</h3>
-        <p>Big red Stop button. Also won't enter passwords or run destructive actions unless you explicitly tell it to.</p>
+        <p>Big Stop button flips the agent off instantly. Won't enter passwords or run destructive actions unless you explicitly ask.</p>
       </div>
     </div>
   </section>
 
   <section id="install">
     <h2>Install in 90 seconds.</h2>
-    <p class="lede">Not on the Play Store (yet). You download the APK directly, enable "Install unknown apps" once for your browser, and you're in.</p>
+    <p class="lede">Play Store listing is in review. For now, install the signed APK directly — it's the same bundle Google is reviewing.</p>
     <div class="install-steps">
       <div class="step">
         <h3>Download</h3>
-        <p><a class="btn btn-primary" href="HandyAI.apk" download style="padding: 12px 18px; font-size: 14px;">Download APK (13&nbsp;MB)</a></p>
+        <p><a class="btn btn-primary" href="HandyAI.apk" download style="padding: 12px 18px; font-size: 14px;">Download APK (21&nbsp;MB)</a></p>
       </div>
       <div class="step">
         <h3>Allow install</h3>
         <p>Android will ask once — tap "Settings", toggle "Allow from this source", and back out.</p>
       </div>
       <div class="step">
-        <h3>Open + sign in</h3>
-        <p>Start the 7-day free trial, or paste your own Anthropic API key. No signup wall either way.</p>
+        <h3>Paste your key</h3>
+        <p>Handy AI uses Claude. Paste your Anthropic key (get one at <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">console.anthropic.com</a>) — stored encrypted, on-device only.</p>
       </div>
       <div class="step">
         <h3>Grant Accessibility</h3>
-        <p>After your first send, Handy asks for Accessibility permission. That's how it taps on your behalf. You can revoke it any time.</p>
-      </div>
-    </div>
-    <p style="margin-top: 32px; font-size: 13px; color: var(--muted);">Auto-updates via <a href="https://obtainium.imranr.dev/" target="_blank" style="color: var(--ink);">Obtainium</a>: point it at <code>https://github.com/fainir/handy-ai/releases</code>.</p>
-  </section>
-
-  <section id="pricing">
-    <h2>Pay what fits.</h2>
-    <p class="lede">One subscription, one free alternative. Pick whichever bothers you less.</p>
-    <div class="pricing">
-      <div class="price-card featured">
-        <span class="badge">7 days free</span>
-        <h3>Handy AI</h3>
-        <div class="price">$9.99<small>&nbsp;/&nbsp;month</small></div>
-        <p class="desc">Unlimited tasks on your phone. No API keys to manage. Cancel any time.</p>
-        <ul>
-          <li>Unlimited tasks</li>
-          <li>No rate limits in regular use</li>
-          <li>Syncs across your devices</li>
-          <li>Works with the Cloudbot desktop agent</li>
-        </ul>
-        <a class="btn btn-primary" href="#" id="subscribe-cta">Start 7-day trial</a>
-      </div>
-      <div class="price-card">
-        <span class="badge">Developers</span>
-        <h3>Bring your own key</h3>
-        <div class="price">$0<small>&nbsp;+ Anthropic usage</small></div>
-        <p class="desc">You pay Anthropic directly. Handy handles the rest. Zero subscription.</p>
-        <ul>
-          <li>No account</li>
-          <li>Same app, same features</li>
-          <li>Your key, stored encrypted on device</li>
-          <li>Best if you already have an Anthropic account</li>
-        </ul>
-        <a class="btn btn-secondary" href="#install">Download APK</a>
+        <p>After your first send, Handy asks for Accessibility permission. That's how it taps on your behalf. Revoke any time.</p>
       </div>
     </div>
   </section>
@@ -422,24 +330,24 @@
   <section id="faq">
     <h2>Short answers.</h2>
     <div class="faq-item">
-      <h3>Why isn't this on the Play Store?</h3>
-      <p>Google's policies around general-purpose Accessibility apps are strict and inconsistently enforced. Rather than spend weeks in review roulette, we ship direct. You get updates first, we skip the 30% tax.</p>
-    </div>
-    <div class="faq-item">
       <h3>Is it safe to install?</h3>
-      <p>Yes — the APK is signed with our release key (fingerprint on GitHub). You're trusting the same code any Play Store reviewer would see. Source is at <a href="https://github.com/fainir/handy-ai" target="_blank">github.com/fainir/handy-ai</a>.</p>
+      <p>Yes — the APK is signed with our release key. It's the same bundle currently under Google Play review. Source is open at <a href="https://github.com/fainir/handy-ai" target="_blank" rel="noopener">github.com/fainir/handy-ai</a>.</p>
     </div>
     <div class="faq-item">
       <h3>What phones does it work on?</h3>
       <p>Android 11 and up. The Accessibility screenshot API requires API level 30+.</p>
     </div>
     <div class="faq-item">
+      <h3>What does it cost?</h3>
+      <p>The app is free. You pay Anthropic directly for the API calls Claude makes — usually a few cents per task. No subscription, no account.</p>
+    </div>
+    <div class="faq-item">
       <h3>Can it enter passwords or run payments?</h3>
-      <p>Instructions tell it not to, unless you explicitly ask. It's guidance to the model, not a sandbox — treat it accordingly.</p>
+      <p>The system prompt tells it not to, unless you explicitly ask. That's guidance to the model, not a hard sandbox — treat it accordingly.</p>
     </div>
     <div class="faq-item">
       <h3>Where does my screen content go?</h3>
-      <p>To Anthropic's Claude API, one screenshot per step, only while a task runs. We never store, proxy, or train on it. See the <a href="privacy.html">privacy policy</a>.</p>
+      <p>To Anthropic's Claude API, one screenshot per step, only while a task is running. We never store, proxy, or train on it. See the <a href="privacy.html">privacy policy</a>.</p>
     </div>
   </section>
 
@@ -448,18 +356,10 @@
     <div>
       <a href="privacy.html">Privacy</a> &middot;
       <a href="terms.html">Terms</a> &middot;
-      <a href="https://github.com/fainir/handy-ai" target="_blank">GitHub</a> &middot;
+      <a href="https://github.com/fainir/handy-ai" target="_blank" rel="noopener">GitHub</a> &middot;
       <a href="mailto:hi@handyai.app">hi@handyai.app</a>
     </div>
   </footer>
 </div>
-
-<script>
-  // Subscribe CTA -> Lemon Squeezy checkout (replace with real URL)
-  document.getElementById('subscribe-cta').addEventListener('click', function(e) {
-    e.preventDefault();
-    window.open('https://handyai.lemonsqueezy.com/buy/PLACEHOLDER_VARIANT_ID', '_blank');
-  });
-</script>
 </body>
 </html>

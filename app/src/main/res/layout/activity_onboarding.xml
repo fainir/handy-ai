@@ -131,30 +131,77 @@
             </LinearLayout>
         </LinearLayout>
 
-        <!-- KEY_ENTRY state: paste API key -->
+        <!-- KEY_ENTRY state: v1's only entry point. Leads with a short
+             explainer so new users know what the app actually does, then
+             asks for the API key with clear why/how/cost context. -->
         <LinearLayout
             android:id="@+id/keyEntryGroup"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="48dp"
+            android:layout_marginTop="40dp"
             android:orientation="vertical"
             android:visibility="gone">
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/byo_key_title"
+                android:text="@string/onboarding_how_it_works_title"
                 android:textColor="@color/text_primary"
-                android:textSize="22sp"
+                android:textSize="20sp"
                 android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:lineSpacingExtra="2dp"
+                android:text="@string/onboarding_how_it_works_body"
+                android:textColor="@color/text_secondary"
+                android:textSize="14sp" />
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginTop="24dp"
+                android:background="@color/border_soft" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:text="@string/byo_key_title"
+                android:textColor="@color/text_primary"
+                android:textSize="20sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
+                android:lineSpacingExtra="2dp"
                 android:text="@string/byo_key_hint"
                 android:textColor="@color/text_secondary"
-                android:textSize="13sp" />
+                android:textSize="14sp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="10dp"
+                android:lineSpacingExtra="2dp"
+                android:text="@string/byo_key_how_to"
+                android:textColor="@color/text_muted"
+                android:textSize="12sp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/getKeyButton"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginTop="12dp"
+                android:text="@string/get_key_button"
+                android:textColor="@color/text_primary"
+                app:cornerRadius="10dp"
+                app:strokeColor="@color/border_soft" />
 
             <EditText
                 android:id="@+id/keyInput"
@@ -179,6 +226,15 @@
                 android:textColor="@color/on_accent"
                 app:backgroundTint="@color/accent"
                 app:cornerRadius="12dp" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:gravity="center"
+                android:text="@string/onboarding_next_step_hint"
+                android:textColor="@color/text_muted"
+                android:textSize="11sp" />
         </LinearLayout>
 
         <!-- SIGN_IN_EMAIL: Google button first (most users); email OTP below. -->

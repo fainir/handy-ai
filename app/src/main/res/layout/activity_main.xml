@@ -72,23 +72,87 @@
                 app:strokeColor="@color/border_soft" />
         </LinearLayout>
 
-        <!-- Empty state (only shown when the chat is empty) -->
-        <TextView
+        <!-- Empty-state hero: prompt + subtitle, plus examples when the user
+             already has a key saved (otherwise the bottom bar is a key input
+             and examples would be a distraction). -->
+        <ScrollView
             android:id="@+id/heroText"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginHorizontal="24dp"
-            android:fontFamily="serif"
-            android:gravity="center"
-            android:text="@string/hero_prompt"
-            android:textColor="@color/text_primary"
-            android:textSize="30sp"
+            android:layout_height="0dp"
+            android:fillViewport="true"
             android:visibility="gone"
             app:layout_constraintBottom_toTopOf="@id/inputContainer"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/statusChip"
-            app:layout_constraintVertical_bias="0.4" />
+            app:layout_constraintTop_toBottomOf="@id/statusChip">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:gravity="center_vertical"
+                android:orientation="vertical"
+                android:paddingHorizontal="28dp"
+                android:paddingTop="24dp"
+                android:paddingBottom="24dp">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:fontFamily="serif"
+                    android:gravity="center"
+                    android:lineSpacingExtra="2dp"
+                    android:text="@string/hero_prompt"
+                    android:textColor="@color/text_primary"
+                    android:textSize="30sp" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="14dp"
+                    android:gravity="center"
+                    android:lineSpacingExtra="2dp"
+                    android:text="@string/hero_subtitle"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="14sp" />
+
+                <!-- Examples (shown only once a key is saved). -->
+                <LinearLayout
+                    android:id="@+id/heroExamples"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="32dp"
+                    android:orientation="vertical"
+                    android:visibility="gone">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/hero_example_1"
+                        android:textColor="@color/text_muted"
+                        android:textSize="13sp"
+                        android:textStyle="italic" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:text="@string/hero_example_2"
+                        android:textColor="@color/text_muted"
+                        android:textSize="13sp"
+                        android:textStyle="italic" />
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="6dp"
+                        android:text="@string/hero_example_3"
+                        android:textColor="@color/text_muted"
+                        android:textSize="13sp"
+                        android:textStyle="italic" />
+                </LinearLayout>
+            </LinearLayout>
+        </ScrollView>
 
         <!-- Chat scroller -->
         <androidx.recyclerview.widget.RecyclerView
@@ -101,6 +165,79 @@
             android:paddingBottom="12dp"
             app:layout_constraintBottom_toTopOf="@id/inputContainer"
             app:layout_constraintTop_toBottomOf="@id/statusChip" />
+
+        <!-- Key setup bar: sits right above the chat input. Appears only
+             when no API key is saved; disappears after the user pastes one
+             in. The chat input stays visible underneath (but disabled) so
+             the whole UI is stable — nothing jumps around on first key save. -->
+        <LinearLayout
+            android:id="@+id/keySetupBar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="16dp"
+            android:layout_marginBottom="8dp"
+            android:orientation="vertical"
+            android:visibility="gone"
+            app:layout_constraintBottom_toTopOf="@id/inputContainer">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/getKeyLink"
+                style="@style/Widget.MaterialComponents.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="start"
+                android:layout_marginStart="-8dp"
+                android:layout_marginBottom="4dp"
+                android:minHeight="0dp"
+                android:paddingHorizontal="8dp"
+                android:paddingVertical="4dp"
+                android:text="@string/get_key_link"
+                android:textAllCaps="false"
+                android:textColor="@color/accent"
+                android:textSize="12sp" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/bg_input_pill"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingStart="20dp"
+                android:paddingEnd="6dp"
+                android:paddingVertical="6dp">
+
+                <EditText
+                    android:id="@+id/keyBarInput"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:autofillHints="password"
+                    android:background="@null"
+                    android:hint="@string/api_key_bar_hint"
+                    android:inputType="textPassword"
+                    android:maxLines="1"
+                    android:paddingVertical="10dp"
+                    android:textColor="@color/text_primary"
+                    android:textColorHint="@color/text_secondary"
+                    android:textSize="15sp" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/keyBarSaveButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="40dp"
+                    android:layout_marginStart="8dp"
+                    android:insetTop="0dp"
+                    android:insetBottom="0dp"
+                    android:minWidth="0dp"
+                    android:paddingHorizontal="16dp"
+                    android:text="@string/save_api_key"
+                    android:textAllCaps="false"
+                    android:textColor="@color/on_accent"
+                    android:textSize="14sp"
+                    app:backgroundTint="@color/accent"
+                    app:cornerRadius="20dp" />
+            </LinearLayout>
+        </LinearLayout>
 
         <!-- Input pill: text field + mic + send -->
         <LinearLayout

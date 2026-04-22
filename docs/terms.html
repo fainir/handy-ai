@@ -9,15 +9,14 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-  :root { --cream: #F4E9D4; --ink: #1A1A1A; --muted: #5A544C; --border: #D4C6A8; --accent: #E66A3A; }
+  :root { --cream: #F4E9D4; --ink: #1A1A1A; --muted: #5A544C; --border: #D4C6A8; }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: 'Inter', sans-serif; background: var(--cream); color: var(--ink); line-height: 1.7; -webkit-font-smoothing: antialiased; }
   a { color: var(--ink); }
   .wrap { max-width: 720px; margin: 0 auto; padding: 0 24px; }
   nav { padding: 24px 0; }
   .logo { display: inline-flex; align-items: center; gap: 12px; font-family: 'Fraunces', serif; font-weight: 700; font-size: 20px; letter-spacing: -0.02em; text-decoration: none; color: var(--ink); }
-  .logo-mark { width: 32px; height: 32px; background: var(--ink); color: var(--cream); border-radius: 7px; display: grid; place-items: center; font-family: 'Fraunces', serif; font-weight: 700; font-size: 18px; position: relative; }
-  .logo-mark::after { content: ""; position: absolute; top: 4px; right: 4px; width: 6px; height: 6px; background: var(--accent); border-radius: 50%; }
+  .logo-mark { width: 32px; height: 32px; background: var(--ink); color: var(--cream); border-radius: 7px; display: grid; place-items: center; font-family: 'Fraunces', serif; font-weight: 700; font-size: 18px; }
   h1 { font-family: 'Fraunces', serif; font-weight: 700; font-size: 48px; letter-spacing: -0.02em; margin: 40px 0 8px; line-height: 1.1; }
   .date { color: var(--muted); font-size: 14px; margin-bottom: 48px; }
   h2 { font-family: 'Fraunces', serif; font-weight: 700; font-size: 22px; margin: 40px 0 12px; letter-spacing: -0.01em; }
@@ -32,17 +31,17 @@
 <div class="wrap">
   <nav><a href="index.html" class="logo"><span class="logo-mark">H</span> Handy AI</a></nav>
   <h1>Terms of service</h1>
-  <p class="date">Last updated: 20 April 2026</p>
+  <p class="date">Last updated: 23 April 2026</p>
 
-  <p>By using Handy AI you agree to these terms.</p>
+  <p>By installing or using Handy AI you agree to these terms.</p>
 
   <ol>
-    <li><strong>What the service does.</strong> Handy AI lets you describe a task and attempts to carry it out on your Android phone by reading the screen and dispatching taps. It relies on third-party AI models (Claude by Anthropic) and may make mistakes.</li>
-    <li><strong>Your responsibility.</strong> You are responsible for what you ask it to do. You remain responsible for any messages, posts, or transactions made from your phone. Don't ask it to violate laws or the terms of the apps it drives.</li>
+    <li><strong>What the service does.</strong> Handy AI lets you describe a task and attempts to carry it out on your Android phone by reading the screen and dispatching taps. It relies on a third-party AI model (Claude by Anthropic) and may make mistakes.</li>
+    <li><strong>How you pay for it.</strong> The app itself is free. You bring your own Anthropic API key; Anthropic bills you directly for the API calls Claude makes on your behalf. We do not receive, see, or proxy your key — it is stored encrypted on your device only.</li>
+    <li><strong>Your responsibility.</strong> You are responsible for what you ask Handy AI to do and for anything sent, posted, purchased, or changed from your phone as a result. Don't ask it to violate laws or the terms of the apps it drives.</li>
     <li><strong>No warranty.</strong> The app is provided "as is". We don't warrant correctness, safety, or timeliness of results. Don't use it for tasks where a wrong tap is catastrophic.</li>
-    <li><strong>Liability.</strong> To the maximum extent allowed by law, we are not liable for indirect, incidental, or consequential damages arising from your use of the app.</li>
-    <li><strong>Subscription and billing.</strong> Paid plans renew automatically after the 7-day free trial. Cancel any time from the receipt email or Settings → Manage subscription. Refunds per Lemon Squeezy's policy.</li>
-    <li><strong>Safety guardrails.</strong> The system prompt asks the model not to enter passwords, payment info, or run destructive actions unless you specifically ask. This is a guideline to the model, not a hard sandbox.</li>
+    <li><strong>Liability.</strong> To the maximum extent allowed by law, we are not liable for indirect, incidental, or consequential damages arising from your use of the app. Anthropic's terms govern your use of Claude.</li>
+    <li><strong>Safety guardrails.</strong> The system prompt instructs the model not to enter passwords or payment info, or to run destructive actions, unless you specifically ask. This is guidance to the model, not a hard sandbox.</li>
     <li><strong>Changes.</strong> We may update these terms. Material changes will be announced in-app.</li>
     <li><strong>Jurisdiction.</strong> Governed by the laws of Israel.</li>
   </ol>

@@ -43,6 +43,15 @@
   - Impl: added `flagRequestAccessibilityButton` to accessibility_service_config.xml; registered AccessibilityButtonController callback in onServiceConnected() that launches MainActivity (NEW_TASK | CLEAR_TOP | SINGLE_TOP). Also updated the AgentLoop system prompt so the agent recognizes the H overlay as the Handy AI shortcut, not a random system overlay.
 
 ## Phase 2: Hub phone endpoints [in-progress]
+- [x] Refresh shareable release APK — rebuild signed release with today's fixes and replace docs/HandyAI.apk
+  - DoD: `docs/HandyAI.apk` contains versionCode 5 / versionName 1.4 + Sentry-auto-init-off + pending-task + instant-stop; signed with release keystore; size ≈ 21MB
+  - Done: rebuilt via `assembleRelease` → copied to `docs/HandyAI.apk`. aapt confirms package=`com.claudeagent.phone` versionCode=5 versionName=1.4. Landing-page download-button label bumped from 13 MB → 21 MB to match.
+- [x] Fix v1.4 boot crash — disable Sentry auto-init (SentryInitProvider throws when DSN="")
+  - DoD: app launches to onboarding/chat on Pixel with no FATAL in logcat; Sentry stays silent until a real DSN is wired
+  - Done: added `<meta-data android:name="io.sentry.auto-init" android:value="false"/>` to AndroidManifest; rebuilt v1.4 debug; `Displayed com.claudeagent.phone/.OnboardingActivity +809ms` with no FATAL. `HandyAIApplication.onCreate()` remains the only init path, gated on DSN non-blank.
+- [x] Resume task after accessibility grant + instant Stop
+  - DoD: send a message (text or mic), tap "Open Accessibility", grant, hit Back → agent starts running the queued task with no extra tap. Same for missing-key bounce. Message always appears in chat even before permission grant. Not Now dismisses the queue. Tapping Stop flips the button to Send within <1s and cancels any in-flight Anthropic request (no waiting for the 120s read timeout).
+  - Done: MainActivity.sendTask now appends the user message + stashes `pendingTask` BEFORE the permission dialogs (so the message survives the bounce); onResume → resumePendingIfReady silently fires the queued task once key + accessibility + service are all present. Extracted `runAgent()` so replay doesn't double-append. AgentAccessibilityService.stopAgent now synchronously pushes `RunState.Stopped` + status "Stopped" so the UI button flips to Send immediately. AnthropicClient switched from blocking `execute()` to `awaitCall()` — OkHttp call enqueued inside a `suspendCancellableCoroutine` with `invokeOnCancellation { call.cancel() }`, so cancellation aborts the socket read instantly instead of waiting out the 120s read timeout.
 - [ ] Add Phone + PhonePairCode models in cloudbot-panel
 - [ ] /api/phone router: pair/init, pair/status, pair/claim, list
 - [ ] Register router + deploy to Railway
@@ -50,4 +59,13 @@
 
 ## Phase 3: Play Store [blocked on Google verification]
 - [ ] Google approves ID upload (1-7 days)
+- [~] Rebuild signed release .aab with today's fixes (v1.4 w/ Sentry+pending+stop) ready to upload
+  - DoD: `app/build/outputs/bundle/release/app-release.aab` has versionCode 5 / versionName 1.4 and contains the Sentry-auto-init-off manifest tweak
 - [ ] Create app, upload .aab, fill listing, submit
+
+## Phase 1c: v1 copy pass (API-key-only) [in-progress]
+- [~] New-user page: simple hero + API-key bar at bottom (replaces the chat input until a key is saved)
+  - DoD: fresh launch shows one screen: toolbar "Handy AI", centered big "What should I do on your phone?" + one-line subtitle + tiny "Get a key → console.anthropic.com" link; the bottom bar is a single API-key input + ✓ save button. No examples. No setup card. No onboarding activity. Once a key is saved → the bar becomes the normal chat input + mic + send, and the examples show up (subsequent empty states). sendTask never opens OnboardingActivity anymore.
+- [x] Chat is the home screen; onboarding is optional setup
+  - DoD: first launch opens straight to the new-chat empty state with: app name in toolbar, hero "what should I do on your phone" + explainer subtitle + 3 example prompts + mic hint; if no API key yet, a setup card with "How it works" + "Add your Anthropic API key" button is visible above the examples; tapping the button opens the key-entry screen (was Onboarding) and returning with a valid key hides the card. No Subscribe/OTP/Google in UI. Friend-readable copy, no "BYO" or "sk-ant-" jargon.
+  - Done: MainActivity drops the `!isOnboarded → redirect` gate so chat is always home. activity_main.xml's hero now wraps a ScrollView with: hero_prompt + hero_subtitle + setupCard (gone unless ApiKeyStore is empty) + 3 italicized example lines. updateEmptyState toggles the setup card whenever the chat is empty AND no key saved; onResume refreshes the state so returning from the key-entry screen hides the card. OnboardingActivity now launches straight into Step.KEY with a richer layout: "How it works" title + body → divider → "Paste your Anthropic API key" title → cost/how-to lines → new outlined "Get a key → console.anthropic.com" button (opens Intent.ACTION_VIEW @ https://console.anthropic.com/settings/keys) → key input → Continue → "Next: Accessibility" hint footer. sendTask's no-key path bypasses the old Settings-based dialog and goes directly to the OnboardingActivity. New strings: hero_prompt / hero_subtitle / hero_example_{1,2,3} / onboarding_how_it_works_{title,body} / byo_key_how_to / onboarding_next_step_hint / setup_card_{title,body} / add_key_cta / get_key_button / anthropic_keys_url. docs/HandyAI.apk refreshed (21.5 MB).
