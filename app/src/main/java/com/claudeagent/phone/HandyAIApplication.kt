@@ -61,9 +61,17 @@ class HandyAIApplication : Application() {
      * "just now" the next time the user looks. On 401 (Revoked) we clear
      * our local state so Settings accurately shows Not paired; on network
      * error we keep the token (transient failure shouldn't nuke state).
+     *
+     * Throttled locally: users who relaunch 20x in a morning shouldn't
+     * hit /me 20x — the server throttles `last_seen_at` updates anyway,
+     * but rejecting the HTTP call here saves radio + battery.
      */
     private fun maybePanelHeartbeat() {
         if (UserState.panelToken(this).isNullOrBlank()) return
+        val now = System.currentTimeMillis()
+        val last = UserState.panelLastHeartbeatMs(this)
+        if (now - last < HEARTBEAT_MIN_INTERVAL_MS) return
+        UserState.setPanelLastHeartbeatMs(this, now)
         appScope.launch {
             when (PanelClient.panelMe(applicationContext)) {
                 is PanelClient.MeResult.Revoked -> {
@@ -73,5 +81,11 @@ class HandyAIApplication : Application() {
                 else -> Unit
             }
         }
+    }
+
+    companion object {
+        // 10 minutes: frequent enough that "last seen" feels live in the
+        // panel, infrequent enough that relaunches don't spam the wire.
+        private const val HEARTBEAT_MIN_INTERVAL_MS: Long = 10 * 60 * 1000L
     }
 }

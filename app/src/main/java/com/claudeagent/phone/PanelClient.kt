@@ -1,6 +1,7 @@
 package com.claudeagent.phone
 
 import android.content.Context
+import android.net.Uri
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaType
@@ -46,7 +47,12 @@ object PanelClient {
             .build()
     }
 
-    data class PairInit(val code: String?, val expiresInSeconds: Int, val error: String?)
+    data class PairInit(
+        val code: String?,
+        val pollSecret: String?,
+        val expiresInSeconds: Int,
+        val error: String?,
+    )
 
     data class PairStatus(
         val status: String, // pending | claimed | expired | consumed | error
@@ -96,53 +102,62 @@ object PanelClient {
                 http.newCall(req).execute().use { resp ->
                     val text = resp.body?.string().orEmpty()
                     if (!resp.isSuccessful) {
-                        return@withContext PairInit(null, 0, "HTTP ${resp.code}")
+                        return@withContext PairInit(null, null, 0, "HTTP ${resp.code}")
                     }
                     val json = JSONObject(text)
                     PairInit(
                         code = json.optString("code").ifBlank { null },
+                        pollSecret = json.optString("pollSecret").ifBlank { null },
                         expiresInSeconds = json.optInt("expiresInSeconds", 600),
                         error = null,
                     )
                 }
             } catch (t: Throwable) {
-                PairInit(null, 0, t.message ?: "Network error")
+                PairInit(null, null, 0, t.message ?: "Network error")
             }
         }
 
     /**
-     * Poll for claim status. 404 is treated as "expired" so the caller can
-     * surface a single error path (server reaps expired rows, so a
-     * once-valid code turning 404 is indistinguishable from never-existed
-     * and we lean toward the friendlier interpretation).
+     * Poll for claim status. Requires the pollSecret returned from
+     * [initPanelPair] — the server rejects polls with 401 without it, so
+     * a scraper that learned only the short code can't steal the token.
+     * 404 is treated as "expired" so the caller has a single error path.
      */
-    suspend fun pollPanelStatus(code: String): PairStatus = withContext(Dispatchers.IO) {
-        try {
-            val req = Request.Builder()
-                .url("${BillingConfig.PANEL_BASE_URL}/api/phone/pair/status/$code")
-                .get()
-                .build()
-            http.newCall(req).execute().use { resp ->
-                val text = resp.body?.string().orEmpty()
-                if (resp.code == 404) {
-                    return@withContext PairStatus("expired", null, null, null, null)
+    suspend fun pollPanelStatus(code: String, pollSecret: String): PairStatus =
+        withContext(Dispatchers.IO) {
+            try {
+                val url = "${BillingConfig.PANEL_BASE_URL}/api/phone/pair/status/$code" +
+                    "?secret=${Uri.encode(pollSecret)}"
+                val req = Request.Builder().url(url).get().build()
+                http.newCall(req).execute().use { resp ->
+                    val text = resp.body?.string().orEmpty()
+                    if (resp.code == 404) {
+                        return@withContext PairStatus("expired", null, null, null, null)
+                    }
+                    if (resp.code == 401) {
+                        // Server rejected our secret — treat as expired so
+                        // the UI surfaces "tap Retry" rather than an obscure
+                        // "unauthorized" that the user can't act on.
+                        return@withContext PairStatus("expired", null, null, null, null)
+                    }
+                    if (!resp.isSuccessful) {
+                        return@withContext PairStatus(
+                            "error", null, null, null, "HTTP ${resp.code}",
+                        )
+                    }
+                    val json = JSONObject(text)
+                    PairStatus(
+                        status = json.optString("status", "pending"),
+                        phoneToken = json.optString("phoneToken").ifBlank { null },
+                        phoneId = json.optString("phoneId").ifBlank { null },
+                        name = json.optString("name").ifBlank { null },
+                        error = null,
+                    )
                 }
-                if (!resp.isSuccessful) {
-                    return@withContext PairStatus("error", null, null, null, "HTTP ${resp.code}")
-                }
-                val json = JSONObject(text)
-                PairStatus(
-                    status = json.optString("status", "pending"),
-                    phoneToken = json.optString("phoneToken").ifBlank { null },
-                    phoneId = json.optString("phoneId").ifBlank { null },
-                    name = json.optString("name").ifBlank { null },
-                    error = null,
-                )
+            } catch (t: Throwable) {
+                PairStatus("error", null, null, null, t.message ?: "Network error")
             }
-        } catch (t: Throwable) {
-            PairStatus("error", null, null, null, t.message ?: "Network error")
         }
-    }
 
     /**
      * Heartbeat: verify a stored phone token is still valid and learn our
