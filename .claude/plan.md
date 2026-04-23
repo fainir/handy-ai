@@ -76,6 +76,8 @@
 ## Phase 5: Ship panel-pairing to direct-install users [shipped]
 - [x] Bump to v1.4.2, build signed release APK, stage to docs/HandyAI.apk
 - [x] Panel heartbeat — call /api/phone/me on app start so `last_seen_at` updates
+- [~] Rate-limit /api/phone/pair/init to stop code-spam
+  - DoD: in-memory per-IP sliding window (≤10 codes / min / IP). Returns 429 with Retry-After header when exceeded. No external deps.
   - DoD: HandyAIApplication.onCreate fires a fire-and-forget coroutine that calls `PanelClient.panelMe(this)` when a panel token is stored; on 401 (token revoked by panel user), clears local panel state so Settings reflects reality; never blocks UI.
   - Done: `PanelClient.panelMe()` now returns a sealed `MeResult` (`Success(me)` / `Revoked` / `Offline(reason)`) so the caller can distinguish revocation from transient network failure. `HandyAIApplication.onCreate` spawns a supervisor-scope coroutine that fires one hit on launch if a panel token is stored; `Revoked` clears local state via `UserState.clearPanelPair`, `Offline` keeps state (transient), `Success` just bumps `last_seen_at` server-side. APK rebuilt + staged; classes.dex contains `PanelClient$MeResult$Revoked`, `PanelClient$MeResult$Success`, `PanelClient$MeResult$Offline`, `HandyAIApplication$maybePanelHeartbeat$1`.
   - DoD: `app/build.gradle.kts` versionCode 7 / versionName 1.4.2; `./gradlew assembleRelease` succeeds; resulting signed APK copied to `docs/HandyAI.apk`; landing page size label matches new build; aapt (or unzip) confirms the version bump.
