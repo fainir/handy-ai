@@ -17,6 +17,11 @@ object UserState {
     private const val KEY_PAIR_CODE = "hub_pair_code"
     private const val KEY_HUB_TOKEN = "hub_device_token"
     private const val KEY_MACHINE_ID = "hub_machine_id"
+    // CloudBot panel pairing — separate from the hub above. Both can coexist:
+    // one points at best-agent-hub (machines), the other at cloudbot-panel (phones).
+    private const val KEY_PANEL_PAIR_CODE = "panel_pair_code"
+    private const val KEY_PANEL_TOKEN = "panel_phone_token"
+    private const val KEY_PANEL_PHONE_ID = "panel_phone_id"
 
     @Volatile
     private var cached: SharedPreferences? = null
@@ -100,6 +105,37 @@ object UserState {
 
     fun setMachineId(context: Context, id: String?) {
         prefs(context).edit().putString(KEY_MACHINE_ID, id).apply()
+    }
+
+    // ---- CloudBot panel pairing ----
+
+    fun panelPairCode(context: Context): String? =
+        prefs(context).getString(KEY_PANEL_PAIR_CODE, null)?.takeIf { it.isNotBlank() }
+
+    fun setPanelPairCode(context: Context, code: String?) {
+        prefs(context).edit().putString(KEY_PANEL_PAIR_CODE, code).apply()
+    }
+
+    fun panelToken(context: Context): String? =
+        prefs(context).getString(KEY_PANEL_TOKEN, null)?.takeIf { it.isNotBlank() }
+
+    fun setPanelToken(context: Context, token: String?) {
+        prefs(context).edit().putString(KEY_PANEL_TOKEN, token).apply()
+    }
+
+    fun panelPhoneId(context: Context): String? =
+        prefs(context).getString(KEY_PANEL_PHONE_ID, null)?.takeIf { it.isNotBlank() }
+
+    fun setPanelPhoneId(context: Context, id: String?) {
+        prefs(context).edit().putString(KEY_PANEL_PHONE_ID, id).apply()
+    }
+
+    fun clearPanelPair(context: Context) {
+        prefs(context).edit()
+            .remove(KEY_PANEL_PAIR_CODE)
+            .remove(KEY_PANEL_TOKEN)
+            .remove(KEY_PANEL_PHONE_ID)
+            .apply()
     }
 
     fun clearAll(context: Context) {
