@@ -55,7 +55,7 @@ class PanelPairActivity : AppCompatActivity() {
         val deviceName = "Handy AI on ${android.os.Build.MODEL}"
         lifecycleScope.launch {
             val init = PanelClient.initPanelPair(deviceName)
-            if (init.code == null) {
+            if (init.code == null || init.pollSecret == null) {
                 binding.statusText.text = getString(
                     R.string.panel_pair_code_fail,
                     init.error ?: "unknown error",
@@ -67,16 +67,26 @@ class PanelPairActivity : AppCompatActivity() {
             binding.codeText.text = init.code
             binding.statusText.setText(R.string.panel_pair_instructions)
             pollJob?.cancel()
-            pollJob = launch { pollLoop(init.code) }
+            // Cap the poll loop at the server's TTL. If the user
+            // backgrounds the app and returns 30min later, the existing
+            // code is dead anyway — better to stop polling than to
+            // hammer /pair/status with guaranteed-404s.
+            val deadlineMs = System.currentTimeMillis() + init.expiresInSeconds * 1000L
+            pollJob = launch { pollLoop(init.code, init.pollSecret, deadlineMs) }
         }
     }
 
-    private suspend fun pollLoop(code: String) {
+    private suspend fun pollLoop(code: String, pollSecret: String, deadlineMs: Long) {
         while (coroutineContext.isActive) {
             // 3s cadence matches HubPairActivity + gives the server breathing
             // room; the code lives for 10min so there's no urgency in the poll.
             delay(3000)
-            val result = PanelClient.pollPanelStatus(code)
+            if (System.currentTimeMillis() > deadlineMs) {
+                binding.statusText.setText(R.string.panel_pair_code_expired)
+                binding.retryButton.isEnabled = true
+                return
+            }
+            val result = PanelClient.pollPanelStatus(code, pollSecret)
             when (result.status) {
                 "claimed" -> {
                     val token = result.phoneToken

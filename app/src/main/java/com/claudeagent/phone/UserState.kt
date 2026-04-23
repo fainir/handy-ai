@@ -22,6 +22,7 @@ object UserState {
     private const val KEY_PANEL_PAIR_CODE = "panel_pair_code"
     private const val KEY_PANEL_TOKEN = "panel_phone_token"
     private const val KEY_PANEL_PHONE_ID = "panel_phone_id"
+    private const val KEY_PANEL_LAST_HEARTBEAT_MS = "panel_last_heartbeat_ms"
 
     @Volatile
     private var cached: SharedPreferences? = null
@@ -130,11 +131,19 @@ object UserState {
         prefs(context).edit().putString(KEY_PANEL_PHONE_ID, id).apply()
     }
 
+    fun panelLastHeartbeatMs(context: Context): Long =
+        prefs(context).getLong(KEY_PANEL_LAST_HEARTBEAT_MS, 0L)
+
+    fun setPanelLastHeartbeatMs(context: Context, ms: Long) {
+        prefs(context).edit().putLong(KEY_PANEL_LAST_HEARTBEAT_MS, ms).apply()
+    }
+
     fun clearPanelPair(context: Context) {
         prefs(context).edit()
             .remove(KEY_PANEL_PAIR_CODE)
             .remove(KEY_PANEL_TOKEN)
             .remove(KEY_PANEL_PHONE_ID)
+            .remove(KEY_PANEL_LAST_HEARTBEAT_MS)
             .apply()
     }
 
