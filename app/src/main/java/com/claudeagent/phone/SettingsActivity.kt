@@ -61,6 +61,8 @@ class SettingsActivity : AppCompatActivity() {
 
         binding.pairHubButton.setOnClickListener { onPairHub() }
 
+        binding.pairPanelButton.setOnClickListener { onPairPanel() }
+
         binding.signOutButton.setOnClickListener { onSignOut() }
     }
 
@@ -70,6 +72,7 @@ class SettingsActivity : AppCompatActivity() {
         refreshAccessibilityStatus()
         refreshPlanStatus()
         refreshHubStatus()
+        refreshPanelStatus()
         refreshAccountStatus()
     }
 
@@ -181,6 +184,31 @@ class SettingsActivity : AppCompatActivity() {
             return
         }
         startActivity(Intent(this, HubPairActivity::class.java))
+    }
+
+    private fun refreshPanelStatus() {
+        val token = UserState.panelToken(this)
+        if (token.isNullOrBlank()) {
+            binding.panelStatus.setText(R.string.panel_not_paired)
+            binding.pairPanelButton.setText(R.string.panel_pair_button)
+        } else {
+            val short = token.take(6)
+            binding.panelStatus.text = getString(R.string.panel_paired, short)
+            binding.pairPanelButton.setText(R.string.panel_unpair)
+        }
+    }
+
+    private fun onPairPanel() {
+        val token = UserState.panelToken(this)
+        if (!token.isNullOrBlank()) {
+            // Local-only unpair: we don't hit DELETE /api/phone/{id} because
+            // we'd need the user's panel JWT (not the phone token we hold).
+            // The panel user can revoke from their phones list on the web.
+            UserState.clearPanelPair(this)
+            refreshPanelStatus()
+            return
+        }
+        startActivity(Intent(this, PanelPairActivity::class.java))
     }
 
     private fun isAccessibilityEnabled(): Boolean {

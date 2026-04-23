@@ -31,6 +31,11 @@ object BillingConfig {
     // Hub base URL — used for device pairing and remote control channel.
     const val HUB_BASE_URL = "https://best-agent-hub-production.up.railway.app"
 
+    // CloudBot panel base URL — /api/phone/* endpoints for panel pairing.
+    // Separate from the hub: hub is the machine-remote-control channel,
+    // panel is the user dashboard at cloudbot-ai.com.
+    const val PANEL_BASE_URL = "https://cloudbot-ai.com"
+
     // ---- Supabase (trial sign-in) ----
     //
     // Populate via local.properties:
