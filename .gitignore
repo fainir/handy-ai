@@ -17,3 +17,8 @@ local.properties
 /build/
 app/build/
 supabase/.temp/
+
+# Play Store recording intermediates (keep only *-final.mp4 committed)
+playstore/video/handyai-disclosure-raw.mp4
+playstore/video/handyai-disclosure.mp4
+playstore/video/handyai-disclosure-v2.mp4

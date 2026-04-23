@@ -1,5 +1,5 @@
 # Handy AI — Master Plan
-*Type: SaaS + Android | Progress: 12/16 (75%)*
+*Type: SaaS + Android | Progress: 27/28 (96%)*
 
 ## Phase 1: App (shipped) [x]
 - [x] Rename to Handy AI + logo + adaptive icon
@@ -42,7 +42,7 @@
   - DoD: tapping Android's floating accessibility button (visible once the service is enabled) brings Handy AI to the foreground from any app
   - Impl: added `flagRequestAccessibilityButton` to accessibility_service_config.xml; registered AccessibilityButtonController callback in onServiceConnected() that launches MainActivity (NEW_TASK | CLEAR_TOP | SINGLE_TOP). Also updated the AgentLoop system prompt so the agent recognizes the H overlay as the Handy AI shortcut, not a random system overlay.
 
-## Phase 2: Hub phone endpoints [in-progress]
+## Phase 2: Hub phone endpoints [shipped]
 - [x] Refresh shareable release APK — rebuild signed release with today's fixes and replace docs/HandyAI.apk
   - DoD: `docs/HandyAI.apk` contains versionCode 5 / versionName 1.4 + Sentry-auto-init-off + pending-task + instant-stop; signed with release keystore; size ≈ 21MB
   - Done: rebuilt via `assembleRelease` → copied to `docs/HandyAI.apk`. aapt confirms package=`com.claudeagent.phone` versionCode=5 versionName=1.4. Landing-page download-button label bumped from 13 MB → 21 MB to match.
@@ -52,20 +52,41 @@
 - [x] Resume task after accessibility grant + instant Stop
   - DoD: send a message (text or mic), tap "Open Accessibility", grant, hit Back → agent starts running the queued task with no extra tap. Same for missing-key bounce. Message always appears in chat even before permission grant. Not Now dismisses the queue. Tapping Stop flips the button to Send within <1s and cancels any in-flight Anthropic request (no waiting for the 120s read timeout).
   - Done: MainActivity.sendTask now appends the user message + stashes `pendingTask` BEFORE the permission dialogs (so the message survives the bounce); onResume → resumePendingIfReady silently fires the queued task once key + accessibility + service are all present. Extracted `runAgent()` so replay doesn't double-append. AgentAccessibilityService.stopAgent now synchronously pushes `RunState.Stopped` + status "Stopped" so the UI button flips to Send immediately. AnthropicClient switched from blocking `execute()` to `awaitCall()` — OkHttp call enqueued inside a `suspendCancellableCoroutine` with `invokeOnCancellation { call.cancel() }`, so cancellation aborts the socket read instantly instead of waiting out the 120s read timeout.
-- [ ] Add Phone + PhonePairCode models in cloudbot-panel
-- [ ] /api/phone router: pair/init, pair/status, pair/claim, list
-- [ ] Register router + deploy to Railway
-- [ ] Smoke-test production endpoints
+- [x] Add Phone + PhonePairCode models in cloudbot-panel
+  - DoD: `Phone` + `PhonePairCode` SQLAlchemy rows in `cloudbot-panel/app/db/models.py`; Alembic migration 002 creates the tables with proper FKs + unique indexes.
+  - Done: `Phone` (user FK, name, phone_os, SHA-256 token_hash, last_seen_at) + `PhonePairCode` (unique 6-char code, status fsm pending→claimed→consumed/expired, optional phone_id FK, short-lived phone_token, 10-min expires_at) added to `app/db/models.py`. `Base.metadata.create_all()` picks them up on app startup. Source-of-truth SQL captured in `app/db/migrations/002_phones.sql` with matching FKs + indexes for fresh installs.
+- [x] /api/phone router: pair/init, pair/status, pair/claim, list
+  - DoD: new `app/api/phone.py` exposing POST /pair/init (6-char code, 10-min TTL), GET /pair/status/{code} (polled by phone), POST /pair/claim (JWT-auth'd panel user), GET / (list paired phones for current user). Registered in `app/main.py` under `/api/phone`.
+  - Done: `app/api/phone.py` added with POST /pair/init, GET /pair/status/{code} (with expire-on-read + one-time token delivery → `consumed`), POST /pair/claim (JWT-auth, mints 256-bit `secrets.token_urlsafe` bearer token, stores only SHA-256 hash on `phones.token_hash`), GET "" (list), GET /me (phone self-probe via phone bearer), DELETE /{phone_id} (panel-user revoke). Token handed to phone exactly once — nulled on `phone_pair_codes` row after first successful status poll. Alphabet avoids 0/O/1/I to keep codes unambiguous when shown on phone screen.
+- [x] Register router + deploy to Railway
+  - DoD: `app.include_router(phone.router, prefix="/api/phone", tags=["phone"])` in `app/main.py`; schema auto-created on startup via `Base.metadata.create_all()`; deploy + smoke-test.
+  - Done: committed `019fa23` to `fainir/cloudbot-panel`; git-triggered auto-deploy had been off since Feb so `railway up` forced a fresh Docker build; deploy went SUCCESS and `GET /api` now lists `phone` in endpoints; `GET /openapi.json` shows 6 new paths (`/api/phone`, `/me`, `/pair/init`, `/pair/status/{code}`, `/pair/claim`, `/{phone_id}`).
+- [x] Smoke-test production endpoints
+  - DoD: init → status happy-path, plus negative cases (unknown code 404, bad JWT 401, missing auth 403, empty-name 422).
+  - Done: `POST /pair/init` → `{"code":"VPQRYZ","expiresInSeconds":600}`; `GET /pair/status/VPQRYZ` → `{status:pending, name:"Smoke Pixel"}`; `GET /pair/status/XXXXXX` → 404; `GET /` with bad JWT → 401 "Invalid or expired token"; `GET /me` with bad phone token → 401 "Invalid phone token"; `POST /pair/claim` no auth → 403 "Not authenticated"; `POST /pair/init` empty name → 422 pydantic `string_too_short`.
+- [x] Wire Android app to /api/phone — PanelClient + Settings pairing UI
+  - DoD: new `PanelClient.kt` with `initPanelPair()`, `pollPanelStatus()`, and `panelMe()` methods pointing at `https://cloudbot-ai.com/api/phone/*`; phone token stored in `AuthStore` alongside existing hub pairing; Settings screen shows a separate "Pair with CloudBot panel" button that presents the 6-char code + polls for claim; existing HubClient pairing left untouched so both can coexist.
+  - Done: new `PanelClient.kt` (initPanelPair / pollPanelStatus / panelMe / isPaired) hits `BillingConfig.PANEL_BASE_URL = https://cloudbot-ai.com`; new `PanelPairActivity` mirrors HubPairActivity's 3s-poll flow against the new status FSM (claimed/expired/consumed/error); token + phoneId + pair code persisted in `UserState.panel*` slots (separate keys so the existing hub pairing is untouched); `activity_settings.xml` gained a `panelSection` with status + pair/unpair button; SettingsActivity.onPairPanel toggles local unpair (revoke from the web) / launches PanelPairActivity; all new strings in `strings.xml`; manifest registers the new activity. `./gradlew assembleDebug` passes (Java 21).
+
+## Phase 4: Panel frontend for phone pairing [new]
+- [~] CloudBot panel UI: Phones page with "Add phone" claim flow + list
+  - DoD: new `frontend/src/components/Phones/` page wired to router; "Add phone" dialog takes a 6-char code, calls `POST /api/phone/pair/claim`, shows success + refreshes list; list calls `GET /api/phone` and renders name / OS / last seen / revoke (DELETE `/api/phone/{id}`); linked from main navigation. End-to-end: claim smoke-tested by pairing the Handy AI Android app from my own account.
 
 ## Phase 3: Play Store [blocked on Google verification]
 - [ ] Google approves ID upload (1-7 days)
-- [~] Rebuild signed release .aab with today's fixes (v1.4 w/ Sentry+pending+stop) ready to upload
+- [x] Rebuild signed release .aab with today's fixes (v1.4 w/ Sentry+pending+stop) ready to upload
   - DoD: `app/build/outputs/bundle/release/app-release.aab` has versionCode 5 / versionName 1.4 and contains the Sentry-auto-init-off manifest tweak
-- [ ] Create app, upload .aab, fill listing, submit
+  - Done: shipped as v1.4.1 (versionCode 6, targetSdk 35) — old v5 targetSdk34 bundle was shadowed + rejected by Play; rebuilt with targetSdk35, uploaded to Closed Testing, v5 shadow bundle removed.
+- [x] Play Console submission — all declarations + Closed Testing release sent for review
+  - DoD: Closed Testing v1.4.1 release error-free; Accessibility Services declaration with YouTube prominent-disclosure video saved; Advertising ID = No; App access = restricted with reviewer credentials + Anthropic API key; all pending changes sent for review.
+  - Done: recorded 55s prominent-disclosure video (4 ffmpeg-concat segments: intro+Settings disclosure → launcher → Instagram → chat-log tool-calls), uploaded as unlisted YouTube Short, pasted URL into Accessibility Services form; Advertising ID = No; Closed Testing v1.4.1 release errors cleared (removed v5 shadow, uploaded v6); App access switched to "restricted" with reviewer instruction entry (username reviewer@handyai.app, password placeholder, 443-char instruction block with real API key + 3-step setup); clicked "Send 14 changes for review" on Publishing overview → Changes-in-review running pre-checks.
+- [x] Create app, upload .aab, fill listing, submit
+  - Done: Closed Testing v1.4.1 AAB uploaded, all store-listing + policy declarations saved, "Send 14 changes for review" clicked — Play Console is now in "Changes in review" state (automated pre-checks + full review to follow). Blocker is external: Google identity verification + reviewer sign-off.
 
 ## Phase 1c: v1 copy pass (API-key-only) [in-progress]
-- [~] New-user page: simple hero + API-key bar at bottom (replaces the chat input until a key is saved)
+- [x] New-user page: simple hero + API-key bar at bottom (replaces the chat input until a key is saved)
   - DoD: fresh launch shows one screen: toolbar "Handy AI", centered big "What should I do on your phone?" + one-line subtitle + tiny "Get a key → console.anthropic.com" link; the bottom bar is a single API-key input + ✓ save button. No examples. No setup card. No onboarding activity. Once a key is saved → the bar becomes the normal chat input + mic + send, and the examples show up (subsequent empty states). sendTask never opens OnboardingActivity anymore.
+  - Done: activity_main.xml has a dedicated `keySetupBar` (get-key link + password-input + Save pill) that sits above the chat input. `updateEmptyState()` swaps visibility on key presence: no key → keySetupBar visible, chat input dimmed (alpha 0.45) + disabled, mic+send disabled, no examples; key saved → keySetupBar gone, chat input live, examples appear on empty-state. Save validates `sk-ant-` prefix, persists via ApiKeyStore + UserState, requests focus on chat input. Shipped in v1.4.1 (commit d490074) — in both `docs/HandyAI.apk` and the Closed Testing AAB now under Google review.
 - [x] Chat is the home screen; onboarding is optional setup
   - DoD: first launch opens straight to the new-chat empty state with: app name in toolbar, hero "what should I do on your phone" + explainer subtitle + 3 example prompts + mic hint; if no API key yet, a setup card with "How it works" + "Add your Anthropic API key" button is visible above the examples; tapping the button opens the key-entry screen (was Onboarding) and returning with a valid key hides the card. No Subscribe/OTP/Google in UI. Friend-readable copy, no "BYO" or "sk-ant-" jargon.
   - Done: MainActivity drops the `!isOnboarded → redirect` gate so chat is always home. activity_main.xml's hero now wraps a ScrollView with: hero_prompt + hero_subtitle + setupCard (gone unless ApiKeyStore is empty) + 3 italicized example lines. updateEmptyState toggles the setup card whenever the chat is empty AND no key saved; onResume refreshes the state so returning from the key-entry screen hides the card. OnboardingActivity now launches straight into Step.KEY with a richer layout: "How it works" title + body → divider → "Paste your Anthropic API key" title → cost/how-to lines → new outlined "Get a key → console.anthropic.com" button (opens Intent.ACTION_VIEW @ https://console.anthropic.com/settings/keys) → key input → Continue → "Next: Accessibility" hint footer. sendTask's no-key path bypasses the old Settings-based dialog and goes directly to the OnboardingActivity. New strings: hero_prompt / hero_subtitle / hero_example_{1,2,3} / onboarding_how_it_works_{title,body} / byo_key_how_to / onboarding_next_step_hint / setup_card_{title,body} / add_key_cta / get_key_button / anthropic_keys_url. docs/HandyAI.apk refreshed (21.5 MB).
