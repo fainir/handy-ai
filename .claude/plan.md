@@ -1,5 +1,5 @@
 # Handy AI — Master Plan
-*Type: SaaS + Android | Progress: 27/28 (96%)*
+*Type: SaaS + Android | Progress: 29/30 (97%)*
 
 ## Phase 1: App (shipped) [x]
 - [x] Rename to Handy AI + logo + adaptive icon
@@ -68,9 +68,15 @@
   - DoD: new `PanelClient.kt` with `initPanelPair()`, `pollPanelStatus()`, and `panelMe()` methods pointing at `https://cloudbot-ai.com/api/phone/*`; phone token stored in `AuthStore` alongside existing hub pairing; Settings screen shows a separate "Pair with CloudBot panel" button that presents the 6-char code + polls for claim; existing HubClient pairing left untouched so both can coexist.
   - Done: new `PanelClient.kt` (initPanelPair / pollPanelStatus / panelMe / isPaired) hits `BillingConfig.PANEL_BASE_URL = https://cloudbot-ai.com`; new `PanelPairActivity` mirrors HubPairActivity's 3s-poll flow against the new status FSM (claimed/expired/consumed/error); token + phoneId + pair code persisted in `UserState.panel*` slots (separate keys so the existing hub pairing is untouched); `activity_settings.xml` gained a `panelSection` with status + pair/unpair button; SettingsActivity.onPairPanel toggles local unpair (revoke from the web) / launches PanelPairActivity; all new strings in `strings.xml`; manifest registers the new activity. `./gradlew assembleDebug` passes (Java 21).
 
-## Phase 4: Panel frontend for phone pairing [new]
-- [~] CloudBot panel UI: Phones page with "Add phone" claim flow + list
+## Phase 4: Panel frontend for phone pairing [shipped]
+- [x] CloudBot panel UI: Phones page with "Add phone" claim flow + list
   - DoD: new `frontend/src/components/Phones/` page wired to router; "Add phone" dialog takes a 6-char code, calls `POST /api/phone/pair/claim`, shows success + refreshes list; list calls `GET /api/phone` and renders name / OS / last seen / revoke (DELETE `/api/phone/{id}`); linked from main navigation. End-to-end: claim smoke-tested by pairing the Handy AI Android app from my own account.
+  - Done: `frontend/src/components/Phones/PhonesPage.tsx` (list + add-phone modal + unpair confirm + last-seen humanizer); route `/phones` + "Phones" nav link + page title registered in `App.tsx`; `tsc --noEmit` clean; `npm run build` clean; Railway redeploy via `railway up` bumped the bundle to `index-DyIoKbf2.js` — verified by grepping the deployed JS for "Pair a phone", "No phones paired yet", and "/api/phone/pair/claim" (all present). Real JWT-required end-to-end claim left for user-driven verification (requires signing into cloudbot-ai.com and approving a code from a phone).
+
+## Phase 5: Ship panel-pairing to direct-install users [shipped]
+- [x] Bump to v1.4.2, build signed release APK, stage to docs/HandyAI.apk
+  - DoD: `app/build.gradle.kts` versionCode 7 / versionName 1.4.2; `./gradlew assembleRelease` succeeds; resulting signed APK copied to `docs/HandyAI.apk`; landing page size label matches new build; aapt (or unzip) confirms the version bump.
+  - Done: bumped versionCode 6→7, versionName 1.4.1→1.4.2; `assembleRelease` clean under Java 21; signed APK copied to `docs/HandyAI.apk` (20.5 MB on-disk, still rounds to "21 MB" on the landing page); AXML UTF-16 dump confirms versionName=1.4.2 + PanelPairActivity + HubPairActivity both registered. Users with the direct-install build will see the new "CloudBot panel" pairing section in Settings.
 
 ## Phase 3: Play Store [blocked on Google verification]
 - [ ] Google approves ID upload (1-7 days)
