@@ -65,6 +65,17 @@ object PanelClient {
     )
 
     /**
+     * Outcome of [panelMe]. Using a sealed result lets the caller react
+     * differently to "token no longer valid" (revoked → clear locally) vs
+     * "we couldn't reach the server" (transient → keep state, try later).
+     */
+    sealed class MeResult {
+        data class Success(val me: Me) : MeResult()
+        object Revoked : MeResult()
+        data class Offline(val message: String) : MeResult()
+    }
+
+    /**
      * Phone requests a new 6-char pairing code.
      *
      * @param name display name shown to the user in the panel (e.g. "Pixel 10")
@@ -135,11 +146,16 @@ object PanelClient {
 
     /**
      * Heartbeat: verify a stored phone token is still valid and learn our
-     * own panel-side record. Returns null on any failure (caller treats
-     * null as "re-pair required").
+     * own panel-side record. Returns a structured result so the caller can
+     * distinguish "token revoked → clear locally" from "network error →
+     * keep state".
+     *
+     * If no token is stored, returns Offline("no token") — the caller
+     * should consider the phone unpaired.
      */
-    suspend fun panelMe(context: Context): Me? = withContext(Dispatchers.IO) {
-        val token = UserState.panelToken(context) ?: return@withContext null
+    suspend fun panelMe(context: Context): MeResult = withContext(Dispatchers.IO) {
+        val token = UserState.panelToken(context)
+            ?: return@withContext MeResult.Offline("no token")
         try {
             val req = Request.Builder()
                 .url("${BillingConfig.PANEL_BASE_URL}/api/phone/me")
@@ -147,18 +163,23 @@ object PanelClient {
                 .header("Authorization", "Bearer $token")
                 .build()
             http.newCall(req).execute().use { resp ->
-                if (!resp.isSuccessful) return@withContext null
+                if (resp.code == 401) return@withContext MeResult.Revoked
+                if (!resp.isSuccessful) {
+                    return@withContext MeResult.Offline("HTTP ${resp.code}")
+                }
                 val json = JSONObject(resp.body?.string().orEmpty())
-                Me(
-                    id = json.optString("id"),
-                    name = json.optString("name"),
-                    phoneOs = json.optString("phoneOs"),
-                    createdAt = json.optString("createdAt"),
-                    lastSeenAt = json.optString("lastSeenAt").ifBlank { null },
+                MeResult.Success(
+                    Me(
+                        id = json.optString("id"),
+                        name = json.optString("name"),
+                        phoneOs = json.optString("phoneOs"),
+                        createdAt = json.optString("createdAt"),
+                        lastSeenAt = json.optString("lastSeenAt").ifBlank { null },
+                    ),
                 )
             }
         } catch (t: Throwable) {
-            null
+            MeResult.Offline(t.message ?: "Network error")
         }
     }
 
