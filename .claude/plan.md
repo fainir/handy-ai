@@ -1,5 +1,5 @@
 # Handy AI — Master Plan
-*Type: SaaS + Android | Progress: 31/32 (97%)*
+*Type: SaaS + Android | Progress: 32/33 (97%)*
 
 ## Phase 1: App (shipped) [x]
 - [x] Rename to Handy AI + logo + adaptive icon
@@ -77,6 +77,9 @@
 - [x] Bump to v1.4.2, build signed release APK, stage to docs/HandyAI.apk
 - [x] Panel heartbeat — call /api/phone/me on app start so `last_seen_at` updates
 - [x] Rate-limit /api/phone/pair/init to stop code-spam
+- [x] Document /api/phone pairing flow + Railway deploy gotcha for future maintainers
+  - DoD: `docs/phone-pairing.md` in cloudbot-panel with the 4-party sequence diagram (phone, panel user, panel backend, DB); API reference table; a "Deploying" section calling out that `railway up` is currently required because the service lost its GitHub connection ~Feb 18.
+  - Done: new `docs/phone-pairing.md` (132 lines): ASCII sequence diagram for the 4-party flow, endpoint reference table with auth requirements, pair-code FSM, rate-limit doc, Android-client notes, AND a big warning about the Railway auto-deploy gotcha with the exact `railway up` command and a `railway status --json` snippet for checking in-flight deploys. Commit `588ab6c`.
   - DoD: in-memory per-IP sliding window (≤10 codes / min / IP). Returns 429 with Retry-After header when exceeded. No external deps.
   - Done: per-IP `defaultdict[str, deque[float]]` with `Lock`, 60s sliding window, 10-hit budget. Client IP resolved from X-Forwarded-For → X-Real-IP → socket peer. Smoke-tested on production: hits 1-10 return 200 (fresh codes), hit 11 returns `429 {"detail":"Too many pair codes; retry in 40s"}` with `Retry-After: 39` header. After 65s pause, window resets and /pair/init returns 200 again. Ships without external deps.
   - DoD: HandyAIApplication.onCreate fires a fire-and-forget coroutine that calls `PanelClient.panelMe(this)` when a panel token is stored; on 401 (token revoked by panel user), clears local panel state so Settings reflects reality; never blocks UI.
