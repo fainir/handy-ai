@@ -120,6 +120,74 @@
     opacity: 0.75;
   }
   .btn-disabled:hover { background: transparent; transform: none; }
+  .beta {
+    background: var(--ink);
+    color: var(--cream);
+    border-radius: 24px;
+    padding: 48px 40px;
+    margin: 64px 0 0;
+    display: grid;
+    gap: 24px;
+  }
+  .beta h2 {
+    font-family: 'Fraunces', serif;
+    font-size: clamp(28px, 4vw, 40px);
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+    color: var(--cream);
+    margin: 0;
+  }
+  .beta p {
+    color: var(--cream-2);
+    font-size: 16px;
+    max-width: 540px;
+    margin: 0;
+  }
+  .beta-form {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    max-width: 520px;
+  }
+  .beta-form input {
+    flex: 1 1 240px;
+    padding: 14px 18px;
+    border-radius: 10px;
+    border: 1px solid rgba(244,233,212,0.2);
+    background: rgba(244,233,212,0.08);
+    color: var(--cream);
+    font-family: inherit;
+    font-size: 15px;
+    min-width: 0;
+  }
+  .beta-form input::placeholder { color: rgba(244,233,212,0.55); }
+  .beta-form input:focus {
+    outline: none;
+    border-color: var(--cream);
+    background: rgba(244,233,212,0.14);
+  }
+  .beta-form button {
+    background: var(--cream);
+    color: var(--ink);
+    border: 0;
+    padding: 14px 22px;
+    border-radius: 10px;
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.12s ease, background 0.12s ease;
+  }
+  .beta-form button:hover { background: #fff; }
+  .beta-form button:active { transform: translateY(1px); }
+  .beta-form button:disabled { opacity: 0.6; cursor: wait; }
+  .beta-status {
+    min-height: 20px;
+    color: var(--cream-2);
+    font-size: 14px;
+  }
+  .beta-status.error { color: #FFB4A1; }
+  .beta-status.ok { color: #B9F5C1; }
   .btn small {
     display: block;
     font-size: 11px;
@@ -259,6 +327,7 @@
     </a>
     <div class="nav-links">
       <a href="#how">How it works</a>
+      <a href="#beta">Join beta</a>
       <a href="#install">Install</a>
       <a href="#faq">FAQ</a>
     </div>
@@ -301,6 +370,19 @@
         <h3>Stops when you say</h3>
         <p>Big Stop button flips the agent off instantly. Won't enter passwords or run destructive actions unless you explicitly ask.</p>
       </div>
+    </div>
+  </section>
+
+  <section id="beta" style="border: none; padding: 40px 0 0;">
+    <div class="beta">
+      <h2>Join the Handy AI beta.</h2>
+      <p>Drop your email and we'll send you install instructions plus the Play Store tester link as soon as you're on the list. Beta testers get a direct line to us and shape what ships next.</p>
+      <form class="beta-form" id="betaForm" novalidate>
+        <input type="email" name="email" id="betaEmail" placeholder="you@example.com" required autocomplete="email">
+        <input type="text" name="name" id="betaName" placeholder="First name (optional)" autocomplete="given-name" style="flex: 0 1 180px;">
+        <button type="submit" id="betaSubmit">Join the beta</button>
+      </form>
+      <div class="beta-status" id="betaStatus" aria-live="polite"></div>
     </div>
   </section>
 
@@ -361,5 +443,57 @@
     </div>
   </footer>
 </div>
+
+<script>
+  (function () {
+    var form = document.getElementById('betaForm');
+    if (!form) return;
+    var emailInput = document.getElementById('betaEmail');
+    var nameInput = document.getElementById('betaName');
+    var button = document.getElementById('betaSubmit');
+    var status = document.getElementById('betaStatus');
+
+    function setStatus(text, kind) {
+      status.textContent = text;
+      status.className = 'beta-status' + (kind ? ' ' + kind : '');
+    }
+
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      var email = (emailInput.value || '').trim();
+      var name = (nameInput.value || '').trim();
+      // Basic shape check — the server enforces the real rules; this is
+      // just a nicer UX than the browser's default error bubble.
+      if (!email || email.indexOf('@') < 1 || email.indexOf('.', email.indexOf('@')) < 0) {
+        setStatus('Please enter a valid email.', 'error');
+        emailInput.focus();
+        return;
+      }
+      button.disabled = true;
+      setStatus('Sending…');
+      fetch('https://cloudbot-ai.com/api/handy-beta', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email, name: name || null })
+      }).then(function (r) {
+        // Server returns 201 with {message} on success; 422 on validation
+        // errors. We lean on the generic message — no leaks about whether
+        // the email already existed.
+        if (r.status === 201 || r.status === 200) {
+          setStatus("You're on the list. Check your inbox.", 'ok');
+          form.reset();
+        } else if (r.status === 422) {
+          setStatus('That email looks off — mind checking?', 'error');
+        } else {
+          setStatus('Something went wrong. Try again in a minute?', 'error');
+        }
+      }).catch(function () {
+        setStatus('Network hiccup. Try again?', 'error');
+      }).finally(function () {
+        button.disabled = false;
+      });
+    });
+  })();
+</script>
 </body>
 </html>
