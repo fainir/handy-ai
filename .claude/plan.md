@@ -97,7 +97,15 @@
   - Apr 24: Google auto-registered all Play apps for Android developer verification.
 - [~] Recruit 12+ real testers, opt them into Closed Testing
   - DoD: "Closed Testing testers opted-in" count ≥ 12 in Play Console dashboard.
-  - Plan: add a beta-signup form on `gethandyai.app` → wire to the already-deployed `/api/waitlist` on cloudbot-panel (Supabase-backed, Resend-emailed) → export CSV → bulk-paste into Play Console email list. Draft social posts (HN/Twitter/Reddit) for the user to publish manually.
+  - Infra shipped (production-ready):
+    - `POST /api/handy-beta` on cloudbot-ai.com — public signup, per-IP rate-limit (5/min, 429 + Retry-After), email-enumeration-safe (same message for new/existing), 422 on bad email, idempotent by email.
+    - "Join the Handy AI beta" form on `gethandyai.app` (cream/ink panel above Install section, flex-wrap mobile-friendly, inline JS with friendly error states).
+    - Resend welcome email via `Handy AI <hi@cloudbot-ai.com>` (verified domain), Reply-To `hi@gethandyai.app`. Fires via `asyncio.create_task` so HTTP response doesn't block on the mail round-trip. Leads with direct-APK install + note about Play Store opt-in to follow.
+    - CORS allowlist updated via Railway var: `https://gethandyai.app`, `https://www.gethandyai.app` added.
+    - Admin dashboard at `cloudbot-ai.com/admin` shows use_case column — handy-ai-beta entries filterable + exportable.
+    - Launch post drafts in `playstore/launch-posts.md` (Twitter/HN/r-androidapps/r-alphaandbetausers/r-SideProject/IH).
+  - Remaining manual: user publishes social posts, pulls signups from admin, bulk-pastes into Play Console Testers, emails testers the Play opt-in link.
+  - Zero-touch tester flow shipped 2026-04-24: `handy-ai-beta@googlegroups.com` Google Group (Anyone-can-join policy) wired as the Play Console Closed Testing tester list. Change sent for review to Google (1 change, tester-config — usually auto-approves fast). Welcome email rewrites the primary CTA to "Join the tester group → open Play Store listing", keeping APK direct install as option 2. Result: signup → welcome email → click-join-group → install from Play Store with no user-intervention from us.
 - [ ] Run Closed Testing for 14 days with ≥12 testers before "Apply for Production" unlocks
 - [ ] (Deadline Sept 2026) Register sideloaded `docs/HandyAI.apk` on Android developer verification page
   - Not urgent — Play apps already auto-registered. Only the direct-install build needs manual registration; failing to register by Sept 2026 means it can't install on certified Android devices.
