@@ -95,8 +95,9 @@
   - Done Apr 21: "Your identity has been verified successfully"
   - Done Apr 23: "App update published" — v1.4.1 Closed Testing release APPROVED + live
   - Apr 24: Google auto-registered all Play apps for Android developer verification.
-- [ ] Recruit 12+ real testers, opt them into Closed Testing
+- [~] Recruit 12+ real testers, opt them into Closed Testing
   - DoD: "Closed Testing testers opted-in" count ≥ 12 in Play Console dashboard.
+  - Plan: add a beta-signup form on `gethandyai.app` → wire to the already-deployed `/api/waitlist` on cloudbot-panel (Supabase-backed, Resend-emailed) → export CSV → bulk-paste into Play Console email list. Draft social posts (HN/Twitter/Reddit) for the user to publish manually.
 - [ ] Run Closed Testing for 14 days with ≥12 testers before "Apply for Production" unlocks
 - [ ] (Deadline Sept 2026) Register sideloaded `docs/HandyAI.apk` on Android developer verification page
   - Not urgent — Play apps already auto-registered. Only the direct-install build needs manual registration; failing to register by Sept 2026 means it can't install on certified Android devices.
