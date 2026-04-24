@@ -1,5 +1,5 @@
 # Handy AI — Master Plan
-*Type: SaaS + Android | Progress: 33/34 (97%)*
+*Type: SaaS + Android | Progress: 34/37 (92%) — Closed Testing APPROVED 2026-04-23*
 
 ## Phase 1: App (shipped) [x]
 - [x] Rename to Handy AI + logo + adaptive icon
@@ -90,8 +90,16 @@
   - DoD: `app/build.gradle.kts` versionCode 7 / versionName 1.4.2; `./gradlew assembleRelease` succeeds; resulting signed APK copied to `docs/HandyAI.apk`; landing page size label matches new build; aapt (or unzip) confirms the version bump.
   - Done: bumped versionCode 6→7, versionName 1.4.1→1.4.2; `assembleRelease` clean under Java 21; signed APK copied to `docs/HandyAI.apk` (20.5 MB on-disk, still rounds to "21 MB" on the landing page); AXML UTF-16 dump confirms versionName=1.4.2 + PanelPairActivity + HubPairActivity both registered. Users with the direct-install build will see the new "CloudBot panel" pairing section in Settings.
 
-## Phase 3: Play Store [blocked on Google verification]
-- [ ] Google approves ID upload (1-7 days)
+## Phase 3: Play Store [Closed Testing APPROVED — graduating to Production requires testers]
+- [x] Google approves ID upload (1-7 days)
+  - Done Apr 21: "Your identity has been verified successfully"
+  - Done Apr 23: "App update published" — v1.4.1 Closed Testing release APPROVED + live
+  - Apr 24: Google auto-registered all Play apps for Android developer verification.
+- [ ] Recruit 12+ real testers, opt them into Closed Testing
+  - DoD: "Closed Testing testers opted-in" count ≥ 12 in Play Console dashboard.
+- [ ] Run Closed Testing for 14 days with ≥12 testers before "Apply for Production" unlocks
+- [ ] (Deadline Sept 2026) Register sideloaded `docs/HandyAI.apk` on Android developer verification page
+  - Not urgent — Play apps already auto-registered. Only the direct-install build needs manual registration; failing to register by Sept 2026 means it can't install on certified Android devices.
 - [x] Rebuild signed release .aab with today's fixes (v1.4 w/ Sentry+pending+stop) ready to upload
   - DoD: `app/build/outputs/bundle/release/app-release.aab` has versionCode 5 / versionName 1.4 and contains the Sentry-auto-init-off manifest tweak
   - Done: shipped as v1.4.1 (versionCode 6, targetSdk 35) — old v5 targetSdk34 bundle was shadowed + rejected by Play; rebuilt with targetSdk35, uploaded to Closed Testing, v5 shadow bundle removed.
