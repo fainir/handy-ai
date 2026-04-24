@@ -1,5 +1,5 @@
 # Handy AI — Master Plan
-*Type: SaaS + Android | Progress: 32/33 (97%)*
+*Type: SaaS + Android | Progress: 33/34 (97%)*
 
 ## Phase 1: App (shipped) [x]
 - [x] Rename to Handy AI + logo + adaptive icon
@@ -78,6 +78,9 @@
 - [x] Panel heartbeat — call /api/phone/me on app start so `last_seen_at` updates
 - [x] Rate-limit /api/phone/pair/init to stop code-spam
 - [x] Document /api/phone pairing flow + Railway deploy gotcha for future maintainers
+- [x] Critic fixes: pollSecret for token pickup (C3), atomic claim (C1), rate-limit GC (H1)
+  - DoD: (a) `/pair/init` returns a `pollSecret`; `/pair/status` requires it (SHA-256 stored on the pair-code row) — stops code-only scanners from stealing tokens. (b) `/pair/claim` uses `UPDATE ... WHERE status='pending' RETURNING` so two concurrent claimers can't both create orphaned `phones` rows. (c) `_init_rate_hits` deletes IP keys when their deque empties. (d) `PairClaimRequest.code` fixed to exactly 6 chars. (e) Android client threads pollSecret through; v1.4.3 APK restaged; backend deployed; smoke-tested.
+  - Done: backend commit `04c13eb` + Android commit `9c7b181`. Backend uses `secrets.compare_digest` on SHA-256 hashes (constant-time), `SELECT ... FOR UPDATE` + atomic state flip for claim, IntegrityError retry loop on INSERT race, `[A-Z0-9]{6}` regex gate. Android `pollPanelStatus` now threads `pollSecret` through `?secret=<url-encoded>`; 401 surfaced as "expired" for friendly UX; pollLoop caps at server TTL; `HandyAIApplication.maybePanelHeartbeat` throttled to once per 10min via `UserState.panelLastHeartbeatMs`. Live smoke test: init→{code,pollSecret,expiresInSeconds}, status-no-secret→401 "Missing secret", status-wrong-secret→401 "Invalid secret", status-right-secret→200 pending, status-2char-code→404, claim-no-auth→403. H2 (heartbeat storm) also resolved via server-side `_LAST_SEEN_THROTTLE_SECONDS=30` in `get_current_phone`. H6 pre-resolved: UserState already uses EncryptedSharedPreferences (AES256_GCM master).
   - DoD: `docs/phone-pairing.md` in cloudbot-panel with the 4-party sequence diagram (phone, panel user, panel backend, DB); API reference table; a "Deploying" section calling out that `railway up` is currently required because the service lost its GitHub connection ~Feb 18.
   - Done: new `docs/phone-pairing.md` (132 lines): ASCII sequence diagram for the 4-party flow, endpoint reference table with auth requirements, pair-code FSM, rate-limit doc, Android-client notes, AND a big warning about the Railway auto-deploy gotcha with the exact `railway up` command and a `railway status --json` snippet for checking in-flight deploys. Commit `588ab6c`.
   - DoD: in-memory per-IP sliding window (≤10 codes / min / IP). Returns 429 with Retry-After header when exceeded. No external deps.
