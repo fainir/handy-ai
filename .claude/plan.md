@@ -126,3 +126,16 @@
 - [x] Chat is the home screen; onboarding is optional setup
   - DoD: first launch opens straight to the new-chat empty state with: app name in toolbar, hero "what should I do on your phone" + explainer subtitle + 3 example prompts + mic hint; if no API key yet, a setup card with "How it works" + "Add your Anthropic API key" button is visible above the examples; tapping the button opens the key-entry screen (was Onboarding) and returning with a valid key hides the card. No Subscribe/OTP/Google in UI. Friend-readable copy, no "BYO" or "sk-ant-" jargon.
   - Done: MainActivity drops the `!isOnboarded → redirect` gate so chat is always home. activity_main.xml's hero now wraps a ScrollView with: hero_prompt + hero_subtitle + setupCard (gone unless ApiKeyStore is empty) + 3 italicized example lines. updateEmptyState toggles the setup card whenever the chat is empty AND no key saved; onResume refreshes the state so returning from the key-entry screen hides the card. OnboardingActivity now launches straight into Step.KEY with a richer layout: "How it works" title + body → divider → "Paste your Anthropic API key" title → cost/how-to lines → new outlined "Get a key → console.anthropic.com" button (opens Intent.ACTION_VIEW @ https://console.anthropic.com/settings/keys) → key input → Continue → "Next: Accessibility" hint footer. sendTask's no-key path bypasses the old Settings-based dialog and goes directly to the OnboardingActivity. New strings: hero_prompt / hero_subtitle / hero_example_{1,2,3} / onboarding_how_it_works_{title,body} / byo_key_how_to / onboarding_next_step_hint / setup_card_{title,body} / add_key_cta / get_key_button / anthropic_keys_url. docs/HandyAI.apk refreshed (21.5 MB).
+
+## 2026-04-24 end-to-end test results
+
+**Verified flow works (as of live test this afternoon):**
+1. ✅ Submit email on gethandyai.app → 201 from /api/handy-beta
+2. ✅ Welcome email delivers (Resend, from Handy AI <hi@gethandyai.app>)
+3. ✅ Click "Join the tester group" button from email → group page loads
+4. ✅ Click "Join group" → instant join (Anyone-on-web policy)
+5. ✅ Open Play Store listing → green Install button visible for tester
+
+**Bug caught + fixed mid-test:** Google Group privacy was "Who can see group: Group members" which blocked non-members from even reaching the Join button (they saw "Content unavailable"). Changed to "Anyone on the web" — only the group landing page is public, conversations still group-members-only.
+
+**Feedback URL:** changed from `hi@gethandyai.app` (forwarding disabled) → `fainir2006@gmail.com`; sent for Google review, auto-approves fast.
