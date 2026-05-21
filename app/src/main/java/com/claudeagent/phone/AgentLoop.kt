@@ -1,5 +1,6 @@
 package com.claudeagent.phone
 
+import android.content.Context
 import android.graphics.Bitmap
 import android.util.Base64
 import kotlinx.coroutines.CancellationException
@@ -23,9 +24,20 @@ class AgentLoop(
 ) {
     private val messages = mutableListOf<JsonObject>()
 
+    // Tracks the last user-facing text the model emitted, so we can voice-warn
+    // before destructive actions ("I'll tap Send" → speak this aloud and add
+    // a confirmation delay before the actual tap fires).
+    private var lastAssistantText: String = ""
+
+    private val ctx: Context get() = service.applicationContext
+
     suspend fun run(task: String) {
         AgentState.setState(RunState.Running)
         AgentState.setStatus("Preparing...")
+
+        // Audible + haptic start.
+        AccessibilityHelper.haptic(ctx, AccessibilityHelper.Haptic.TASK_STARTED)
+        AccessibilityHelper.narrate(ctx, "Starting: ${task.take(120)}")
 
         // The user message itself is appended by the UI before this loop
         // starts, so we don't echo it here. We just quietly note the screen
@@ -75,7 +87,13 @@ class AgentLoop(
             }
             textBlocks.forEach {
                 val t = it.jsonObject["text"]?.jsonPrimitive?.content.orEmpty().trim()
-                if (t.isNotEmpty()) appendAssistant(t)
+                if (t.isNotEmpty()) {
+                    appendAssistant(t)
+                    lastAssistantText = t
+                    // Read every assistant reply aloud — primary value
+                    // prop for blind users.
+                    AccessibilityHelper.speak(ctx, t, interrupt = false)
+                }
             }
 
             val toolUses = assistantContent.filter {
@@ -108,6 +126,26 @@ class AgentLoop(
                     toolResults.add(toolResult(id, "Acknowledged."))
                     break
                 }
+
+                // Voice-confirm destructive actions. Heuristic: if the
+                // model's most recent text mentions Send / Buy / Delete /
+                // etc., voice-warn and delay 1.5s so a blind user can
+                // hit Stop if it's wrong.
+                if (AccessibilityHelper.isAudioEnabled(ctx) &&
+                    AccessibilityHelper.confirmDestructive(ctx) &&
+                    AccessibilityHelper.isLikelyDestructive(lastAssistantText)) {
+                    AccessibilityHelper.haptic(ctx, AccessibilityHelper.Haptic.NEEDS_INPUT)
+                    AccessibilityHelper.speak(
+                        ctx,
+                        "Heads up. About to $lastAssistantText. Tap Stop to cancel.",
+                        interrupt = true,
+                    )
+                    delay(DESTRUCTIVE_CONFIRM_DELAY_MS)
+                    if (!coroutineContext.isActive) return stopped()
+                }
+
+                // Detailed-verbosity per-action narration.
+                AccessibilityHelper.narrateDetailed(ctx, narrationFor(name, input))
 
                 val (ok, message) = try {
                     executeAction(name, input)
@@ -150,7 +188,13 @@ class AgentLoop(
                 AgentState.setStatus(if (finished.success) "Done: ${finished.summary}" else "Stopped: ${finished.summary}")
                 if (finished.summary.isNotBlank()) {
                     appendAssistant(finished.summary)
+                    AccessibilityHelper.speak(ctx, finished.summary, interrupt = false)
                 }
+                AccessibilityHelper.haptic(
+                    ctx,
+                    if (finished.success) AccessibilityHelper.Haptic.TASK_DONE
+                    else AccessibilityHelper.Haptic.ERROR,
+                )
                 return
             }
         }
@@ -158,6 +202,36 @@ class AgentLoop(
         AgentState.setState(RunState.Finished(false, "Reached step limit"))
         AgentState.setStatus("Stopped: step limit reached")
         appendStatus("Reached max step limit ($MAX_STEPS)")
+        AccessibilityHelper.speak(ctx, "Reached step limit. Stopping.", interrupt = false)
+        AccessibilityHelper.haptic(ctx, AccessibilityHelper.Haptic.ERROR)
+    }
+
+    /**
+     * Detailed-verbosity narration for each step.
+     */
+    private fun narrationFor(name: String, input: JsonObject): String {
+        fun s(key: String): String = input[key]?.jsonPrimitive?.content.orEmpty()
+        return when (name) {
+            "tap" -> "Tapping."
+            "long_press" -> "Long-pressing."
+            "swipe" -> "Swiping."
+            "type_text" -> {
+                val text = s("text").take(60)
+                if (text.isBlank()) "Typing." else "Typing: $text"
+            }
+            "clear_text" -> "Clearing the text field."
+            "key" -> when (s("action")) {
+                "back" -> "Going back."
+                "home" -> "Going home."
+                "recents" -> "Opening recent apps."
+                "ime_enter" -> "Pressing enter."
+                else -> "Pressing a key."
+            }
+            "wait" -> "Waiting."
+            "read_screen_text" -> "Reading the screen."
+            "read_text_at" -> "Reading that area."
+            else -> "Working."
+        }
     }
 
     private suspend fun executeAction(name: String, input: JsonObject): Pair<Boolean, String> {
@@ -207,8 +281,38 @@ class AgentLoop(
                 delay(ms)
                 true to "Waited ${ms}ms"
             }
+            "read_screen_text" -> ocrAction(region = null)
+            "read_text_at" -> ocrAction(
+                region = android.graphics.Rect(
+                    num("x").toInt(),
+                    num("y").toInt(),
+                    num("x").toInt() + num("width").toInt(),
+                    num("y").toInt() + num("height").toInt(),
+                ),
+            )
             else -> false to "Unknown tool: $name"
         }
+    }
+
+    /**
+     * Backing implementation for the read_screen_text / read_text_at
+     * tools. Captures a screenshot, runs MlKit OCR (locally, no tokens
+     * spent), speaks the result aloud, returns verbatim text.
+     */
+    private suspend fun ocrAction(region: android.graphics.Rect?): Pair<Boolean, String> {
+        val shot = captureOrFail() ?: return false to "Could not capture screen"
+        val text = try {
+            ScreenOcr.recognize(shot, region)
+        } finally {
+            shot.recycle()
+        }
+        if (text.isBlank()) {
+            return true to "No readable text found."
+        }
+        AccessibilityHelper.speak(ctx, text, interrupt = false)
+        val label = if (region == null) "Screen text" else
+            "Text at (${region.left}, ${region.top}, ${region.width()}x${region.height()})"
+        return true to "$label:\n$text"
     }
 
     private fun trimScreenshotHistory() {
@@ -260,12 +364,16 @@ class AgentLoop(
         appendStatus("Error: $msg")
         AgentState.setState(RunState.Error(msg))
         AgentState.setStatus("Error: $msg")
+        AccessibilityHelper.speak(ctx, "Error. $msg", interrupt = true)
+        AccessibilityHelper.haptic(ctx, AccessibilityHelper.Haptic.ERROR)
     }
 
     private fun stopped() {
         appendStatus("Stopped by user")
         AgentState.setState(RunState.Stopped)
         AgentState.setStatus("Stopped")
+        AccessibilityHelper.stopSpeaking()
+        AccessibilityHelper.speak(ctx, "Stopped.", interrupt = true)
     }
 
     private fun appendAssistant(text: String) { ChatStore.append("assistant", text) }
@@ -299,8 +407,17 @@ class AgentLoop(
         put("content", buildJsonArray { add(textBlock(text)) })
     }
 
-    private fun systemPrompt(width: Int, height: Int): String = """
-You are a mobile phone operator agent. You control a real Android phone on behalf of the user to complete tasks they describe in natural language.
+    private fun systemPrompt(width: Int, height: Int): String {
+        val aliases = NameAliases.format(ctx)
+        val aliasBlock = if (aliases.isBlank()) "" else """
+
+Known name aliases for THIS user (resolve these to the listed entity when they appear in the task):
+$aliases
+
+When the user says one of these names, treat it as the resolved entity. If the alias resolution is ambiguous on the current screen, ask the user a one-sentence disambiguation question via finish(success=false, summary="Did you mean ...?") rather than guessing.
+"""
+        return """
+You are a mobile phone operator agent. You control a real Android phone on behalf of the user to complete tasks they describe in natural language.$aliasBlock
 
 At each step you receive the current screenshot of the phone. Decide the single best next action and call exactly one tool. After you call a tool you will receive a new screenshot showing the result.
 
@@ -320,9 +437,12 @@ How to work:
 - Prefer fewer, higher-quality actions over many small ones. Wait only if the UI is still loading.
 - A small floating circular accessibility button (the Handy AI "H" icon) may appear in the screenshots near an edge. Ignore it; it is the system shortcut for this app, not part of the app you are operating on.
 - If an app is in a first-run/setup flow (welcome screens, permission dialogs), dismiss or complete them first, then continue the task.
+- If you encounter two or more plausible targets for an ambiguous user reference (e.g. "Send mom a message" but there are three "Mom" contacts, or "Open Bank" but the user has Chase Bank, BoA, and Bank of Hawaii installed), stop and disambiguate. Call finish(success=false, summary="I see three apps named Bank — Chase, BoA, or Hawaii. Which one?") — the host will read the question aloud and the user will re-issue the task. Do NOT pick one arbitrarily.
+- For tasks like "read me the screen", "read me the menu", "what does this notification say", or "read me this article", call read_screen_text instead of describing the screen yourself. The OCR result is read aloud verbatim to the user — fast and zero token cost.
 
 You have at most ${MAX_STEPS} steps total.
 """.trimIndent()
+    }
 
     companion object {
         private const val MODEL = "claude-opus-4-7"
@@ -330,5 +450,9 @@ You have at most ${MAX_STEPS} steps total.
         private const val KEEP_RECENT_SCREENSHOTS = 3
         private const val POST_ACTION_DELAY_MS = 700L
         private const val JPEG_QUALITY = 75
+
+        // Pause inserted before destructive actions so a voiced warning
+        // is fully heard and the user can hit Stop.
+        private const val DESTRUCTIVE_CONFIRM_DELAY_MS = 1500L
     }
 }
