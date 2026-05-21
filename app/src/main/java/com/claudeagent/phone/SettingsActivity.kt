@@ -18,6 +18,7 @@ class SettingsActivity : AppCompatActivity() {
     private lateinit var binding: ActivitySettingsBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        AccessibilityHelper.applyTheme(this)
         super.onCreate(savedInstanceState)
         binding = ActivitySettingsBinding.inflate(layoutInflater)
         setContentView(binding.root)
@@ -64,6 +65,160 @@ class SettingsActivity : AppCompatActivity() {
         binding.pairPanelButton.setOnClickListener { onPairPanel() }
 
         binding.signOutButton.setOnClickListener { onSignOut() }
+
+        wireAccessibilityControls()
+        wireAliasesEditor()
+    }
+
+    /**
+     * Bind the Tier 1-3 accessibility/voice toggles. Reads current
+     * state from AccessibilityHelper, applies it to the radio groups
+     * + switches, and writes user changes back. Speaks each change
+     * aloud so blind users hear their own adjustment confirmed.
+     */
+    private fun wireAccessibilityControls() {
+        val currentMode = AccessibilityHelper.mode(this)
+        val modeId = when (currentMode) {
+            AccessibilityHelper.Mode.OFF -> R.id.modeOff
+            AccessibilityHelper.Mode.ON -> R.id.modeOn
+            AccessibilityHelper.Mode.AUTO -> R.id.modeAuto
+        }
+        binding.accessibilityModeGroup.check(modeId)
+        binding.accessibilityModeGroup.setOnCheckedChangeListener { _, id ->
+            val newMode = when (id) {
+                R.id.modeOff -> AccessibilityHelper.Mode.OFF
+                R.id.modeOn -> AccessibilityHelper.Mode.ON
+                else -> AccessibilityHelper.Mode.AUTO
+            }
+            AccessibilityHelper.setMode(this, newMode)
+            AccessibilityHelper.speak(
+                this,
+                "Voice mode set to ${newMode.name.lowercase()}.",
+                interrupt = true,
+            )
+        }
+
+        val currentVerbosity = AccessibilityHelper.verbosity(this)
+        val verbosityId = when (currentVerbosity) {
+            AccessibilityHelper.Verbosity.OFF -> R.id.verbosityOff
+            AccessibilityHelper.Verbosity.BRIEF -> R.id.verbosityBrief
+            AccessibilityHelper.Verbosity.DETAILED -> R.id.verbosityDetailed
+        }
+        binding.verbosityGroup.check(verbosityId)
+        binding.verbosityGroup.setOnCheckedChangeListener { _, id ->
+            val v = when (id) {
+                R.id.verbosityOff -> AccessibilityHelper.Verbosity.OFF
+                R.id.verbosityDetailed -> AccessibilityHelper.Verbosity.DETAILED
+                else -> AccessibilityHelper.Verbosity.BRIEF
+            }
+            AccessibilityHelper.setVerbosity(this, v)
+            AccessibilityHelper.speak(
+                this,
+                "Narration set to ${v.name.lowercase()}.",
+                interrupt = true,
+            )
+        }
+
+        binding.confirmDestructiveSwitch.isChecked = AccessibilityHelper.confirmDestructive(this)
+        binding.confirmDestructiveSwitch.setOnCheckedChangeListener { _, on ->
+            AccessibilityHelper.setConfirmDestructive(this, on)
+            AccessibilityHelper.speak(
+                this,
+                if (on) "Destructive-action warnings turned on." else "Destructive-action warnings turned off.",
+                interrupt = true,
+            )
+        }
+
+        binding.hapticsSwitch.isChecked = AccessibilityHelper.hapticsEnabled(this)
+        binding.hapticsSwitch.setOnCheckedChangeListener { _, on ->
+            AccessibilityHelper.setHapticsEnabled(this, on)
+            if (on) AccessibilityHelper.haptic(this, AccessibilityHelper.Haptic.TICK)
+        }
+
+        binding.highContrastSwitch.isChecked = AccessibilityHelper.isHighContrast(this)
+        binding.highContrastSwitch.setOnCheckedChangeListener { _, on ->
+            AccessibilityHelper.setHighContrast(this, on)
+            AccessibilityHelper.speak(
+                this,
+                if (on) "High contrast turned on. Restart the app to see the change."
+                else "High contrast turned off. Restart the app to see the change.",
+                interrupt = true,
+            )
+        }
+
+        binding.openEasyModeButton.setOnClickListener {
+            AccessibilityHelper.setEasyMode(this, true)
+            startActivity(Intent(this, EasyModeActivity::class.java))
+        }
+
+        binding.openKeySetupButton.setOnClickListener {
+            startActivity(Intent(this, KeySetupActivity::class.java))
+        }
+    }
+
+    /**
+     * Bind the named-aliases edit list. Each row = alias + entity + delete.
+     * Pure SharedPrefs storage via NameAliases.
+     */
+    private fun wireAliasesEditor() {
+        refreshAliasesList()
+        binding.addAliasButton.setOnClickListener {
+            val alias = binding.aliasInput.text?.toString()?.trim().orEmpty()
+            val entity = binding.aliasEntityInput.text?.toString()?.trim().orEmpty()
+            if (alias.isEmpty() || entity.isEmpty()) {
+                toast("Need both an alias and what it resolves to.")
+                return@setOnClickListener
+            }
+            NameAliases.set(this, alias, entity)
+            binding.aliasInput.text?.clear()
+            binding.aliasEntityInput.text?.clear()
+            refreshAliasesList()
+            AccessibilityHelper.speak(this, "Alias saved: $alias maps to $entity.", interrupt = true)
+        }
+    }
+
+    private fun refreshAliasesList() {
+        val container = binding.aliasesList
+        container.removeAllViews()
+        val aliases = NameAliases.all(this)
+        if (aliases.isEmpty()) {
+            val empty = android.widget.TextView(this).apply {
+                text = getString(R.string.aliases_empty)
+                setTextColor(resources.getColor(R.color.text_muted, theme))
+                textSize = 14f
+                setPadding(0, 8, 0, 8)
+            }
+            container.addView(empty)
+            return
+        }
+        aliases.forEach { (alias, entity) ->
+            val row = android.widget.LinearLayout(this).apply {
+                orientation = android.widget.LinearLayout.HORIZONTAL
+                setPadding(0, 8, 0, 8)
+                gravity = android.view.Gravity.CENTER_VERTICAL
+            }
+            val label = android.widget.TextView(this).apply {
+                text = "\"$alias\" → $entity"
+                setTextColor(resources.getColor(R.color.text_primary, theme))
+                textSize = 14f
+                layoutParams = android.widget.LinearLayout.LayoutParams(
+                    0,
+                    android.view.ViewGroup.LayoutParams.WRAP_CONTENT,
+                    1f,
+                )
+            }
+            val removeButton = android.widget.Button(this).apply {
+                text = "✕"
+                contentDescription = getString(R.string.aliases_remove_desc) + ": $alias"
+                setOnClickListener {
+                    NameAliases.remove(this@SettingsActivity, alias)
+                    refreshAliasesList()
+                }
+            }
+            row.addView(label)
+            row.addView(removeButton)
+            container.addView(row)
+        }
     }
 
     override fun onResume() {
