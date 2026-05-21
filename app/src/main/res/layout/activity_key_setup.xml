@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="24dp">
+
+        <TextView
+            android:id="@+id/keySetupTitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/key_setup_title"
+            android:textSize="26sp"
+            android:textStyle="bold"
+            android:textColor="@color/text_primary"
+            android:paddingTop="16dp"
+            android:paddingBottom="8dp" />
+
+        <TextView
+            android:id="@+id/keySetupSubtitle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/key_setup_subtitle"
+            android:textSize="16sp"
+            android:textColor="@color/text_muted"
+            android:paddingBottom="32dp" />
+
+        <FrameLayout
+            android:id="@+id/codeBox"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/bg_code_display"
+            android:padding="28dp"
+            android:contentDescription="@string/key_setup_code_announce">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/key_setup_code_label"
+                    android:textSize="13sp"
+                    android:textColor="@color/accent"
+                    android:textAllCaps="true"
+                    android:letterSpacing="0.12"
+                    android:alpha="0.75" />
+
+                <TextView
+                    android:id="@+id/codeValue"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="——————"
+                    android:textSize="48sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/accent"
+                    android:fontFamily="monospace"
+                    android:letterSpacing="0.18"
+                    android:paddingTop="8dp" />
+            </LinearLayout>
+        </FrameLayout>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/key_setup_visit_url"
+            android:textSize="16sp"
+            android:textColor="@color/text_primary"
+            android:paddingTop="24dp"
+            android:paddingBottom="8dp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="gethandyai.app/setup"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:textColor="@color/accent"
+            android:fontFamily="monospace"
+            android:paddingBottom="24dp" />
+
+        <TextView
+            android:id="@+id/setupStatus"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/key_setup_waiting"
+            android:textSize="15sp"
+            android:textColor="@color/text_muted"
+            android:paddingBottom="16dp"
+            android:minHeight="48dp" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/speakCodeButton"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:text="@string/key_setup_speak_code"
+            android:textColor="@color/text_primary"
+            android:contentDescription="@string/key_setup_speak_code_desc" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/cancelSetupButton"
+            style="@style/Widget.Material3.Button.TextButton"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:text="@string/key_setup_cancel"
+            android:layout_marginTop="8dp"
+            android:textColor="@color/text_muted" />
+
+    </LinearLayout>
+</ScrollView>

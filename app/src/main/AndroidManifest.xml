@@ -49,6 +49,18 @@
             android:label="@string/settings_panel"
             android:parentActivityName=".SettingsActivity" />
 
+        <activity
+            android:name=".KeySetupActivity"
+            android:exported="false"
+            android:label="@string/key_setup_title"
+            android:parentActivityName=".MainActivity" />
+
+        <activity
+            android:name=".EasyModeActivity"
+            android:exported="false"
+            android:label="@string/easy_mode_title"
+            android:parentActivityName=".MainActivity" />
+
         <service
             android:name=".AgentAccessibilityService"
             android:exported="false"
