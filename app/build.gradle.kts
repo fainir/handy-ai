@@ -75,14 +75,14 @@ android {
             isMinifyEnabled = false
             signingConfig = signingConfigs.getByName("release")
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-            // The release APK on docs/HandyAI.apk is for sideload on
-            // modern Android phones. Limiting to arm64-v8a saves
-            // ~30 MB on the universal APK. The Play AAB still ships
-            // every ABI — Play Store splits per-device automatically.
-            ndk {
-                abiFilters.clear()
-                abiFilters.add("arm64-v8a")
-            }
+            // NOTE: do NOT abiFilter the release build type. v1.5.1 did
+            // and triggered a Play Console warning: "This release no longer
+            // supports 2,142 devices that were supported in your previous
+            // release." (armeabi-v7a + x86 + x86_64 users got cut). The
+            // direct-install APK we stage to docs/ is now the universal
+            // ~63 MB APK; if landing-page download size matters more than
+            // device coverage in the future, use APK splits (which keep
+            // the AAB universal) rather than buildType abiFilter.
         }
     }
 
