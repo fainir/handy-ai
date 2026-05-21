@@ -3,10 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Handy AI — Hand tasks to your phone</title>
-<meta name="description" content="An AI agent that actually uses your Android phone for you. Type or speak a task; Handy AI taps, types, and swipes through your apps until it's done.">
-<meta property="og:title" content="Handy AI">
-<meta property="og:description" content="Hand tasks to your phone. Type or speak — Handy AI does the rest.">
+<title>Handy AI — A voice-first AI for your phone, built with accessibility in mind</title>
+<meta name="description" content="Speak a task and Handy AI uses your Android phone for you. Voice-first AI agent, TalkBack-compatible, built for blind, low-vision, and motor-impaired users — and everyone who wants hands-free phone control.">
+<meta property="og:title" content="Handy AI — A voice-first AI for your phone">
+<meta property="og:description" content="Speak a task. Handy AI uses your Android phone for you. Built for blind, low-vision, and motor accessibility — and anyone who wants hands-free phone control.">
 <meta property="og:image" content="feature.png">
 <meta name="theme-color" content="#F4E9D4">
 <link rel="icon" type="image/png" href="icon.png">
@@ -309,33 +309,89 @@
   }
   footer a { text-decoration: none; }
   footer a:hover { color: var(--ink); }
+
+  /* Accessibility primitives. */
+  :focus-visible {
+    outline: 3px solid var(--ink);
+    outline-offset: 3px;
+    border-radius: 6px;
+  }
+  .skip-link {
+    position: absolute;
+    top: -100px; left: 16px;
+    background: var(--ink); color: var(--cream);
+    padding: 12px 18px; border-radius: 8px;
+    text-decoration: none;
+    z-index: 999;
+    font-weight: 600;
+  }
+  .skip-link:focus { top: 16px; }
+  .sr-only {
+    position: absolute;
+    width: 1px; height: 1px;
+    padding: 0; margin: -1px;
+    overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap;
+    border: 0;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+  @media (prefers-contrast: more) {
+    body { background: #fff; color: #000; }
+    .card { background: #fff; border: 2px solid #000; }
+  }
+  .a11y-section {
+    background: var(--ink);
+    color: var(--cream);
+    border-radius: 24px;
+    padding: 56px 40px;
+    margin: 24px 0;
+  }
+  .a11y-section h2 { color: var(--cream); }
+  .a11y-section .lede { color: var(--cream-2); }
+  .a11y-section .card {
+    background: rgba(244, 233, 212, 0.06);
+    color: var(--cream);
+    border: 1px solid rgba(244, 233, 212, 0.18);
+  }
+  .a11y-section .card h3 { color: var(--cream); }
+  .a11y-section .card p { color: var(--cream-2); }
+
   @media (max-width: 640px) {
     .hero { padding: 48px 0 40px; }
     section { padding: 56px 0; }
     .hero-art { grid-template-columns: 1fr; gap: 24px; }
     .hero-art .line { display: none; }
     .nav-links { display: none; }
+    .a11y-section { padding: 40px 24px; border-radius: 16px; }
   }
 </style>
 </head>
 <body>
+<a href="#main" class="skip-link">Skip to main content</a>
 <div class="wrap">
-  <nav>
-    <a href="/" class="logo">
-      <span class="logo-mark">H</span>
+  <nav aria-label="Primary">
+    <a href="/" class="logo" aria-label="Handy AI home">
+      <span class="logo-mark" aria-hidden="true">H</span>
       Handy AI
     </a>
     <div class="nav-links">
       <a href="#how">How it works</a>
+      <a href="#accessibility">Accessibility</a>
       <a href="#beta">Join beta</a>
       <a href="#install">Install</a>
       <a href="#faq">FAQ</a>
     </div>
   </nav>
 
+  <main id="main">
   <section class="hero" style="border: none; padding-top: 40px;">
-    <h1>Hand tasks<br><em>to your phone.</em></h1>
-    <p class="sub">An AI agent that actually uses your Android phone for you. Type or speak a task — Handy AI watches your screen and taps, types, and swipes through your apps until it's done.</p>
+    <h1>Talk to your phone.<br><em>It does the rest.</em></h1>
+    <p class="sub">A voice-first AI agent for Android. Speak a task — Handy AI watches your screen, narrates each step aloud, and taps, types, and swipes through your apps until it's done. <strong>For everyone, and built with vision and motor accessibility in mind.</strong></p>
     <div class="cta-row">
       <a class="btn btn-primary" href="HandyAI.apk" download>
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
@@ -351,6 +407,46 @@
       <div class="line"></div>
       <div class="mark">H</div>
       <div class="line"></div>
+    </div>
+  </section>
+
+  <section id="accessibility" class="a11y-section" aria-labelledby="a11y-heading">
+    <h2 id="a11y-heading">Designed for accessibility.</h2>
+    <p class="lede">Other accessibility apps describe your screen. Handy AI <em>does</em> the task. Tell it what you want — send a message, order food, set a reminder — and it executes across any app on your phone. The Accessibility API was built for this; we're using it the way it was meant to be used.</p>
+    <div class="grid-3">
+      <div class="card">
+        <h3>Voice-first, end to end</h3>
+        <p>Speak the task. Hear the agent's plan, every action it takes, and the result. Optional verbosity from brief to detailed. Default ON when TalkBack is detected.</p>
+      </div>
+      <div class="card">
+        <h3>TalkBack-compatible</h3>
+        <p>The app's own UI works with TalkBack — every button has a proper label and the chat is announced as it arrives. Verified on Pixel.</p>
+      </div>
+      <div class="card">
+        <h3>Voice-confirm destructive actions</h3>
+        <p>Before tapping Send, Buy, Delete, or other destructive buttons, Handy AI speaks a warning so you can hit Stop if the agent got it wrong.</p>
+      </div>
+      <div class="card">
+        <h3>Easy Mode</h3>
+        <p>One giant mic button. No chat history, no menus, no settings to navigate. Designed for users with cognitive load, motor disabilities, or who simply want the simplest interface possible.</p>
+      </div>
+      <div class="card">
+        <h3>Set up by computer</h3>
+        <p>Don't paste a 100-character API key on the phone. Get a 6-character code, enter it on your laptop at <a href="/setup.html" style="color: var(--cream); text-decoration: underline;">gethandyai.app/setup</a>, paste your key with your desktop screen reader, and the phone receives it.</p>
+      </div>
+      <div class="card">
+        <h3>Bluetooth headsets + hearing aids</h3>
+        <p>Audio routes through whatever output your phone uses — including Bluetooth headsets, hearing aids, and the spoken-feedback channel TalkBack already configured for you.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="voices" aria-labelledby="voices-heading">
+    <h2 id="voices-heading">Voices from the beta.</h2>
+    <p class="lede">This is where real beta testers' quotes go. We're not going to put words in anyone's mouth — this section stays empty until the first organic feedback comes in from blind, low-vision, motor-impaired, and abled testers actually using Handy AI.</p>
+    <div style="border: 1px dashed var(--border); border-radius: 16px; padding: 32px; text-align: center; margin-top: 24px;">
+      <p style="font-family: 'Fraunces', serif; font-size: 22px; font-weight: 600; margin-bottom: 12px;">No quotes yet.</p>
+      <p style="color: var(--muted); max-width: 520px; margin: 0 auto;">Are you a beta tester? Reply to the welcome email with a one-sentence quote and the name + use case you'd want attributed (or "anonymous"). We'll post it here with your permission, exactly as you wrote it.</p>
     </div>
   </section>
 
@@ -388,7 +484,7 @@
 
   <section id="install">
     <h2>Install in 90 seconds.</h2>
-    <p class="lede">Play Store listing is in review. For now, install the signed APK directly — it's the same bundle Google is reviewing.</p>
+    <p class="lede">Live on Play Store Closed Testing now; production access ~May 23. For direct install, grab the signed APK — same bundle Google approved. <strong>Using a screen reader?</strong> Open <a href="/setup.html">gethandyai.app/setup</a> on your computer to send the API key to your phone via a 6-character code.</p>
     <div class="install-steps">
       <div class="step">
         <h3>Download</h3>
@@ -432,6 +528,8 @@
       <p>To Anthropic's Claude API, one screenshot per step, only while a task is running. We never store, proxy, or train on it. See the <a href="privacy.html">privacy policy</a>.</p>
     </div>
   </section>
+
+  </main>
 
   <footer>
     <div>© 2026 Handy AI</div>
