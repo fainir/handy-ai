@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Easy Mode: one giant mic button. No chat history, no menu, no
+  settings. Designed for users with cognitive load / low vision / older
+  users who want a "tap and speak" interface. The mic button is 240dp
+  square (huge), centered, with a 60sp status label above it.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:gravity="center"
+    android:padding="24dp"
+    android:background="@color/bg">
+
+    <TextView
+        android:id="@+id/easyModeStatus"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:text="@string/easy_mode_idle"
+        android:textSize="28sp"
+        android:textStyle="bold"
+        android:textColor="@color/text_primary"
+        android:layout_marginBottom="48dp"
+        android:minHeight="120dp"
+        android:lineSpacingExtra="4dp" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/easyModeMicButton"
+        android:layout_width="240dp"
+        android:layout_height="240dp"
+        android:contentDescription="@string/easy_mode_mic_desc"
+        android:text=""
+        android:textOff=""
+        android:textOn=""
+        app:cornerRadius="120dp"
+        app:icon="@drawable/ic_mic"
+        app:iconSize="96dp"
+        app:iconGravity="textStart"
+        app:iconTint="@color/on_accent"
+        android:backgroundTint="@color/accent"
+        android:elevation="6dp" />
+
+    <TextView
+        android:id="@+id/easyModeHint"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:text="@string/easy_mode_hint"
+        android:textSize="18sp"
+        android:textColor="@color/text_secondary"
+        android:paddingTop="48dp"
+        android:paddingHorizontal="16dp" />
+
+    <View
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/easyModeExitButton"
+        style="@style/Widget.Material3.Button.TextButton"
+        android:layout_width="wrap_content"
+        android:layout_height="56dp"
+        android:text="@string/easy_mode_exit"
+        android:textColor="@color/text_muted"
+        android:layout_gravity="center_horizontal"
+        android:contentDescription="@string/easy_mode_exit_desc" />
+
+</LinearLayout>
