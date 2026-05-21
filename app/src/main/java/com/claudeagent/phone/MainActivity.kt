@@ -48,6 +48,7 @@ class MainActivity : AppCompatActivity() {
     private var pendingTask: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        AccessibilityHelper.applyTheme(this)
         super.onCreate(savedInstanceState)
 
         // v1: the chat IS the home screen. No onboarding gate. If the user
@@ -113,13 +114,22 @@ class MainActivity : AppCompatActivity() {
 
         binding.actionButton.setOnClickListener {
             if (currentlyRunning) {
+                AccessibilityHelper.stopSpeaking()
+                AccessibilityHelper.haptic(this, AccessibilityHelper.Haptic.TICK)
                 stopTask()
             } else {
                 val text = binding.taskInput.text?.toString()?.trim().orEmpty()
-                if (text.isNotEmpty()) sendTask(text)
+                if (text.isNotEmpty()) {
+                    AccessibilityHelper.haptic(this, AccessibilityHelper.Haptic.TICK)
+                    sendTask(text)
+                }
             }
         }
-        binding.micButton.setOnClickListener { startVoiceInput() }
+        binding.micButton.setOnClickListener {
+            AccessibilityHelper.haptic(this, AccessibilityHelper.Haptic.TICK)
+            AccessibilityHelper.narrate(this, "Listening.")
+            startVoiceInput()
+        }
         binding.taskInput.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
@@ -333,6 +343,28 @@ class MainActivity : AppCompatActivity() {
      * as soon as the user returns with the permission granted.
      */
     private fun sendTask(task: String) {
+        // Tier-4 audit-log voice intent — blind users can't visually
+        // scroll the chat, so they ask "what did you do" to hear a
+        // summary of recent activity. Resolved locally, no API tokens.
+        if (isAuditLogRequest(task)) {
+            ChatStore.ensureActiveSession()
+            ChatStore.append("user", task)
+            binding.taskInput.text?.clear()
+            speakAuditLog()
+            return
+        }
+
+        // Tier-3 common-task library voice intent — new / older users
+        // ask "what can you do?" before trusting the system. Curated
+        // list filtered by installed apps. Resolved locally.
+        if (isCommonTaskLibraryRequest(task)) {
+            ChatStore.ensureActiveSession()
+            ChatStore.append("user", task)
+            binding.taskInput.text?.clear()
+            speakCommonTaskLibrary()
+            return
+        }
+
         // Ensure we have an active session before the first user message, so
         // the message lands in it (and, via the title rule, names it).
         ChatStore.ensureActiveSession()
@@ -341,16 +373,23 @@ class MainActivity : AppCompatActivity() {
 
         val apiKey = ApiKeyStore.load(this)
         if (apiKey.isNullOrBlank()) {
-            // Should be unreachable — the chat input isn't visible until a
-            // key is saved, so sendTask() only runs after the key bar has
-            // been used. Defensive toast just in case something routes here.
             pendingTask = task
             toast(getString(R.string.api_key_bar_hint))
+            AccessibilityHelper.speak(
+                this,
+                "I need an Anthropic API key to start. Use the key setup option to add one.",
+                interrupt = true,
+            )
             return
         }
 
         if (!isAccessibilityEnabled()) {
             pendingTask = task
+            AccessibilityHelper.speak(
+                this,
+                "I need accessibility permission to control your phone. Opening Accessibility settings now. Find Handy AI in the list and turn it on.",
+                interrupt = true,
+            )
             AlertDialog.Builder(this)
                 .setTitle(R.string.needs_accessibility_title)
                 .setMessage(R.string.needs_accessibility_body)
@@ -368,6 +407,11 @@ class MainActivity : AppCompatActivity() {
         if (service == null) {
             pendingTask = task
             toast("Accessibility service not running yet. Re-toggle it in settings.")
+            AccessibilityHelper.speak(
+                this,
+                "Accessibility service isn't running. Toggle Handy AI off and on in Accessibility settings.",
+                interrupt = true,
+            )
             return
         }
 
@@ -444,5 +488,130 @@ class MainActivity : AppCompatActivity() {
 
     private fun toast(msg: String) {
         Toast.makeText(this, msg, Toast.LENGTH_SHORT).show()
+    }
+
+    /**
+     * Cheap natural-language match for "read me the recent activity".
+     * Blind users can't visually scroll chat, so they ask the assistant
+     * to summarize recent activity aloud. Resolved LOCALLY, no API call.
+     */
+    private fun isAuditLogRequest(task: String): Boolean {
+        val q = task.lowercase()
+        return q.contains("what did you do") ||
+            q.contains("read me the audit") ||
+            q.contains("read the audit") ||
+            q.contains("what happened") ||
+            q.contains("read my recent") ||
+            q.contains("what have you done") ||
+            q.contains("recap")
+    }
+
+    /**
+     * Read out the last AUDIT_RECENT_COUNT meaningful actions.
+     */
+    private fun speakAuditLog() {
+        val msgs = ChatStore.activeMessages.value
+        val recent = msgs.takeLast(AUDIT_RECENT_COUNT).filter {
+            it.role == "user" || it.role == "assistant" ||
+                (it.role == "action" && !it.text.startsWith("wait("))
+        }
+        if (recent.isEmpty()) {
+            AccessibilityHelper.speak(
+                this,
+                "I haven't done anything yet in this chat.",
+                interrupt = true,
+            )
+            ChatStore.append("assistant", "Audit log is empty.")
+            return
+        }
+        val summary = buildString {
+            append("Here's what we did most recently. ")
+            recent.forEach { m ->
+                when (m.role) {
+                    "user" -> append("You said: ${m.text}. ")
+                    "assistant" -> append("I said: ${m.text}. ")
+                    "action" -> append("Action: ${m.text}. ")
+                }
+            }
+        }
+        ChatStore.append("assistant", summary)
+        AccessibilityHelper.speak(this, summary, interrupt = true)
+    }
+
+    /**
+     * "What can you do?" voice intent. Curated list of representative
+     * tasks personalized to installed apps.
+     */
+    private fun isCommonTaskLibraryRequest(task: String): Boolean {
+        val q = task.lowercase().trim()
+        return q == "what can you do" ||
+            q == "what can you do?" ||
+            q.contains("what can you do for me") ||
+            q.contains("what tasks") ||
+            q == "help" ||
+            q == "help me" ||
+            q == "help?" ||
+            q.contains("how do you work") ||
+            q.contains("show me what you can do") ||
+            q.contains("what are you good at")
+    }
+
+    private fun speakCommonTaskLibrary() {
+        val installed = installedPackagesLowercase()
+        val candidates = listOf(
+            "whatsapp" to "Send a WhatsApp message to someone — say their name.",
+            "messages" to "Reply to my last text message with what I'm about to say.",
+            "messaging" to "Reply to my last text with a quick note.",
+            "google.android.dialer" to "Call someone — just say their name.",
+            "doordash" to "Reorder my usual from DoorDash.",
+            "ubereats" to "Open Uber Eats and find dinner.",
+            "uber" to "Book an Uber to a place I'll name.",
+            "maps" to "Search Google Maps for something nearby.",
+            "spotify" to "Play a playlist or artist on Spotify.",
+            "youtube" to "Search YouTube for something.",
+            "calendar" to "Add an event to my calendar.",
+            "gmail" to "Read me the latest email — or write a reply.",
+            "instagram" to "Open Instagram and like a specific friend's post.",
+            "chrome" to "Search Google for anything.",
+            "settings" to "Turn on Do Not Disturb until a time I specify.",
+        )
+        val suggestions = mutableListOf<String>()
+        for ((pkgHint, taskCopy) in candidates) {
+            if (installed.isEmpty() || installed.any { it.contains(pkgHint) }) {
+                suggestions += taskCopy
+            }
+            if (suggestions.size >= 7) break
+        }
+        val fallback = listOf(
+            "Send a message to someone — say their name.",
+            "Call a contact.",
+            "Set a reminder or timer.",
+            "Read me the screen aloud.",
+            "Search the web.",
+            "Turn on Do Not Disturb.",
+        )
+        val final = if (suggestions.isEmpty()) fallback else suggestions
+        val spoken = buildString {
+            append("Here's what I can do. Tap the mic and try any of these. ")
+            final.forEachIndexed { i, line ->
+                append("${i + 1}. $line ")
+            }
+            append("Or just describe any task in plain English and I'll figure it out.")
+        }
+        ChatStore.append("assistant", spoken)
+        AccessibilityHelper.speak(this, spoken, interrupt = true)
+    }
+
+    private fun installedPackagesLowercase(): List<String> {
+        return try {
+            packageManager.getInstalledApplications(0).map { it.packageName.lowercase() }
+        } catch (t: Throwable) {
+            emptyList()
+        }
+    }
+
+    companion object {
+        // How many recent messages to summarize for the audit-log intent.
+        private const val AUDIT_RECENT_COUNT = 12
     }
 }
