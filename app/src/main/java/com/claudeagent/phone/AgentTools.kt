@@ -75,6 +75,23 @@ object AgentTools {
             required = listOf("ms"),
         ))
         add(tool(
+            name = "read_screen_text",
+            description = "Run on-device OCR over the entire current screen and return the recognized text in natural reading order. Use this when the user asked to 'read me the screen', 'read me the menu', 'read this article', or 'what does this notification say' — instead of describing the screen yourself, return the OCR text verbatim. Fast and free (no API tokens).",
+            properties = emptyList(),
+            required = emptyList(),
+        ))
+        add(tool(
+            name = "read_text_at",
+            description = "Run on-device OCR over a small region of the screen. Use this to read a single label, notification, or focused element without picking up everything around it. Coordinates and dimensions are pixels.",
+            properties = listOf(
+                numberProp("x", "Top-left X of the region to OCR."),
+                numberProp("y", "Top-left Y of the region to OCR."),
+                numberProp("width", "Width of the region in pixels."),
+                numberProp("height", "Height of the region in pixels."),
+            ),
+            required = listOf("x", "y", "width", "height"),
+        ))
+        add(tool(
             name = "finish",
             description = "Call this when the task is complete (success=true) or cannot be completed (success=false). Include a short summary of what was done.",
             properties = listOf(

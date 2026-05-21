@@ -30,8 +30,8 @@ android {
         applicationId = "com.claudeagent.phone"
         minSdk = 30
         targetSdk = 35
-        versionCode = 8
-        versionName = "1.4.3"
+        versionCode = 10
+        versionName = "1.5.1"
 
         // These ship into BuildConfig.kt at compile time. See local.properties
         // for where to put real values. Safe-by-default placeholders make a
@@ -75,6 +75,14 @@ android {
             isMinifyEnabled = false
             signingConfig = signingConfigs.getByName("release")
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            // The release APK on docs/HandyAI.apk is for sideload on
+            // modern Android phones. Limiting to arm64-v8a saves
+            // ~30 MB on the universal APK. The Play AAB still ships
+            // every ABI — Play Store splits per-device automatically.
+            ndk {
+                abiFilters.clear()
+                abiFilters.add("arm64-v8a")
+            }
         }
     }
 
@@ -118,4 +126,10 @@ dependencies {
     // as soon as Sentry.init() runs with a real DSN. DSN-gated in
     // [HandyAIApplication] so debug builds without a DSN stay silent.
     implementation("io.sentry:sentry-android:7.14.0")
+
+    // On-device OCR for the "Read me the screen" accessibility feature.
+    // Tier-2 a11y unlock: lets blind users get a fast spoken transcript of
+    // arbitrary screen text without burning Anthropic tokens — MlKit's text
+    // recognizer runs locally and is free. Ships only the Latin-script model.
+    implementation("com.google.mlkit:text-recognition:16.0.0")
 }
