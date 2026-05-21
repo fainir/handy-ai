@@ -1,8 +1,8 @@
 <resources>
     <string name="app_name">Handy AI</string>
     <string name="accessibility_service_label">Handy AI</string>
-    <string name="accessibility_service_summary">Lets Handy AI carry out tasks you describe on this device.</string>
-    <string name="accessibility_service_description">This service lets Handy AI read the screen, take screenshots, and perform taps, swipes, and text input on your behalf so it can complete the tasks you describe in the app. You can revoke this at any time from Accessibility settings.</string>
+    <string name="accessibility_service_summary">Voice-first AI assistant for users with vision and motor disabilities.</string>
+    <string name="accessibility_service_description">Handy AI is an accessibility tool that lets you operate your phone with your voice. Speak a task in plain English and Handy AI reads the screen, narrates each step aloud, and performs taps, swipes, and text input on your behalf so you can use any app hands-free. Designed for blind and low-vision users (TalkBack-compatible), users with motor disabilities (ALS, Parkinson\'s), users with cognitive impairments (Easy Mode), and anyone who wants voice control across all their apps. You can revoke this permission at any time from Accessibility settings.</string>
 
     <string name="settings_title">Settings</string>
     <string name="section_api_key">Anthropic API key</string>
@@ -126,6 +126,66 @@
     <string name="hub_pair_button">Pair with Cloudbot</string>
     <string name="hub_paired">Paired as %1$s</string>
     <string name="hub_unpair">Unpair</string>
+
+    <!-- Easy Mode (Tier 3: cognitive load / older / motor accessibility) -->
+    <string name="easy_mode_title">Easy mode</string>
+    <string name="easy_mode_idle">Tap the big button and speak.</string>
+    <string name="easy_mode_listening">Listening.</string>
+    <string name="easy_mode_announce">Easy mode. One big mic button. Tap it, speak your task, then I\'ll do it and tell you what happened.</string>
+    <string name="easy_mode_hint">I\'ll read aloud what I\'m doing.\nTap the button again to stop.</string>
+    <string name="easy_mode_mic_desc">Tap to speak a task</string>
+    <string name="easy_mode_stop_desc">Tap to stop the current task</string>
+    <string name="easy_mode_exit">Exit easy mode</string>
+    <string name="easy_mode_exit_desc">Leave easy mode and return to the chat view</string>
+    <string name="easy_mode_no_key">I need an Anthropic key first. Exit easy mode and add one in settings, or use the set-up-with-my-computer option.</string>
+    <string name="easy_mode_no_accessibility">I need accessibility permission. Opening Accessibility settings now. Find Handy AI and turn it on.</string>
+    <string name="easy_mode_service_off">Accessibility service isn\'t running. Toggle Handy AI off and on in Accessibility settings.</string>
+
+    <!-- Accessibility settings section (Tier 1-3 toggles) -->
+    <string name="section_accessibility_audio">Voice and audio</string>
+    <string name="accessibility_mode_label">Voice mode</string>
+    <string name="accessibility_mode_off">Off — silent</string>
+    <string name="accessibility_mode_on">On — always speak</string>
+    <string name="accessibility_mode_auto">Auto — match TalkBack</string>
+    <string name="verbosity_label">How much narration</string>
+    <string name="verbosity_off">Off — no action narration</string>
+    <string name="verbosity_brief">Brief — short summaries</string>
+    <string name="verbosity_detailed">Detailed — every step</string>
+    <string name="confirm_destructive_label">Voice-warn before destructive actions</string>
+    <string name="confirm_destructive_summary">Pause and announce before tapping Send, Buy, Delete, and similar buttons so you can hit Stop if it\'s wrong.</string>
+    <string name="haptics_label">Vibration feedback</string>
+    <string name="haptics_summary">Subtle vibrations for task started, done, error, and confirmation prompts.</string>
+    <string name="easy_mode_toggle_label">Switch to Easy Mode</string>
+    <string name="easy_mode_toggle_summary">One giant mic button, no chat history. Designed for blind/low-vision users and anyone who wants the simplest possible interface.</string>
+    <string name="high_contrast_label">High-contrast text</string>
+    <string name="high_contrast_summary">Use pure white text on pure black for maximum readability.</string>
+
+    <!-- Voice-first API key setup (paired-laptop flow) -->
+    <string name="key_setup_title">Set up with my computer</string>
+    <string name="key_setup_subtitle">For users who can\'t easily paste a long API key on the phone. You\'ll see a short code here. Open gethandyai.app/setup on your computer, enter the code, paste your Anthropic key, and your phone will receive it.</string>
+    <string name="key_setup_code_label">Your one-time code</string>
+    <string name="key_setup_code_announce">Six character setup code</string>
+    <string name="key_setup_visit_url">Now on your computer, open:</string>
+    <string name="key_setup_screen_announce">Set up via computer. I\'ll show a one-time code you can read out and enter on gethandyai.app slash setup on your computer.</string>
+    <string name="key_setup_requesting">Requesting a setup code…</string>
+    <string name="key_setup_waiting">Waiting for you to enter the code on your computer…</string>
+    <string name="key_setup_init_failed">Couldn\'t get a setup code. %1$s. Tap retry from the previous screen.</string>
+    <string name="key_setup_transient_error">Network hiccup: %1$s. Still waiting.</string>
+    <string name="key_setup_received">Key received. Setup complete.</string>
+    <string name="key_setup_expired">The setup code expired. Getting a fresh one now.</string>
+    <string name="key_setup_speak_code">Read code aloud again</string>
+    <string name="key_setup_speak_code_desc">Repeat the spoken setup code aloud</string>
+    <string name="key_setup_cancel">Cancel and go back</string>
+    <string name="key_setup_use_computer">Set up via computer (voice-first)</string>
+
+    <!-- Named aliases (Tier 5) -->
+    <string name="aliases_section_label">Named aliases</string>
+    <string name="aliases_section_summary">Map a short label (Mom, my usual, work email) to a concrete entity. The agent resolves these in your tasks.</string>
+    <string name="aliases_empty">No aliases set yet.</string>
+    <string name="aliases_add_label">Add alias</string>
+    <string name="aliases_alias_hint">Alias (e.g. Mom)</string>
+    <string name="aliases_entity_hint">Resolves to (e.g. contact Sarah, +1-555-0100)</string>
+    <string name="aliases_remove_desc">Remove alias</string>
 
     <!-- CloudBot panel pairing -->
     <string name="settings_panel">CloudBot panel</string>

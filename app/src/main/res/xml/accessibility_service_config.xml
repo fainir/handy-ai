@@ -1,5 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+  isAccessibilityTool="true" is the gating Play Store declaration that
+  authorizes this service to use the Accessibility API for open-ended
+  user-directed automation. Handy AI is built for users with vision and
+  motor disabilities (and the wider audience of voice-first users): we
+  voice the screen, narrate every action, confirm destructive operations
+  by voice, and provide an Easy Mode for cognitive accessibility. The
+  service description, summary, and Play Console listing all reflect this
+  positioning. See accessibility-pivot.md for full justification.
+-->
 <accessibility-service xmlns:android="http://schemas.android.com/apk/res/android"
+    android:isAccessibilityTool="true"
     android:accessibilityEventTypes="typeAllMask"
     android:accessibilityFeedbackType="feedbackGeneric"
     android:accessibilityFlags="flagDefault|flagIncludeNotImportantViews|flagRequestTouchExplorationMode|flagReportViewIds|flagRetrieveInteractiveWindows|flagRequestFilterKeyEvents|flagRequestAccessibilityButton"
