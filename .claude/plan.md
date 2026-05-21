@@ -139,3 +139,14 @@
 **Bug caught + fixed mid-test:** Google Group privacy was "Who can see group: Group members" which blocked non-members from even reaching the Join button (they saw "Content unavailable"). Changed to "Anyone on the web" — only the group landing page is public, conversations still group-members-only.
 
 **Feedback URL:** changed from `hi@gethandyai.app` (forwarding disabled) → `fainir2006@gmail.com`; sent for Google review, auto-approves fast.
+
+## Phase 4: Launch marketing [in-progress]
+- [x] Show HN posted
+- [~] Record demo video + wrap in Remotion + post Twitter thread (M)
+  - DoD: 60-90s raw screen recording of Handy AI doing a task end-to-end on Pixel; wrapped in Remotion composition with phone bezel + text overlays + CTA card pointing to gethandyai.app; posted as Twitter thread with the rendered MP4; at least 1 new beta signup attributed to the post within 24h.
+  - [x] Pivoted from WhatsApp (personal data) → Chrome/HN task (neutral, no PII)
+  - [x] Raw capture: `playstore/remotion-demo/public/handyai-demo.mp4` — 58.5s, 720×1620, 91 frames (trimmed from 87s); shows empty chat → typed task → submit → home → Chrome → news.ycombinator.com typed → HN loaded
+  - [x] Remotion composition (`playstore/remotion-demo/src/HandyDemo.tsx`) — 1080×1920 @ 30fps, 2s intro + 58.5s body + 3s outro = 63.5s total; Fraunces display + Instrument Sans body; phone bezel with inner 680×1530 @ 24px bezel; caption overlay + "JOIN THE BETA — gethandyai.app" outro card
+  - [x] Rendered output: `playstore/video/handyai-demo-wrapped.mp4` — 4.7 MB, 1080×1920, 63.5s, h264 yuv420p (Twitter-ready, well under 512MB/140s limits)
+  - [ ] User publishes Twitter thread with attached MP4 (Post 1 draft already in `playstore/launch-posts.md` lines 14–22; follow-ups Post 2 + Post 3 threaded below)
+  - [ ] Watch `handy_beta_signups` for traffic spike + new rows after post goes live
