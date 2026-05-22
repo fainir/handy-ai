@@ -35,6 +35,15 @@
   }
   @media (prefers-contrast: more) {
     body { background: #fff; color: #000; }
+    form { background: #fff; border: 2px solid #000; }
+    input[type="text"], input[type="password"] { border: 2px solid #000; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
   }
   .sr-only {
     position: absolute;
