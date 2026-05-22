@@ -199,6 +199,12 @@ Action plan for the next 4 days:
 - [x] `gh api -X PUT repos/fainir/handy-ai/pages -F https_enforced=true` → https_enforced: True
 - [x] End-to-end verification: HTTPS strict 200, SSL verify_result 0, /setup.html 200, accessibility section present
 
+## Phase 9b: Launch-day second pass [2026-05-22 late]
+- [x] **LAUNCH BLOCKER found + fixed**: docs/HandyAI.apk was stale v1.4.3 (versionCode 8, Apr 24) -- pre-accessibility-pivot. Rebuilt with `./gradlew assembleRelease` under Java 21, signed with release key, copied to docs/HandyAI.apk (63 MB / versionCode 10 / 1.5.1). Landing labels updated 21 MB -> 63 MB. Commit `f7217a4`. Live on gethandyai.app verified via `content-length: 63096445`.
+- [x] APK size truth-check: claim matches reality post-rebuild (was 21 MB for stale, now 63 MB for v1.5.1, both accurate).
+- [x] Beta form endpoint smoke test: POST to /api/handy-beta with `.test` TLD returns 422 with correct validator message. Form alive.
+- [x] Pre-launch report check: empty by design (Robo crawler can't get past BYO-key entry screen). Not a launch blocker -- human reviewers use App access reviewer credentials. Optional polish: upload Robo script.
+
 ## Phase 9: Launch-day punch list [2026-05-22]
 
 Walked every Play Console section + landing + v1.5.1 runtime health. Full
