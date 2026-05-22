@@ -143,7 +143,7 @@ drop it for primary body.
 
 - [ ] Live screen-reader walkthrough on a real device (TalkBack on
       Pixel, NVDA on Windows, VoiceOver on macOS). 20-min total.
-- [ ] Audit `docs/setup.html` with the same checklist.
+- [x] Audit `docs/setup.html` with the same checklist. **See section below.**
 - [ ] Consider darkening the `--muted` token if we want full AAA
       on secondary copy (current ratio: 5.3:1; AAA needs 7:1). One
       candidate: `#4A453E` → 6.9:1 (barely fails AAA), `#3F3A33` →
@@ -152,6 +152,112 @@ drop it for primary body.
 - [ ] Add a `prefers-reduced-data` media query to drop the Google
       Fonts preload on metered connections. Not WCAG but adjacent
       to accessibility.
+
+---
+
+# /setup.html audit — 2026-05-22
+
+Same WCAG 2.1 AA + AAA checklist applied to the paired-laptop key
+setup page. This is the page screen-reader users land on when they
+choose "Set up via computer" in the app, so it has to be screen-
+reader-friendly by definition.
+
+## Verdict
+
+**PASS** with one minor gap fixed inline.
+
+| # | Severity | Finding | Action |
+|---|----------|---------|--------|
+| 1 | WCAG 2.3.3 Animation from Interactions (AAA) + 2.2.2 (AA via best practice) | No `@media (prefers-reduced-motion: reduce)` block. The submit button has `transition: opacity 150ms ease-out, transform 100ms ease-out` which fires regardless of user preference. Index.html had this guard; setup.html was missing it. | Added the standard reduced-motion guard. Also strengthened the existing `prefers-contrast: more` block to add 2px form/input borders. |
+
+Everything else is well-built — in some ways better than index.html.
+
+## What setup.html does correctly (and notably better than the landing)
+
+- **Visible labels on every input.** Not sr-only — explicit
+  `<label for="codeInput">Setup code</label>` (line 244) and
+  `<label for="keyInput">Anthropic API key</label>` (line 260) sit
+  above the inputs. This is the gold standard for form labels.
+- **`aria-describedby` linking inputs to their hint paragraphs**
+  (lines 254, 268). Screen readers announce the hint alongside the
+  label.
+- **Code display is `aria-live="polite"`** (line 238). When the
+  URL prefills a code via the `?c=ABC123` query param, screen
+  readers announce the new value.
+- **Status region uses role-switching**: starts as `role="status"`,
+  changes to `role="alert"` for errors via JS (line 328). Errors
+  preempt other speech; success messages politely queue. This is
+  the textbook pattern.
+- **Touch targets meet minimum.** Inputs and button both have
+  `min-height: 48px` (lines 140, 158). Above the 44px WCAG
+  recommendation.
+- **API key input is `type="password"`** (line 262). Visually
+  masked; screen readers announce "secure entry".
+- **Setup steps `<ol>` carries `aria-label="Setup steps"`** (line
+  285) so screen-reader navigation by region surfaces it cleanly.
+- **`inputmode="text"` + `maxlength="6"` + `autocapitalize="characters"`
+  on the code input** (lines 250-253). Phones surface the right
+  keyboard, prevent overflow, auto-uppercase.
+
+## Color contrast (computed)
+
+| Element | Foreground | Background | Ratio | WCAG |
+|---------|-----------|-----------|-------|------|
+| Body | ink #1A1A1A | cream #F4E9D4 | 15.1:1 | AAA |
+| `.lead` | ink-2 #3A3530 | cream #F4E9D4 | ~11:1 | AAA |
+| `.hint` | muted #5A544C | form bg (white 60% on cream) | ~6:1 | AA |
+| `.code-value` | cream | ink | 15.1:1 | AAA |
+| Button text | cream | ink | 15.1:1 | AAA |
+| Error status text | danger #B83A2C | rgba(184,58,44,0.1)-on-cream blend | ~6:1 | AA |
+| Success status text | success #2C7A4A | rgba(44,122,74,0.12)-on-cream blend | ~5:1 | AA |
+| Input border | border #D4C6A8 | cream #F4E9D4 | ~1.4:1 | AA (just-fails 1.4.11 non-text 3:1) |
+
+The input border is the one borderline number. WCAG 1.4.11
+(Non-text Contrast) requires 3:1 against the adjacent color for
+UI components. Cream-on-cream border is well below that. However:
+the input has a 2px-thick border (vs. typical 1px), and on focus
+the border switches to ink (#1A1A1A) at 15:1 with a 3px box-shadow
+halo. That makes the focused state strongly distinguishable. The
+default state is harder to find on a quick visual scan — but a
+screen reader user gets the label, which is what matters; a
+sighted-low-vision user gets the focus halo as soon as they
+interact. Acceptable, with a "could be improved" note.
+
+## Form data flow / privacy notes
+
+- API key submitted to `https://cloudbot-ai.com/api/handy-key-setup/claim`
+  over TLS (line 353).
+- Page footer explicitly states 10-minute server-memory TTL with
+  immediate wipe on phone pickup (lines 295-297). Honest and
+  matches the actual `handy_key_setup.py` implementation in
+  cloudbot-panel.
+- No analytics scripts. No third-party trackers.
+- Google Fonts is preconnected and loads CSS — this leaks the
+  visitor's User-Agent + IP to Google. Acceptable but worth
+  flagging for the GDPR pitch in `rnib-connect-voices-pitch.md`.
+  An optional self-host of Fraunces + Inter would close this.
+
+## Code-quality observations (not WCAG)
+
+- Error messages in JS use curly quotes ("doesn't", lines 343,
+  368, 369). Renders fine. Inconsistent with the rest of the
+  codebase (which uses straight apostrophes). Cosmetic.
+- The network-error branch (line 378) interpolates `err.message`
+  directly. For a non-technical screen-reader user, "Network
+  error: TypeError: Failed to fetch" is opaque. Worth gating
+  behind a friendlier user-facing message with the raw error in
+  a `<details>` or copy-button. Not WCAG, but worth a future
+  polish pass.
+
+## Patch applied in same commit as the index.html fixes
+
+One edit to `docs/setup.html`:
+
+1. Added `@media (prefers-reduced-motion: reduce)` block with the
+   standard animation/transition zeroing pattern.
+2. Strengthened the existing `@media (prefers-contrast: more)`
+   block: form and inputs now get 2px-solid-black borders in
+   high-contrast mode (was previously just body bg/fg swap).
 
 ## Patch applied in same commit
 

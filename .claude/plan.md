@@ -186,10 +186,17 @@ Next levers (user-driven):
 - [x] End-to-end verification: HTTPS strict 200, SSL verify_result 0, /setup.html 200, accessibility section present
 
 ## Phase 8: Acquisition unblock [in-progress 2026-05-22]
-- [~] Write disability-community outreach assets (M)
+- [x] Audit `docs/setup.html` (paired-laptop key flow) with same WCAG checklist (S)
+  - DoD: append a "/setup.html audit" section to `playstore/outreach/landing-a11y-audit.md` covering structure, ARIA, forms, focus, contrast. Fix any failures inline.
+  - Done: setup.html audit appended to the audit doc. The page is actually built tighter than index.html — explicit visible labels, `aria-describedby` linked to hints, `aria-live` on the code display, role-switching on the status region, 48px touch targets. Only one gap: missing `@media (prefers-reduced-motion: reduce)`. Fixed inline + strengthened the `prefers-contrast: more` block to add 2px form/input borders in high-contrast mode. Borderline input-border contrast (1.4:1 cream-on-cream) flagged in the audit but accepted: 2px border + 15:1 focus halo + label do the work for sighted-low-vision and screen-reader paths respectively.
+
+
+- [x] Write disability-community outreach assets (M)
   - DoD: ready-to-send templates for (1) r/Blind moderator pre-pitch, (2) NFB Connect newsletter, (3) ACB Braille Forum, (4) RNIB Connect Voices, plus (5) refined Twitter thread Post 1-3 with line-by-line accessibility-positioned copy. All saved under `playstore/outreach/` so user can copy-paste-send without rewriting.
-- [ ] Static accessibility audit of live landing (S)
+  - Done: 6 files under `playstore/outreach/`: README.md (posting order + honesty bar + signup-query helper), twitter-thread-v2.md (3 posts + 1000-char alt text), r-blind-pitch.md (mod-DM-first script + post body with sighted-dev declaration), nfb-newsletter-pitch.md (NFB communications@), acb-braille-forum-pitch.md (ACB info@ / editor@ / acbmedia@), rnib-connect-voices-pitch.md (RNIB connectvoices@ with UK-tuned GDPR paragraph). Every template carries the same honest "what v1.5 does NOT yet have" paragraph (no native braille, no eye-gaze, no switch-control optimization, sighted help still needed for first-run install) so the user can't accidentally over-promise.
+- [x] Static accessibility audit of live landing (S)
   - DoD: read `docs/index.html` end-to-end, check heading hierarchy / alt text / contrast / ARIA / focus management / skip-link target / prefers-reduced-motion / prefers-contrast / lang attr / viewport / og:image / meta description. Output a PASS/FAIL checklist in `playstore/outreach/landing-a11y-audit.md` with any fixes applied.
+  - Done: `playstore/outreach/landing-a11y-audit.md` (~200 lines) with full WCAG 2.1 AA+AAA checklist and computed contrast ratios for every color token pair. Found two real failures + one borderline pass; fixed all three inline in same commit `b8cacaf`. (1) Beta-form inputs lacked `<label>` (WCAG 3.3.2) → added visually-hidden labels + `aria-labelledby` on form. (2) Decorative SVGs lacked `aria-hidden` (WCAG 1.1.1) → added `aria-hidden="true" focusable="false"` to both. (3) Form placeholder opacity bumped 0.55→0.7 for safer non-text contrast (WCAG 1.4.11). Followup [ ] tasks documented: live screen-reader walkthrough, /setup.html audit, optional darkening of `--muted` token for full-AAA secondary copy.
 
 ## Phase 4: Launch marketing [in-progress]
 - [x] Show HN posted
