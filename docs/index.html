@@ -160,7 +160,7 @@
     font-size: 15px;
     min-width: 0;
   }
-  .beta-form input::placeholder { color: rgba(244,233,212,0.55); }
+  .beta-form input::placeholder { color: rgba(244,233,212,0.7); }
   .beta-form input:focus {
     outline: none;
     border-color: var(--cream);
@@ -394,11 +394,11 @@
     <p class="sub">A voice-first AI agent for Android. Speak a task — Handy AI watches your screen, narrates each step aloud, and taps, types, and swipes through your apps until it's done. <strong>For everyone, and built with vision and motor accessibility in mind.</strong></p>
     <div class="cta-row">
       <a class="btn btn-primary" href="HandyAI.apk" download>
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
         <span class="store-label">Download APK<small>Direct install · 21 MB</small></span>
       </a>
       <span class="btn btn-disabled" aria-disabled="true" title="Google Play release in review">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M3.5 2.1a1 1 0 0 0-.5.87v18.06a1 1 0 0 0 .5.87l10.8-9.9L3.5 2.1zm12.2 9.17L5.4 21.34l9.1-5.22 2.7 2.48a.85.85 0 0 0 1.18-.04l2.32-2.12a.93.93 0 0 0 0-1.35l-3.12-2.86zm0-2.53l3.12-2.86a.93.93 0 0 0 0-1.35L16.5 2.41a.85.85 0 0 0-1.18-.04L5.4 2.66l10.3 6.08z"/></svg>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><path d="M3.5 2.1a1 1 0 0 0-.5.87v18.06a1 1 0 0 0 .5.87l10.8-9.9L3.5 2.1zm12.2 9.17L5.4 21.34l9.1-5.22 2.7 2.48a.85.85 0 0 0 1.18-.04l2.32-2.12a.93.93 0 0 0 0-1.35l-3.12-2.86zm0-2.53l3.12-2.86a.93.93 0 0 0 0-1.35L16.5 2.41a.85.85 0 0 0-1.18-.04L5.4 2.66l10.3 6.08z"/></svg>
         <span class="store-label">Coming to Google Play<small>In review</small></span>
       </span>
     </div>
@@ -471,10 +471,12 @@
 
   <section id="beta" style="border: none; padding: 40px 0 0;">
     <div class="beta">
-      <h2>Join the Handy AI beta.</h2>
+      <h2 id="beta-heading">Join the Handy AI beta.</h2>
       <p>Drop your email and we'll send you install instructions plus the Play Store tester link as soon as you're on the list. Beta testers get a direct line to us and shape what ships next.</p>
-      <form class="beta-form" id="betaForm" novalidate>
+      <form class="beta-form" id="betaForm" novalidate aria-labelledby="beta-heading">
+        <label for="betaEmail" class="sr-only">Your email address</label>
         <input type="email" name="email" id="betaEmail" placeholder="you@example.com" required autocomplete="email">
+        <label for="betaName" class="sr-only">Your first name (optional)</label>
         <input type="text" name="name" id="betaName" placeholder="First name (optional)" autocomplete="given-name" style="flex: 0 1 180px;">
         <button type="submit" id="betaSubmit">Join the beta</button>
       </form>
