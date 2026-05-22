@@ -140,23 +140,37 @@
 
 **Feedback URL:** changed from `hi@gethandyai.app` (forwarding disabled) → `fainir2006@gmail.com`; sent for Google review, auto-approves fast.
 
-## 2026-05-22 status — Production-unlock blocked on signups, not on Google review
+## 2026-05-22 status — Production-unlock is 4 DAYS AWAY (not 11 testers away)
 
-Pulled live `handy_beta_signups` table via Railway public Postgres proxy. Reality:
-- **5 total rows** (4 are local test signups from 2026-04-24, 1 real outside signup from 2026-05-08 — Θανάσης).
-- **14 consecutive days with zero new signups** (last real signup May 8, today May 22).
-- Welcome emails: only 2 of 5 succeeded — the early Apr 24 rows pre-date Resend domain verification (gethandyai.app DKIM/SPF wasn't live yet) so they bounced.
+**Previous "1 tester" panic was wrong** — I was querying the wrong table. The Play Console doesn't count `handy_beta_signups` (that's just the landing-page form). It counts members of the Google Groups listed as the tester source for the Closed Testing track.
 
-What this means for production unlock:
-- Play Console requires ≥12 opted-in testers across a 14-day window. We have 1 real tester. Gap = 11.
-- The acquisition funnel is shipped (landing form → /api/handy-beta → welcome email → Google Group → Play Store listing) and all five stages were verified working on 2026-04-24.
-- The blocker is **traffic** — there is no inbound channel pushing people through the funnel. The Twitter thread (`playstore/launch-posts.md` Post 1-3, MP4 rendered at `playstore/video/handyai-demo-wrapped.mp4`) is still un-posted; the rendered video has been sitting on disk for ~2 weeks.
+Verified via Play Console browser walkthrough (welcometothebestplace@gmail.com → Sumbli → Handy AI). Real numbers:
 
-Next levers (user-driven):
-1. **Publish the Twitter thread** (highest leverage, zero cost — video is ready, drafts are ready).
-2. Post to r/blind, r/Blind, r/accessibility, r/disability — accessibility-positioned pitch lands very differently than the generic /r/androidapps angle.
-3. Email the National Federation of the Blind, American Council of the Blind, RNIB (UK) — pitch beta access to their member newsletters.
-4. If outreach stalls past June 5, fall back to a second TestersCommunity buy ($15 → 25 testers, ~16 days). The earlier purchase covered the Apr clock.
+- **App is published.** v1.5.1 (versionCode 10) live in Closed Testing alpha track since May 21 6:36 PM UTC, in 177 countries / regions. v1.4.1 still on Internal testing.
+- **12 testers opted in.** From two Google Groups: `handy-ai-beta@googlegroups.com` (organic) + `testers-community@googlegroups.com` (the $15 TestersCommunity paid service).
+- **10 of 14 days complete.** Dashboard literal text: "12 testers have currently been opted in for 10 days continuously". Apply-for-production button unlocks at day 14, around **May 26**.
+- **Apply for production** button is currently disabled but will enable on May 26. After clicking, Google reviews for 1-7 days.
+
+What this means:
+- Nothing is broken on Play Store / Closed Testing. The release pipeline is working perfectly.
+- The earlier outreach assets and panic about traffic are still **valuable** but **not the production-unlock blocker** — more testers in the next 4 days strengthens the Production review case but the 12-tester floor is already met. Lean on Twitter/r/Blind/newsletters for v1.5 audience-building, not as a tester-count emergency.
+
+Account / app identifiers (so future sessions don't burn time finding them):
+- Play Console account: `welcometothebestplace@gmail.com` → "Sumbli", developer account ID `6923776120794608074`
+- App ID: `4972553077583466059`, package `com.claudeagent.phone`
+- Tester opt-in URLs:
+  - Android: `https://play.google.com/store/apps/details?id=com.claudeagent.phone`
+  - Web: `https://play.google.com/apps/testing/com.claudeagent.phone`
+- Other Google accounts to NEVER confuse this with:
+  - `fainir2006@gmail.com` → "Nir Fainshtein" dev account (CLOSED Feb 13 2024 for inactivity)
+  - `fainir2006@gmail.com` → "Uniget" dev account (CLOSED Mar 14 2024 for inactivity)
+  - Account ID `6923776120794608074` is the live one — bookmark it.
+
+Action plan for the next 4 days:
+1. **May 26 (~Tuesday)**: log in to Play Console, click "Apply for production" on the Handy AI dashboard. Answer Google's questionnaire about the closed test. Wait 1-7 days for production review.
+2. **In parallel**: post the Twitter thread + r/Blind pitch (assets in `playstore/outreach/`) — extra opted-in testers and engagement strengthen the production-review case but are not gating it.
+
+## Earlier 2026-05-22 note (kept for reference, was based on wrong table) — see corrected status above
 
 ## Phase 6: Accessibility pivot v1.5 + v1.5.1 [shipped 2026-05-18]
 - [x] Add `isAccessibilityTool="true"` to AccessibilityService config (regulatory moat)
