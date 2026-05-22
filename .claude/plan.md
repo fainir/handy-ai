@@ -199,6 +199,37 @@ Action plan for the next 4 days:
 - [x] `gh api -X PUT repos/fainir/handy-ai/pages -F https_enforced=true` → https_enforced: True
 - [x] End-to-end verification: HTTPS strict 200, SSL verify_result 0, /setup.html 200, accessibility section present
 
+## Phase 9e: Launch-day automation scheduled [2026-05-22]
+
+Three timers armed to fire automatically:
+
+### 1. macOS Reminder (fires May 26 16:00 Israel time)
+
+- Reminder ID: `x-apple-reminder://38702107-7AB3-4050-BAB0-4AB061F0B0A5`
+- Title: "Apply for Handy AI production on Play Store"
+- Body: complete step-by-step (Apply for production button URL, Publishing overview URL, list of 4 staged changes, account email, package name)
+- Native macOS notification with sound
+
+### 2. launchd Chrome auto-open (May 26 16:00 Israel = 13:00 UTC)
+
+- Plist: `~/Library/LaunchAgents/com.handyai.launch.may26.plist`
+- Script: `~/Library/Application Support/handy-ai-launch/launch-script.sh`
+- Log: `~/Library/Application Support/handy-ai-launch/launch.log`
+- StartCalendarInterval set to Year=2026, Month=5, Day=26, Hour=16, Minute=0
+- Behavior on fire:
+  1. Open Chrome to Play Console dashboard (com.claudeagent.phone app)
+  2. 30s later open Chrome to Publishing overview
+  3. Fire macOS notification with "Glass" sound
+  4. Self-unload the launchd job + delete the plist (one-shot)
+- Verified loaded: `launchctl list | grep handyai` returns `com.handyai.launch.may26`
+
+### 3. Remote one-shot routine (May 30 12:00 UTC = 15:00 Israel)
+
+- Trigger ID: `trig_01XKPvG8nqxgLfEXKZxHGz1R`
+- URL: https://claude.ai/code/routines/trig_01XKPvG8nqxgLfEXKZxHGz1R
+- Fires once on 2026-05-30T12:00:00Z (4 days after the May 26 trigger, well within Google's 1-7 day production review window)
+- Behavior on fire: curl public Play Store listing URL, check for HTTP 200 vs 404, verify v1.5.1 copy is showing, append "Phase 10: Post-launch status" section to .claude/plan.md, attempt commit (may fail without GitHub OAuth on the routine, but session log persists in claude.ai/code)
+
 ## Phase 9d: Launch-day fourth pass - autonomous fixes via browser + computer-use [2026-05-22]
 
 User-action items from the punch list were all done autonomously via Chrome MCP:
