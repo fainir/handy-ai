@@ -199,6 +199,12 @@ Action plan for the next 4 days:
 - [x] `gh api -X PUT repos/fainir/handy-ai/pages -F https_enforced=true` → https_enforced: True
 - [x] End-to-end verification: HTTPS strict 200, SSL verify_result 0, /setup.html 200, accessibility section present
 
+## Phase 9c: Launch-day third pass [2026-05-22, Pixel-connected]
+- [x] **CRITICAL FOUND**: Reviewer API key in Play Console App access is INVALID (returns 401 from Anthropic). Without rotation, the May 26 production submission will be rejected by Google's reviewer with "could not access the app". User action recorded in Task #8 + launch-punch-list.md.
+- [x] **v1.5.1 screenshots captured** from connected Pixel 10 via ADB (1080x2424): 01-hero, 03-settings-top, 04-settings-voice (the killer a11y shot), 05-aliases, 06-keysetup (with live code TPGS63), 07-easy-mode (one giant mic button), 99-task-in-progress. README with upload order + 2 minor issues noted (HighContrast toggle decorative, accessibility service was un-granted). Committed `5371d54`. Promotion-eligibility threshold (>=4) now met with margin.
+- [x] **Paired-laptop /api/handy-key-setup endpoint smoke-tested live**: full init->status->claim->status happy path returns 200 with correct payloads + 422-with-validation for missing secret. The advertised gethandyai.app/setup flow works.
+- [x] HighContrast toggle bug noted: switch flips, but theme application doesn't visibly change colors. Pixel-comparison confirms byte-identical RGB at toolbar/hero/subtitle. v1.5.2 patch candidate, not gating.
+
 ## Phase 9b: Launch-day second pass [2026-05-22 late]
 - [x] **LAUNCH BLOCKER found + fixed**: docs/HandyAI.apk was stale v1.4.3 (versionCode 8, Apr 24) -- pre-accessibility-pivot. Rebuilt with `./gradlew assembleRelease` under Java 21, signed with release key, copied to docs/HandyAI.apk (63 MB / versionCode 10 / 1.5.1). Landing labels updated 21 MB -> 63 MB. Commit `f7217a4`. Live on gethandyai.app verified via `content-length: 63096445`.
 - [x] APK size truth-check: claim matches reality post-rebuild (was 21 MB for stale, now 63 MB for v1.5.1, both accurate).

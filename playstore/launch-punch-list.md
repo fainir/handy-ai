@@ -25,11 +25,75 @@ Google's rule: 12 testers opted-in for 14 continuous days before the
 - Privacy + terms pages: dead `hi@gethandyai.app` swapped to working `fainir2006@gmail.com`
 - Internal testing track: v1.4.1 still up as a fallback
 
-## Late-add: 2026-05-22 second-pass discovery + fix
+## Late-add: 2026-05-22 THIRD-pass discoveries (Pixel-connected audit)
 
-After publishing the first version of this punch list, I went deeper on three
-items the user explicitly asked about ("besides waiting for May 26"). Two
-were clean. **One was a real launch blocker** I'd missed earlier.
+### 🚨 CRITICAL: Reviewer API key in Play Console is INVALID (401)
+
+App content -> App access -> Manage stores reviewer credentials Google
+uses when they review production submissions. The stored key is:
+
+```
+sk-ant-api03-...wPtQAA    (last 6 chars of the suffix)
+```
+
+Probed live against Anthropic:
+```
+$ curl -X POST https://api.anthropic.com/v1/messages \
+    -H "x-api-key: sk-ant-api03-...wPtQAA" \
+    ...
+HTTP/2 401
+{"type":"error","error":{"type":"authentication_error","message":"invalid x-api-key"}}
+```
+
+When the May 26 production application is reviewed, Google's reviewer
+will read the App access instructions, paste this key into Handy AI on
+their test device, get a 401 from Anthropic when the agent tries to
+make its first request, and conclude they "could not access the app".
+
+The submission will be **REJECTED**. A re-submission after key rotation
+costs another 1-7 day review cycle, delaying production listing.
+
+**USER ACTION (must do before May 26):**
+1. Go to https://console.anthropic.com/settings/keys
+2. Either rotate the existing key with suffix ...wPtQAA (key may have
+   been deleted/regenerated since the original Apr 23 submission), or
+   create a new key. Either way, save the new full key string.
+3. Play Console -> Handy AI -> App content -> App access -> Manage
+4. In the "Any other information required to access your app" box,
+   replace the line `Test key: sk-ant-api03-jnap...wPtQAA` with the
+   new key. Keep "No account needed..." sentence above.
+5. Save. Send for review via Publishing overview (along with the
+   staged description fix).
+6. Optional: pre-fund the new key with ~$10 of Anthropic credit so
+   Google's reviewer can exercise a few real tasks without hitting
+   a credit-exhausted error.
+
+### v1.5.1 screenshots captured from connected Pixel
+
+Used ADB to drive the device through hero / Settings Voice and audio /
+Named Aliases / KeySetup / Easy Mode / task-in-progress, captured 7
+images at 1080x2424, committed to `playstore/screenshots/v1.5.1/` with
+a README documenting upload order. Promotion-eligibility requirement
+(>=4 at >=1080 px) is now met with margin.
+
+Found during capture: the **HighContrast text toggle is decorative** -
+pixel-comparing the hero before/after toggle shows byte-identical
+colors. The switch is wired (uiautomator shows checked=true after tap)
+but `Theme.ClaudePhoneAgent.HighContrast` either isn't resolving or
+has the same color tokens as the base theme. Not a launch blocker
+(production review won't notice), but a v1.5.2 patch candidate.
+
+### Paired-laptop key-setup endpoint smoke-tested live
+
+Full happy-path verified:
+- `POST /init` -> `{code, pollSecret, expiresInSeconds: 600}`, 200
+- `GET /status/{code}?secret=...` (before claim) -> `{status: "pending", apiKey: null}`, 200
+- `POST /claim` `{code, apiKey}` -> `{status: "received"}`, 200
+- `GET /status/{code}?secret=...` (after claim) -> `{status: "claimed", apiKey: ...}`, 200
+- Status without secret -> 422 with proper validation error (correct security)
+
+The `gethandyai.app/setup` flow advertised on the landing page is
+fully functional end-to-end.
 
 ### LAUNCH BLOCKER FOUND + FIXED: `docs/HandyAI.apk` was stale v1.4.3
 
