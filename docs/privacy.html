@@ -25,13 +25,25 @@
   li { margin-bottom: 6px; }
   .muted { color: var(--muted); }
   footer { padding: 40px 0 60px; color: var(--muted); font-size: 14px; border-top: 1px solid var(--border); margin-top: 60px; }
+  .skip-link { position: absolute; top: -100px; left: 16px; background: var(--ink); color: var(--cream); padding: 12px 18px; border-radius: 8px; text-decoration: none; z-index: 999; font-weight: 600; }
+  .skip-link:focus { top: 16px; }
+  :focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; border-radius: 4px; }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; scroll-behavior: auto !important; }
+  }
+  @media (prefers-contrast: more) {
+    body { background: #fff; color: #000; }
+    a { text-decoration: underline; }
+  }
 </style>
 </head>
 <body>
+<a href="#main" class="skip-link">Skip to main content</a>
 <div class="wrap">
-  <nav><a href="index.html" class="logo"><span class="logo-mark">H</span> Handy AI</a></nav>
+  <nav aria-label="Primary"><a href="index.html" class="logo"><span class="logo-mark" aria-hidden="true">H</span> Handy AI</a></nav>
+  <main id="main">
   <h1>Privacy policy</h1>
-  <p class="date">Last updated: 23 April 2026</p>
+  <p class="date">Last updated: 22 May 2026</p>
 
   <p>Handy AI helps you carry out tasks on your Android phone by describing them in plain language. This page explains what data it handles and how.</p>
 
@@ -72,9 +84,10 @@
   <p>Not intended for children under 13. We do not knowingly collect data from children.</p>
 
   <h2>Contact</h2>
-  <p>Questions, deletion requests, or complaints: <a href="mailto:hi@gethandyai.app">hi@gethandyai.app</a></p>
+  <p>Questions, deletion requests, or complaints: <a href="mailto:fainir2006@gmail.com">fainir2006@gmail.com</a></p>
 
   <p class="muted" style="margin-top: 40px;">This policy may change. Material changes will be announced in-app.</p>
+  </main>
 
   <footer>© 2026 Handy AI · <a href="index.html">Home</a> · <a href="terms.html">Terms</a></footer>
 </div>
