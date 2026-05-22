@@ -185,6 +185,12 @@ Next levers (user-driven):
 - [x] `gh api -X PUT repos/fainir/handy-ai/pages -F https_enforced=true` → https_enforced: True
 - [x] End-to-end verification: HTTPS strict 200, SSL verify_result 0, /setup.html 200, accessibility section present
 
+## Phase 8: Acquisition unblock [in-progress 2026-05-22]
+- [~] Write disability-community outreach assets (M)
+  - DoD: ready-to-send templates for (1) r/Blind moderator pre-pitch, (2) NFB Connect newsletter, (3) ACB Braille Forum, (4) RNIB Connect Voices, plus (5) refined Twitter thread Post 1-3 with line-by-line accessibility-positioned copy. All saved under `playstore/outreach/` so user can copy-paste-send without rewriting.
+- [ ] Static accessibility audit of live landing (S)
+  - DoD: read `docs/index.html` end-to-end, check heading hierarchy / alt text / contrast / ARIA / focus management / skip-link target / prefers-reduced-motion / prefers-contrast / lang attr / viewport / og:image / meta description. Output a PASS/FAIL checklist in `playstore/outreach/landing-a11y-audit.md` with any fixes applied.
+
 ## Phase 4: Launch marketing [in-progress]
 - [x] Show HN posted
 - [~] Record demo video + wrap in Remotion + post Twitter thread (M)
