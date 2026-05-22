@@ -1,5 +1,5 @@
 # Handy AI — Master Plan
-*Type: SaaS + Android | Progress: 34/37 (92%) — Closed Testing APPROVED 2026-04-23*
+*Type: SaaS + Android | Progress: 35/37 (95%) — Closed Testing APPROVED 2026-04-23; v1.5.1 accessibility pivot SHIPPED 2026-05-18*
 
 ## Phase 1: App (shipped) [x]
 - [x] Rename to Handy AI + logo + adaptive icon
@@ -139,6 +139,33 @@
 **Bug caught + fixed mid-test:** Google Group privacy was "Who can see group: Group members" which blocked non-members from even reaching the Join button (they saw "Content unavailable"). Changed to "Anyone on the web" — only the group landing page is public, conversations still group-members-only.
 
 **Feedback URL:** changed from `hi@gethandyai.app` (forwarding disabled) → `fainir2006@gmail.com`; sent for Google review, auto-approves fast.
+
+## Phase 6: Accessibility pivot v1.5 + v1.5.1 [shipped 2026-05-18]
+- [x] Add `isAccessibilityTool="true"` to AccessibilityService config (regulatory moat)
+- [x] AccessibilityHelper singleton: Mode (OFF/ON/AUTO), Verbosity (OFF/BRIEF/DETAILED), TTS, haptics, destructive-action wordlist, isScreenReaderActive() probe
+- [x] HighContrast theme variant (WCAG AAA pure white/black) + applyTheme() in MainActivity
+- [x] Settings: Voice and audio section (radio groups + switches for Mode/Verbosity/Destructive/Haptics/HighContrast/EasyMode/KeySetup) + Named Aliases editor
+- [x] Easy Mode (240dp circular mic button, force-on TTS) + manifest entry
+- [x] Voice-confirm before destructive actions (1.5s delay)
+- [x] AgentLoop narrates assistant text via TTS; injects NameAliases.format() + disambiguation rule into system prompt
+- [x] OCR: ScreenOcr.kt wraps MlKit text-recognition; AgentTools adds read_screen_text + read_text_at; AgentLoop.ocrAction() bridges to AccessibilityService captureScreen
+- [x] NameAliases SharedPrefs JSON map (MAX_ENTRIES=30); injected into system prompt
+- [x] Audit log + common-task library voice queries (MainActivity.speakAuditLog + speakCommonTaskLibrary, installed-apps filter)
+- [x] KeySetupActivity paired-laptop flow: NATO phonetic spelling, polls /api/handy-key-setup/status every 3s
+- [x] cloudbot-panel /api/handy-key-setup endpoints (init/status/claim) committed `23fe670`
+- [x] docs/setup.html paired-laptop UI: skip-link, ARIA, prefilled code from URL, POSTs to /api/handy-key-setup/claim
+- [x] Landing copy rewrite: accessibility-positioned hero ("Talk to your phone. It does the rest."); new #accessibility section (ink background, 6 cards); #voices honest empty-state (no fabricated testimonials); skip-link, focus-visible rings, prefers-reduced-motion, prefers-contrast media queries
+- [x] v1.5.0 (versionCode 9) + v1.5.1 (versionCode 10) AAB built, signed, uploaded to Play Console Closed Testing
+- [x] Removed `ndk { abiFilters arm64-v8a }` from buildTypes.release (commit `d373fe6`) — restores armeabi-v7a/x86/x86_64 coverage for AAB
+
+## Phase 7: Landing migration to GitHub Pages [shipped 2026-05-22]
+- [x] Drop Railway sincere-courage project, recreate handy-ai project (later abandoned)
+- [x] Pivot to GitHub Pages: docs/CNAME with gethandyai.app (commit `f0c476c`)
+- [x] DNS: Namecheap ALIAS @ → fainir.github.io (apex)
+- [x] Trigger fresh Let's Encrypt cert issuance via PUT cname=null → PUT cname=gethandyai.app cycle
+- [x] Cert issued 2026-05-22 11:50 UTC: subject CN=gethandyai.app, valid through Aug 20 2026
+- [x] `gh api -X PUT repos/fainir/handy-ai/pages -F https_enforced=true` → https_enforced: True
+- [x] End-to-end verification: HTTPS strict 200, SSL verify_result 0, /setup.html 200, accessibility section present
 
 ## Phase 4: Launch marketing [in-progress]
 - [x] Show HN posted

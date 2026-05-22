@@ -22,3 +22,8 @@ supabase/.temp/
 playstore/video/handyai-disclosure-raw.mp4
 playstore/video/handyai-disclosure.mp4
 playstore/video/handyai-disclosure-v2.mp4
+
+# Transient session artifacts (Play Console screenshots, polling logs)
+.claude/play-console-*.png
+.claude/tester-progress.log
+.claude/*.tmp
