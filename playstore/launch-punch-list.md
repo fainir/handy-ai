@@ -25,6 +25,70 @@ Google's rule: 12 testers opted-in for 14 continuous days before the
 - Privacy + terms pages: dead `hi@gethandyai.app` swapped to working `fainir2006@gmail.com`
 - Internal testing track: v1.4.1 still up as a fallback
 
+## Late-add: 2026-05-22 second-pass discovery + fix
+
+After publishing the first version of this punch list, I went deeper on three
+items the user explicitly asked about ("besides waiting for May 26"). Two
+were clean. **One was a real launch blocker** I'd missed earlier.
+
+### LAUNCH BLOCKER FOUND + FIXED: `docs/HandyAI.apk` was stale v1.4.3
+
+`aapt dump badging docs/HandyAI.apk` showed `versionCode=8 versionName=1.4.3`
+last-modified Apr 24 -- the **pre-accessibility-pivot** release. Anyone
+clicking the "Download APK" button on gethandyai.app was getting the build
+without ANY of the v1.5 accessibility features the landing page promises:
+no OCR / read_screen_text, no Easy Mode, no HighContrast theme, no named
+aliases, no TTS narration overhaul, no voice-confirm before destructive,
+no KeySetup paired-laptop flow, no `isAccessibilityTool="true"` service
+declaration.
+
+This was the most-likely-to-embarrass-us-at-pitch-time blocker. If r/Blind
+mods or NFB's editor downloaded the APK to evaluate before greenlighting a
+post, they'd have gotten the wrong app.
+
+Fixed in commit `f7217a4`:
+- `./gradlew assembleRelease` under Java 21 from current main HEAD
+- Built APK: versionCode 10 / versionName 1.5.1 / signed with release key
+- Copied to `docs/HandyAI.apk` (63,096,445 bytes)
+- Landing labels updated 21 MB -> 63 MB + v1.5.1 callout
+- Verified live via curl: `content-length: 63096445` from gethandyai.app
+
+The size jump from 21 MB -> 63 MB is from the ML Kit Latin OCR model
+(~30 MB) bundled into v1.5.1 for on-device `read_screen_text` /
+`read_text_at`. Plan.md already documented this as the expected universal-APK
+target.
+
+### Truth-check: APK size on landing matches reality
+
+Original 21 MB claim was correct for the stale APK. New v1.5.1 build is
+63 MB. Already updated.
+
+### Beta-form endpoint: working
+
+Live POST to `cloudbot-ai.com/api/handy-beta` with a probe email returned
+HTTP 422 with the validator complaint: "the part after the @-sign is a
+special-use or reserved name that cannot be used with email." That's
+**correct** behavior -- I used a `.test` TLD which is reserved. The form
++ API are alive, validating properly, and the response time was 0.58s.
+
+### Pre-launch report: empty (by design), not a blocker
+
+Google's Robo lab couldn't generate a pre-launch report on v1.5.1 because
+the app's first-launch screen is the API-key entry gate -- without a key,
+the crawler can't reach any other screen to test. This is **fine**:
+
+- Closed Testing has been live 10 days with 12 testers on real devices
+- Crashes + ANRs are 0 across that window
+- Google's human reviewers use the reviewer credentials in App access ->
+  "App access" section (already configured with a real `sk-ant-` key per
+  the Apr 23 submission)
+- Empty pre-launch reports do NOT block the "Apply for production" button
+
+Optional polish (not gating): upload a Robo script to
+Pre-launch report -> Settings -> "Control how pre-launch report explores
+your app" so future builds get device-lab coverage. Skipping for now -
+the human-reviewer path is sufficient.
+
 ## What I fixed AUTONOMOUSLY this turn (staged, not yet sent for review)
 
 ### 1. Store listing ranking-claim violations - SAVED in Play Console
