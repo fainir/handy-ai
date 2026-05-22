@@ -199,6 +199,30 @@ Action plan for the next 4 days:
 - [x] `gh api -X PUT repos/fainir/handy-ai/pages -F https_enforced=true` → https_enforced: True
 - [x] End-to-end verification: HTTPS strict 200, SSL verify_result 0, /setup.html 200, accessibility section present
 
+## Phase 9: Launch-day punch list [2026-05-22]
+
+Walked every Play Console section + landing + v1.5.1 runtime health. Full
+write-up: `playstore/launch-punch-list.md`. Highlights:
+
+- [x] Find + fix store-listing ranking-claim violations
+  - Promotion warning was active on the Play Console main store listing: "Your app may not be promoted on Google Play because your short description does not meet the following guidelines: Should not use keywords that indicate store performance or ranking."
+  - Triggers: "Voice-first AI agent..." (short) + "Handy AI is the only AI agent on Android that..." (full).
+  - Fixed via Chrome MCP edit in Play Console UI:
+    - Short: "Voice-driven AI agent for any Android app. Built with accessibility in mind." (76/80)
+    - Full: "Handy AI is a voice-driven AI assistant..." + "Handy AI combines open-ended automation with verified accessibility-tool status -- declared as an accessibility service in the Android system settings, not just marketed as one."
+  - Status: SAVED in Play Console, change staged in Publishing overview, NOT yet sent for review (deliberately - will be sent alongside the production application on ~May 26).
+- [x] Replace stale "production access ~May 23" date in landing
+  - docs/index.html install section now reads evergreen "rolling out as Google's review clears."
+- [ ] (User) Add 2+ phone screenshots to reach the >=4 promotion-eligibility floor (currently 3/8)
+- [ ] (User) Upload `playstore/video/handyai-demo-wrapped.mp4` to YouTube Unlisted + paste URL in Play Console -> Default store listing -> Graphics -> Video
+- [ ] (User, ~May 26) Click "Apply for production" + send the staged description change for review in one pass
+- [ ] (User, post-production-approval) Flip docs/index.html "Coming to Google Play / In review" pill to a real `<a href="https://play.google.com/store/apps/details?id=com.claudeagent.phone">` link
+
+Verified clean: 0 crashes/ANRs over 28 days, all 11 policy declarations
+done, Publishing overview clean (besides the one staged description fix),
+app icon + feature graphic set, Internal testing track has v1.4.1 fallback,
+Closed testing alpha has v1.5.1 live in 177 countries since 2026-05-21 18:36 UTC.
+
 ## Phase 8: Acquisition unblock [in-progress 2026-05-22]
 - [x] Audit `docs/setup.html` (paired-laptop key flow) with same WCAG checklist (S)
   - DoD: append a "/setup.html audit" section to `playstore/outreach/landing-a11y-audit.md` covering structure, ARIA, forms, focus, contrast. Fix any failures inline.
