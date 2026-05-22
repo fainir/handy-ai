@@ -140,6 +140,24 @@
 
 **Feedback URL:** changed from `hi@gethandyai.app` (forwarding disabled) → `fainir2006@gmail.com`; sent for Google review, auto-approves fast.
 
+## 2026-05-22 status — Production-unlock blocked on signups, not on Google review
+
+Pulled live `handy_beta_signups` table via Railway public Postgres proxy. Reality:
+- **5 total rows** (4 are local test signups from 2026-04-24, 1 real outside signup from 2026-05-08 — Θανάσης).
+- **14 consecutive days with zero new signups** (last real signup May 8, today May 22).
+- Welcome emails: only 2 of 5 succeeded — the early Apr 24 rows pre-date Resend domain verification (gethandyai.app DKIM/SPF wasn't live yet) so they bounced.
+
+What this means for production unlock:
+- Play Console requires ≥12 opted-in testers across a 14-day window. We have 1 real tester. Gap = 11.
+- The acquisition funnel is shipped (landing form → /api/handy-beta → welcome email → Google Group → Play Store listing) and all five stages were verified working on 2026-04-24.
+- The blocker is **traffic** — there is no inbound channel pushing people through the funnel. The Twitter thread (`playstore/launch-posts.md` Post 1-3, MP4 rendered at `playstore/video/handyai-demo-wrapped.mp4`) is still un-posted; the rendered video has been sitting on disk for ~2 weeks.
+
+Next levers (user-driven):
+1. **Publish the Twitter thread** (highest leverage, zero cost — video is ready, drafts are ready).
+2. Post to r/blind, r/Blind, r/accessibility, r/disability — accessibility-positioned pitch lands very differently than the generic /r/androidapps angle.
+3. Email the National Federation of the Blind, American Council of the Blind, RNIB (UK) — pitch beta access to their member newsletters.
+4. If outreach stalls past June 5, fall back to a second TestersCommunity buy ($15 → 25 testers, ~16 days). The earlier purchase covered the Apr clock.
+
 ## Phase 6: Accessibility pivot v1.5 + v1.5.1 [shipped 2026-05-18]
 - [x] Add `isAccessibilityTool="true"` to AccessibilityService config (regulatory moat)
 - [x] AccessibilityHelper singleton: Mode (OFF/ON/AUTO), Verbosity (OFF/BRIEF/DETAILED), TTS, haptics, destructive-action wordlist, isScreenReaderActive() probe
