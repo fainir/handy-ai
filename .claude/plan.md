@@ -299,3 +299,20 @@ Closed testing alpha has v1.5.1 live in 177 countries since 2026-05-21 18:36 UTC
   - [x] Rendered output: `playstore/video/handyai-demo-wrapped.mp4` — 4.7 MB, 1080×1920, 63.5s, h264 yuv420p (Twitter-ready, well under 512MB/140s limits)
   - [ ] User publishes Twitter thread with attached MP4 (Post 1 draft already in `playstore/launch-posts.md` lines 14–22; follow-ups Post 2 + Post 3 threaded below)
   - [ ] Watch `handy_beta_signups` for traffic spike + new rows after post goes live
+
+## Phase 11: Production rollout SUBMITTED [2026-05-29]
+
+The earlier May 27 "production access" approval was just the *gate* (permission to publish), not a live listing. The production track was empty — that's why the public URL was still 404. Created and submitted the actual production release:
+
+- Created production release "10 (1.5.1)" — added v1.5.1 AAB (versionCode 10, targetSDK 35, arm64-v8a) from library
+- Release notes: voice-driven agent, TalkBack, Easy Mode, OCR, voice-confirm, computer-setup, BYO key
+- 16 KB memory-page-size error: "Proceed anyway" (soft error; arm64-v8a app works on the vast majority of devices; flagged for a future v1.5.2 NDK rebuild)
+- Countries/regions: all 177 selected (user chose "All countries, 100%")
+- Rollout: "Start full rollout" = 100%
+- Sent 3 changes for review (release + 2 country-target changes) at 2026-05-29 ~14:55 IDT
+- Status: **"Changes in review"** — Google quick-checks running (up to 14 min), then full review (typically <=7 days)
+
+When Google approves, the public URL flips 404->200. The hourly launchd check (com.handyai.checkpubliclive) + the May 30 remote routine will both catch it and notify.
+
+### Known follow-up: 16 KB page size (v1.5.2)
+Google now wants apps to support 16 KB memory page sizes (Pixel 8+ / Android 15+). v1.5.1 was bypassed with "Proceed anyway" — still allowed today. For v1.5.2: rebuild NDK libs (the ML Kit OCR native lib) with 16 KB alignment. Not launch-blocking now.
