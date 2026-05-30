@@ -265,11 +265,18 @@ object AccessibilityHelper {
             Haptic.ERROR -> longArrayOf(0, 250)
             Haptic.TICK -> longArrayOf(0, 20)
         }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            vibrator.vibrate(VibrationEffect.createWaveform(pattern, -1))
-        } else {
-            @Suppress("DEPRECATION")
-            vibrator.vibrate(pattern, -1)
+        // Defensive: vibrate() can throw SecurityException (missing VIBRATE
+        // permission) or hardware-specific exceptions. Haptics are a nice-to-have
+        // — never let them crash a core action like tapping the mic.
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                vibrator.vibrate(VibrationEffect.createWaveform(pattern, -1))
+            } else {
+                @Suppress("DEPRECATION")
+                vibrator.vibrate(pattern, -1)
+            }
+        } catch (t: Throwable) {
+            // no-op: haptics are best-effort
         }
     }
 
