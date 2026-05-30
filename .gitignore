@@ -27,3 +27,6 @@ playstore/video/handyai-disclosure-v2.mp4
 .claude/play-console-*.png
 .claude/tester-progress.log
 .claude/*.tmp
+
+# Temp AAB staging for browser-upload (don't commit build artifacts long-term)
+release-staging/
