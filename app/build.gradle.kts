@@ -30,7 +30,7 @@ android {
         applicationId = "com.claudeagent.phone"
         minSdk = 30
         targetSdk = 35
-        versionCode = 11
+        versionCode = 12
         versionName = "1.5.2"
 
         // These ship into BuildConfig.kt at compile time. See local.properties
@@ -125,11 +125,11 @@ dependencies {
     // Crash reporting. Sentry auto-captures uncaught exceptions + ANRs
     // as soon as Sentry.init() runs with a real DSN. DSN-gated in
     // [HandyAIApplication] so debug builds without a DSN stay silent.
-    implementation("io.sentry:sentry-android:7.14.0")
+    implementation("io.sentry:sentry-android:8.43.0")
 
     // On-device OCR for the "Read me the screen" accessibility feature.
     // Tier-2 a11y unlock: lets blind users get a fast spoken transcript of
     // arbitrary screen text without burning Anthropic tokens — MlKit's text
     // recognizer runs locally and is free. Ships only the Latin-script model.
-    implementation("com.google.mlkit:text-recognition:16.0.0")
+    implementation("com.google.mlkit:text-recognition:16.0.1")
 }
