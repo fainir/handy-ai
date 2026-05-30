@@ -316,3 +316,17 @@ When Google approves, the public URL flips 404->200. The hourly launchd check (c
 
 ### Known follow-up: 16 KB page size (v1.5.2)
 Google now wants apps to support 16 KB memory page sizes (Pixel 8+ / Android 15+). v1.5.1 was bypassed with "Proceed anyway" — still allowed today. For v1.5.2: rebuild NDK libs (the ML Kit OCR native lib) with 16 KB alignment. Not launch-blocking now.
+
+## Phase 12: PUBLIC PLAY STORE LIVE [2026-05-30]
+
+CONFIRMED LIVE via browser at https://play.google.com/store/apps/details?id=com.claudeagent.phone
+- Production: Active, 176 countries, green Install button, 5+ downloads
+- Listing shows v1.5.1 screenshots + YouTube trailer + PEGI 3
+- Developer: Sumbli
+- NOTE: terminal `curl` still returns 404 because Google serves 404 to non-browser user-agents. The browser is the source of truth — app IS live. The curl-based hourly checker (com.handyai.checkpubliclive) was removed since it would never see the 200.
+
+Shareable links:
+- Play Store: https://play.google.com/store/apps/details?id=com.claudeagent.phone
+- Landing: https://gethandyai.app
+
+Handy AI is publicly downloadable. Launch complete.
