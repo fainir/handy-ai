@@ -348,3 +348,24 @@ Commits: a7ace85 (version bump), d774b32 (16KB dep fix vc12). Staging AABs were 
 
 ### Open follow-up
 - ML Kit 16.0.1 / Sentry 8.43.0 bumps are minor + DSN-gated; low risk but not yet device-tested (couldn't adb-install over the Play-signed build without wiping the user's key+grant). If any crash reports come in on the OCR path post-rollout, that's the first place to look.
+
+## Phase 14: CRITICAL mic-crash fix — v1.5.3 [2026-05-30]
+
+User reported: tapping the mic crashes the app. Root cause found by code inspection (Pixel was disconnected so no live logcat, but the evidence is conclusive):
+
+- MainActivity mic onClick's FIRST line is `AccessibilityHelper.haptic(this, TICK)` → `Vibrator.vibrate(...)`
+- The manifest declared ONLY `INTERNET` — **no `android.permission.VIBRATE`**
+- `vibrate()` throws `SecurityException` without that permission → instant crash
+- `hapticsEnabled` defaults to `true`, so every user hit it
+- Same latent crash on: send button, Easy Mode mic, KeySetup haptics
+- Shipped in v1.5.1 (the haptics feature, commit 44d5255, never added the permission). Live in production + in the sideload APK.
+
+Fix (v1.5.3, versionCode 13):
+- Added `<uses-permission android:name="android.permission.VIBRATE"/>`
+- Wrapped vibrate() in try/catch (haptics best-effort, can never crash a core action again)
+- Verified built APK declares VIBRATE; AAB still universal (4 ABIs) + 16KB-aligned
+- Rebuilt docs/HandyAI.apk (sideload path had the same crash)
+- Submitted to production review (supersedes v1.5.2). Commit 29511d7.
+
+### Process miss (honest retro)
+I shipped v1.5.1 → v1.5.2 without ever launching the app post-install to tap the mic. The haptics-without-permission bug would have been caught by a single smoke test of the primary CTA. Root cause of the miss: couldn't `adb install` over the Play-signed build without uninstalling (which wipes the key+grant), so I skipped device testing on the dep-bump releases. For future releases: at minimum, build a debug variant with a distinct applicationId suffix (e.g. `.debug`) so it can be installed alongside the prod app and smoke-tested without disturbing the user's install.
