@@ -2,6 +2,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Required for AccessibilityHelper haptic feedback (vibrate() throws
+         SecurityException without this). Added v1.5.3 after v1.5.1 shipped
+         the haptics feature without the permission, crashing on mic/send tap. -->
+    <uses-permission android:name="android.permission.VIBRATE" />
 
     <application
         android:name=".HandyAIApplication"
