@@ -330,3 +330,21 @@ Shareable links:
 - Landing: https://gethandyai.app
 
 Handy AI is publicly downloadable. Launch complete.
+
+## Phase 13: v1.5.2 universal AAB submitted [2026-05-30]
+
+The v1.5.1 production AAB was arm64-v8a only (built before d373fe6 removed the abiFilter), excluding ~2,142 device types. Shipped a universal re-roll:
+
+- versionCode 10 -> 12 (vc11 was consumed by a blocked upload attempt), versionName 1.5.1 -> 1.5.2
+- Universal AAB: all 4 ABIs (arm64-v8a, armeabi-v7a, x86, x86_64). Play Console "Changes to supported devices": Phone 5,456 -> 6,747 (+1,291 newly supported)
+- **16 KB page-size compliance** (NEW hard requirement): Google now rejects new bundles whose native libs are 4 KB-aligned, with no "Proceed anyway" (v1.5.1 got the now-removed grace on May 22). Fixed by bumping the two offending deps:
+  - io.sentry:sentry-android 7.14.0 -> 8.43.0
+  - com.google.mlkit:text-recognition 16.0.0 -> 16.0.1
+  - Verified all 3 .so files (libmlkit_google_ocr_pipeline, libsentry, libsentry-android) now report LOAD align 2**14 (16 KB) via objdump.
+- API usage unchanged (Sentry DSN-gated off; TextRecognition.getClient identical). Build compiles clean.
+- Submitted to production review 2026-05-30 (~12:10 IDT). Restarted the in-progress vc10 review (vc12 supersedes it; live app unaffected during review). Status: "Changes in review", typically <=7 days (updates usually faster).
+
+Commits: a7ace85 (version bump), d774b32 (16KB dep fix vc12). Staging AABs were temp-committed to release-staging/ for browser upload, then removed; release-staging/ added to .gitignore.
+
+### Open follow-up
+- ML Kit 16.0.1 / Sentry 8.43.0 bumps are minor + DSN-gated; low risk but not yet device-tested (couldn't adb-install over the Play-signed build without wiping the user's key+grant). If any crash reports come in on the OCR path post-rollout, that's the first place to look.
