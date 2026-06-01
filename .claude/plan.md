@@ -369,3 +369,15 @@ Fix (v1.5.3, versionCode 13):
 
 ### Process miss (honest retro)
 I shipped v1.5.1 → v1.5.2 without ever launching the app post-install to tap the mic. The haptics-without-permission bug would have been caught by a single smoke test of the primary CTA. Root cause of the miss: couldn't `adb install` over the Play-signed build without uninstalling (which wipes the key+grant), so I skipped device testing on the dep-bump releases. For future releases: at minimum, build a debug variant with a distinct applicationId suffix (e.g. `.debug`) so it can be installed alongside the prod app and smoke-tested without disturbing the user's install.
+
+## Phase 15: v1.5.3 LIVE — mic crash fixed for everyone [2026-06-01]
+
+CONFIRMED LIVE via real browser at the public Play Store listing (welcometothebestplace machine):
+- "What's new" now reads: "Bug fix: resolved a crash when tapping the microphone or send button on some devices. Wider device support and performance improvements." → that is the v1.5.3 (vc13) VIBRATE-permission fix + universal/16KB device-support work.
+- "Updated on May 30, 2026". Production review cleared; v1.5.3 supersedes the crashing v1.5.1 most users had.
+- The critical mic/send-tap crash is now resolved for all users automatically. No further release work pending.
+
+Remaining open work is ACQUISITION, not engineering:
+- [ ] Twitter thread still UNPOSTED (draft: playstore/outreach/twitter-thread-v2.md + playstore/launch-posts.md; demo video youtu.be/SxnJstUEAJI). Publish = user-authorized action.
+- [ ] Disability-community outreach unsent (r/Blind, NFB, ACB, RNIB pitches in playstore/outreach/).
+- Optional polish (non-blocking): upload deobfuscation mapping + native debug symbols to Play for readable crash reports.
