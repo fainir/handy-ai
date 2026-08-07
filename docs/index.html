@@ -571,7 +571,10 @@
       }
       button.disabled = true;
       setStatus('Sending…');
-      fetch('https://cloudbot-ai.com/api/handy-beta', {
+      // Posts straight to the Railway service rather than cloudbot-ai.com. That domain was retired
+      // and now 301s to dashob.com, which has no /api/handy-beta - and a 301 on a POST drops the body
+      // anyway, so signups were failing silently. This origin is the same app, addressed directly.
+      fetch('https://exquisite-benevolence-production.up.railway.app/api/handy-beta', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email: email, name: name || null })
