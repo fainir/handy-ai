@@ -70,9 +70,15 @@ object KeySetupClient {
 
     suspend fun poll(code: String, pollSecret: String): PollResult = withContext(Dispatchers.IO) {
         try {
-            val url = "${BillingConfig.PANEL_BASE_URL}/api/handy-key-setup/status/$code?secret=" +
-                java.net.URLEncoder.encode(pollSecret, "UTF-8")
-            val req = Request.Builder().url(url).get().build()
+            // The poll secret goes in a header, not the query string. In a URL it would be copied into
+            // server access logs, any intermediate proxy's logs and Referer headers - and this secret is
+            // what collects a live Anthropic key. Server-side counterpart reads x-poll-secret.
+            val url = "${BillingConfig.PANEL_BASE_URL}/api/handy-key-setup/status/$code"
+            val req = Request.Builder()
+                .url(url)
+                .header("x-poll-secret", pollSecret)
+                .get()
+                .build()
             http.newCall(req).execute().use { resp ->
                 val body = resp.body?.string().orEmpty()
                 when (resp.code) {

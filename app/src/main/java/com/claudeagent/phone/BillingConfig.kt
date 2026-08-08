@@ -34,7 +34,10 @@ object BillingConfig {
     // CloudBot panel base URL — /api/phone/* endpoints for panel pairing.
     // Separate from the hub: hub is the machine-remote-control channel,
     // panel is the user dashboard at cloudbot-ai.com.
-    const val PANEL_BASE_URL = "https://cloudbot-ai.com"
+    // cloudbot-ai.com was retired and now 301s to dashob.com, which killed the key-setup flow this
+    // points at. The endpoint has been re-homed on the Dashob hub. Note this is COMPILED IN, so
+    // installs older than this build keep calling the dead host until the user updates.
+    const val PANEL_BASE_URL = "https://dashob.com"
 
     // ---- Supabase (trial sign-in) ----
     //
