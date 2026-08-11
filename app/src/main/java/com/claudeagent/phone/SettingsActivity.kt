@@ -344,12 +344,18 @@ class SettingsActivity : AppCompatActivity() {
     private fun refreshPanelStatus() {
         val token = UserState.panelToken(this)
         if (token.isNullOrBlank()) {
-            binding.panelStatus.setText(R.string.panel_not_paired)
-            binding.pairPanelButton.setText(R.string.panel_pair_button)
+            // The panel this paired with was cloudbot-ai.com, which has been retired - its Railway
+            // project and API are deleted, so /api/phone/pair no longer exists anywhere. Offering the
+            // button would start a flow that cannot possibly complete, so it is hidden rather than
+            // repointed: a dead feature that LOOKS alive is worse than one that is visibly gone.
+            // Phones that are still paired keep the row below so they can clear the local pairing.
+            binding.panelStatus.setText(R.string.panel_retired)
+            binding.pairPanelButton.visibility = android.view.View.GONE
         } else {
             val short = token.take(6)
             binding.panelStatus.text = getString(R.string.panel_paired, short)
             binding.pairPanelButton.setText(R.string.panel_unpair)
+            binding.pairPanelButton.visibility = android.view.View.VISIBLE
         }
     }
 
