@@ -190,12 +190,13 @@
     <!-- CloudBot panel pairing -->
     <string name="settings_panel">CloudBot panel</string>
     <string name="panel_not_paired">Not paired</string>
+    <string name="panel_retired">Unavailable — the CloudBot panel has been retired</string>
     <string name="panel_pair_button">Pair with CloudBot panel</string>
     <string name="panel_paired">Paired as %1$s</string>
     <string name="panel_unpair">Unpair</string>
     <string name="panel_pair_requesting">Requesting code…</string>
-    <string name="panel_pair_instructions">Sign in at cloudbot-ai.com → Phones, then enter this code to approve.</string>
-    <string name="panel_pair_open_panel">Open cloudbot-ai.com</string>
+    <string name="panel_pair_instructions">The CloudBot panel has been retired, so this code cannot be approved.</string>
+    <string name="panel_pair_open_panel">Open dashob.com</string>
     <string name="panel_pair_code_expired">Code expired. Tap Retry.</string>
     <string name="panel_pair_error">Panel not reachable: %1$s</string>
     <string name="panel_pair_code_fail">Couldn\'t get a code: %1$s</string>
