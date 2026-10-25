@@ -49,6 +49,8 @@ class AnthropicClient(private val apiKey: String) {
         val body = buildJsonObject {
             put("model", JsonPrimitive(model))
             put("max_tokens", JsonPrimitive(maxTokens))
+            // Each step is one quick screen action; low effort keeps steps fast.
+            put("output_config", buildJsonObject { put("effort", JsonPrimitive("low")) })
             put("system", buildJsonArray {
                 add(buildJsonObject {
                     put("type", JsonPrimitive("text"))

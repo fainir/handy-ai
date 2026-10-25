@@ -68,7 +68,8 @@ class AgentLoop(
                     systemPrompt = systemPrompt,
                     tools = AgentTools.definitions,
                     messages = JsonArray(messages.toList()),
-                    maxTokens = 1536,
+                    // Opus 5.5 always thinks, and thinking shares this budget with the action.
+                    maxTokens = 8192,
                 )
             } catch (ce: CancellationException) {
                 return stopped()
@@ -77,9 +78,13 @@ class AgentLoop(
             }
 
             val assistantContent = response.content
+            // trimScreenshotHistory() edits earlier turns, which invalidates replayed
+            // thinking on Claude 5.x models, so only text and tool calls go back.
             messages.add(buildJsonObject {
                 put("role", JsonPrimitive("assistant"))
-                put("content", assistantContent)
+                put("content", JsonArray(assistantContent.filter {
+                    it.jsonObject["type"]?.jsonPrimitive?.content in setOf("text", "tool_use")
+                }))
             })
 
             val textBlocks = assistantContent.filter {
@@ -445,7 +450,7 @@ You have at most ${MAX_STEPS} steps total.
     }
 
     companion object {
-        private const val MODEL = "claude-opus-4-7"
+        private const val MODEL = "claude-opus-5-5"
         private const val MAX_STEPS = 40
         private const val KEEP_RECENT_SCREENSHOTS = 3
         private const val POST_ACTION_DELAY_MS = 700L
