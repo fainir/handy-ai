@@ -12,12 +12,14 @@ import org.json.JSONObject
 import java.util.concurrent.TimeUnit
 
 /**
-
- * Client for the cloudbot-panel phone-pairing API under `/api/phone/`.
+ * Client for the CloudBot panel's phone-pairing API under `/api/phone/`.
+ *
+ * RETIRED: the panel (cloudbot-ai.com) and its API are gone. Settings no
+ * longer offers pairing; this stays so phones paired earlier can still clear
+ * their token and so [HandyAIApplication]'s heartbeat notices a revoked one.
  *
  * Separate from [HubClient]: the hub is the machine-remote-control
- * channel (best-agent-hub), while the panel is the user dashboard at
- * cloudbot-ai.com. A phone can be paired with both or either.
+ * channel (best-agent-hub), while the panel was the user dashboard.
  *
  * Protocol:
  *   POST /api/phone/pair/init            -> { code, expiresInSeconds }
@@ -27,7 +29,7 @@ import java.util.concurrent.TimeUnit
  *
  * Flow from the user's perspective:
  *   1. App calls /pair/init, shows the 6-char code.
- *   2. User signs in to cloudbot-ai.com and enters the code.
+ *   2. User signs in to the panel and enters the code.
  *   3. Panel calls /pair/claim (JWT-auth), which flips the status to
  *      "claimed" and stashes a one-time phoneToken on the row.
  *   4. Phone polls /pair/status/{code}. Once claimed, receives phoneToken

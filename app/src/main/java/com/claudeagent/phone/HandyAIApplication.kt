@@ -16,8 +16,9 @@ import kotlinx.coroutines.launch
  *  - Init Sentry IFF BuildConfig.SENTRY_DSN is populated (otherwise stays
  *    totally silent — no network, no overhead).
  *  - Warm up ChatStore so the first-screen read doesn't block the UI.
- *  - Panel heartbeat: hit /api/phone/me once on launch to update
- *    last_seen_at server-side + detect token revocation early.
+ *  - Panel heartbeat: for phones still holding a token from the retired
+ *    CloudBot panel, hit /api/phone/me once on launch (at most every 10
+ *    minutes) and clear the token if the server revokes it.
  */
 class HandyAIApplication : Application() {
 
@@ -49,8 +50,7 @@ class HandyAIApplication : Application() {
             }
         }
 
-        // Touch ChatStore on the main thread — EncryptedSharedPreferences
-        // reads its master key once and caches it.
+        // Load the chat store once up front so the first screen finds it ready.
         ChatStore.init(applicationContext)
 
         maybePanelHeartbeat()

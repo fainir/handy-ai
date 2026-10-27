@@ -9,7 +9,9 @@ import java.util.concurrent.TimeUnit
 
 /**
  * Client for the paired-laptop API-key setup flow at
- * `cloudbot-ai.com/api/handy-key-setup/`.
+ * `{BillingConfig.PANEL_BASE_URL}/api/handy-key-setup/` (dashob.com; it moved
+ * there when cloudbot-ai.com was retired). The key the user types on the
+ * laptop is relayed through that server to the phone.
  *
  * A blind user can't realistically paste a 100-char API key on their
  * phone screen. Instead, the phone asks the panel for a short pair

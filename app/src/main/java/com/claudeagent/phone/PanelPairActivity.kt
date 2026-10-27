@@ -14,7 +14,8 @@ import kotlinx.coroutines.launch
 import kotlin.coroutines.coroutineContext
 
 /**
- * Pair this phone with the CloudBot panel (cloudbot-ai.com).
+ * Pair this phone with the CloudBot panel. RETIRED along with the panel:
+ * Settings hides the button that opens this screen (see [PanelClient]).
  *
  * Mirrors [HubPairActivity] but talks to [PanelClient] / the new
  * `/api/phone/` endpoints. The two live side-by-side — this screen is

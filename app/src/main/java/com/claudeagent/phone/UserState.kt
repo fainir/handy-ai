@@ -17,8 +17,8 @@ object UserState {
     private const val KEY_PAIR_CODE = "hub_pair_code"
     private const val KEY_HUB_TOKEN = "hub_device_token"
     private const val KEY_MACHINE_ID = "hub_machine_id"
-    // CloudBot panel pairing — separate from the hub above. Both can coexist:
-    // one points at best-agent-hub (machines), the other at cloudbot-panel (phones).
+    // CloudBot panel pairing (retired, see PanelClient). Separate from the hub
+    // above, which points at best-agent-hub (machines).
     private const val KEY_PANEL_PAIR_CODE = "panel_pair_code"
     private const val KEY_PANEL_TOKEN = "panel_phone_token"
     private const val KEY_PANEL_PHONE_ID = "panel_phone_id"
