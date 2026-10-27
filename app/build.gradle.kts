@@ -99,6 +99,12 @@ android {
     kotlinOptions {
         jvmTarget = "17"
     }
+
+    testOptions {
+        // JVM unit tests run against android.jar stubs; let incidental calls
+        // such as android.util.Log return defaults instead of throwing.
+        unitTests.isReturnDefaultValues = true
+    }
 }
 
 dependencies {
@@ -132,4 +138,9 @@ dependencies {
     // arbitrary screen text without burning Anthropic tokens — MlKit's text
     // recognizer runs locally and is free. Ships only the Latin-script model.
     implementation("com.google.mlkit:text-recognition:16.0.1")
+
+    testImplementation("junit:junit:4.13.2")
+    testImplementation("com.squareup.okhttp3:mockwebserver:4.12.0")
+    // android.jar only has stubs for org.json; HubConnection parses with it.
+    testImplementation("org.json:json:20240303")
 }

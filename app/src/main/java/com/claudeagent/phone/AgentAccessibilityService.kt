@@ -15,17 +15,19 @@ import android.view.accessibility.AccessibilityNodeInfo
 import kotlinx.coroutines.CancellableContinuation
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlin.coroutines.resume
 
 class AgentAccessibilityService : AccessibilityService() {
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
-    private var currentJob: Job? = null
+    private val runner = TaskRunner(scope) { t ->
+        ChatStore.append("status", "Crash: ${t.message}")
+        AgentState.setState(RunState.Error(t.message.orEmpty()))
+        AgentState.setStatus("Error: ${t.message}")
+    }
 
     override fun onAccessibilityEvent(event: AccessibilityEvent?) { /* noop */ }
     override fun onInterrupt() { /* noop */ }
@@ -59,30 +61,20 @@ class AgentAccessibilityService : AccessibilityService() {
     }
 
     override fun onDestroy() {
-        currentJob?.cancel()
+        runner.stop()
         scope.cancel()
         if (instance === this) instance = null
         super.onDestroy()
     }
 
     fun startAgent(apiKey: String, task: String) {
-        currentJob?.cancel()
-        currentJob = scope.launch {
-            val client = AnthropicClient(apiKey)
-            val loop = AgentLoop(client, this@AgentAccessibilityService)
-            try {
-                loop.run(task)
-            } catch (t: Throwable) {
-                ChatStore.append("status", "Crash: ${t.message}")
-                AgentState.setState(RunState.Error(t.message.orEmpty()))
-                AgentState.setStatus("Error: ${t.message}")
-            }
+        runner.start {
+            AgentLoop(AnthropicClient(apiKey), this@AgentAccessibilityService).run(task)
         }
     }
 
     fun stopAgent() {
-        currentJob?.cancel()
-        currentJob = null
+        runner.stop()
         // Flip the agent state synchronously so the UI's stop→send swap
         // happens immediately, without waiting for the coroutine to wake up
         // from whatever suspension it's in (HTTP read, gesture, etc.).
@@ -93,7 +85,7 @@ class AgentAccessibilityService : AccessibilityService() {
     }
 
     val isAgentRunning: Boolean
-        get() = currentJob?.isActive == true
+        get() = runner.isRunning
 
     fun screenSize(): Pair<Int, Int> {
         val wm = getSystemService(Context.WINDOW_SERVICE) as WindowManager

@@ -32,6 +32,18 @@ class AgentLoop(
     private val ctx: Context get() = service.applicationContext
 
     suspend fun run(task: String) {
+        try {
+            runSteps(task)
+        } catch (ce: CancellationException) {
+            // Stop can also land while we are suspended outside the explicit
+            // checks below (the post-action delay, a screenshot). Report it the
+            // same way, then let the cancellation finish the coroutine.
+            stopped()
+            throw ce
+        }
+    }
+
+    private suspend fun runSteps(task: String) {
         AgentState.setState(RunState.Running)
         AgentState.setStatus("Preparing...")
 
