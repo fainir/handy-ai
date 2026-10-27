@@ -2,12 +2,14 @@ package com.claudeagent.phone
 
 import android.content.Context
 import android.util.Log
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
@@ -32,6 +34,7 @@ import java.util.concurrent.TimeUnit
 object HubConnection {
 
     private const val TAG = "HubConnection"
+    private const val AUTH_TIMEOUT_MS = 30_000L
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val http by lazy {
@@ -67,7 +70,7 @@ object HubConnection {
     private suspend fun connectLoop(token: String, machineId: String, machineName: String) {
         var backoff = 2000L
         while (started) {
-            val ok = tryConnect(token, machineId, machineName)
+            val ok = tryConnect(BillingConfig.HUB_BASE_URL, token, machineId, machineName)
             if (!started) return
             // Exponential backoff capped at 60s, reset on successful auth.
             backoff = if (ok) 2000L else (backoff * 2).coerceAtMost(60_000L)
@@ -75,15 +78,22 @@ object HubConnection {
         }
     }
 
-    private suspend fun tryConnect(token: String, machineId: String, machineName: String): Boolean {
-        val base = BillingConfig.HUB_BASE_URL
+    /**
+     * Opens one socket and authenticates. Returns false if auth is rejected or
+     * times out. Once authenticated it holds the connection and returns true
+     * only after it closes, so [connectLoop] reconnects after a drop instead of
+     * opening a new socket every couple of seconds next to the live one.
+     */
+    internal suspend fun tryConnect(baseUrl: String, token: String, machineId: String, machineName: String): Boolean {
+        val base = baseUrl
             .replaceFirst("https://", "wss://")
             .replaceFirst("http://", "ws://")
         val encodedName = java.net.URLEncoder.encode(machineName, "UTF-8")
         val url = "$base/?role=machine&name=$encodedName&os=Android&id=$machineId"
 
         val req = Request.Builder().url(url).build()
-        val result = java.util.concurrent.CompletableFuture<Boolean>()
+        val authed = CompletableDeferred<Boolean>()
+        val closed = CompletableDeferred<Unit>()
 
         val listener = object : WebSocketListener() {
             override fun onOpen(webSocket: WebSocket, response: Response) {
@@ -105,7 +115,7 @@ object HubConnection {
                         "ping" -> webSocket.send(JSONObject().put("type", "pong").toString())
                         "auth_ok" -> {
                             Log.i(TAG, "Auth confirmed as machine ${json.optString("machineId")}")
-                            result.complete(true)
+                            authed.complete(true)
                         }
                         "exec", "run_command", "cmd" -> {
                             val id = json.optString("id")
@@ -124,27 +134,36 @@ object HubConnection {
                 }
             }
 
+            override fun onClosing(webSocket: WebSocket, code: Int, reason: String) {
+                // Answer the server's close frame so onClosed fires now rather
+                // than after the server gives up waiting for us.
+                webSocket.close(1000, null)
+            }
+
             override fun onClosed(webSocket: WebSocket, code: Int, reason: String) {
                 Log.i(TAG, "WS closed: $code $reason")
-                result.complete(false)
+                authed.complete(false)
+                closed.complete(Unit)
             }
 
             override fun onFailure(webSocket: WebSocket, t: Throwable, response: Response?) {
                 Log.w(TAG, "WS failure: ${t.message}  code=${response?.code}")
-                result.complete(false)
+                authed.complete(false)
+                closed.complete(Unit)
             }
         }
 
-        ws = http.newWebSocket(req, listener)
-        return try {
-            // Wait for either auth_ok or a failure/close, with a 30s upper bound.
-            // (The connection can keep running after this returns true.)
-            kotlinx.coroutines.withTimeoutOrNull(30_000) {
-                while (!result.isDone) delay(200)
-                result.get()
-            } ?: false
-        } catch (t: Throwable) {
-            false
+        val socket = http.newWebSocket(req, listener)
+        ws = socket
+        try {
+            if (withTimeoutOrNull(AUTH_TIMEOUT_MS) { authed.await() } != true) return false
+            closed.await()
+            return true
+        } finally {
+            // Drops a socket that never authenticated, and the live one when
+            // stop() cancels the loop. A no-op if it already closed.
+            socket.cancel()
+            if (ws === socket) ws = null
         }
     }
 }
