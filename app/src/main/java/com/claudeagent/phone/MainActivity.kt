@@ -346,7 +346,7 @@ class MainActivity : AppCompatActivity() {
         // Tier-4 audit-log voice intent — blind users can't visually
         // scroll the chat, so they ask "what did you do" to hear a
         // summary of recent activity. Resolved locally, no API tokens.
-        if (isAuditLogRequest(task)) {
+        if (LocalIntents.isAuditLogRequest(task)) {
             ChatStore.ensureActiveSession()
             ChatStore.append("user", task)
             binding.taskInput.text?.clear()
@@ -357,7 +357,7 @@ class MainActivity : AppCompatActivity() {
         // Tier-3 common-task library voice intent — new / older users
         // ask "what can you do?" before trusting the system. Curated
         // list filtered by installed apps. Resolved locally.
-        if (isCommonTaskLibraryRequest(task)) {
+        if (LocalIntents.isCommonTaskLibraryRequest(task)) {
             ChatStore.ensureActiveSession()
             ChatStore.append("user", task)
             binding.taskInput.text?.clear()
@@ -491,22 +491,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     /**
-     * Cheap natural-language match for "read me the recent activity".
-     * Blind users can't visually scroll chat, so they ask the assistant
-     * to summarize recent activity aloud. Resolved LOCALLY, no API call.
-     */
-    private fun isAuditLogRequest(task: String): Boolean {
-        val q = task.lowercase()
-        return q.contains("what did you do") ||
-            q.contains("read me the audit") ||
-            q.contains("read the audit") ||
-            q.contains("what happened") ||
-            q.contains("read my recent") ||
-            q.contains("what have you done") ||
-            q.contains("recap")
-    }
-
-    /**
      * Read out the last AUDIT_RECENT_COUNT meaningful actions.
      */
     private fun speakAuditLog() {
@@ -536,24 +520,6 @@ class MainActivity : AppCompatActivity() {
         }
         ChatStore.append("assistant", summary)
         AccessibilityHelper.speak(this, summary, interrupt = true)
-    }
-
-    /**
-     * "What can you do?" voice intent. Curated list of representative
-     * tasks personalized to installed apps.
-     */
-    private fun isCommonTaskLibraryRequest(task: String): Boolean {
-        val q = task.lowercase().trim()
-        return q == "what can you do" ||
-            q == "what can you do?" ||
-            q.contains("what can you do for me") ||
-            q.contains("what tasks") ||
-            q == "help" ||
-            q == "help me" ||
-            q == "help?" ||
-            q.contains("how do you work") ||
-            q.contains("show me what you can do") ||
-            q.contains("what are you good at")
     }
 
     private fun speakCommonTaskLibrary() {
