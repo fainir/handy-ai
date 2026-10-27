@@ -12,9 +12,6 @@ import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.add
 import kotlinx.serialization.json.buildJsonArray
 import kotlinx.serialization.json.buildJsonObject
-import kotlinx.serialization.json.jsonArray
-import kotlinx.serialization.json.jsonObject
-import kotlinx.serialization.json.jsonPrimitive
 import java.io.ByteArrayOutputStream
 import kotlin.coroutines.coroutineContext
 
@@ -53,7 +50,7 @@ class AgentLoop(
 
         // The user message itself is appended by the UI before this loop
         // starts, so we don't echo it here. We just quietly note the screen
-        // size as a status line — handy in logs, invisible as a bubble.
+        // size as a status line - handy in logs, invisible as a bubble.
         val (w, h) = service.screenSize()
         appendStatus("Screen: ${w}x${h}")
 
@@ -68,7 +65,7 @@ class AgentLoop(
         })
         firstBitmap.recycle()
 
-        val systemPrompt = systemPrompt(w, h)
+        val systemPrompt = AgentProtocol.systemPrompt(w, h, NameAliases.format(ctx), MAX_STEPS)
 
         for (step in 1..MAX_STEPS) {
             if (!coroutineContext.isActive) return stopped()
@@ -89,36 +86,22 @@ class AgentLoop(
                 return fail("API call failed: ${t.message}")
             }
 
-            val assistantContent = response.content
-            // trimScreenshotHistory() edits earlier turns, which invalidates replayed
-            // thinking on Claude 5.x models, so only text and tool calls go back.
+            val turn = AgentProtocol.parseAssistantTurn(response.content)
             messages.add(buildJsonObject {
                 put("role", JsonPrimitive("assistant"))
-                put("content", JsonArray(assistantContent.filter {
-                    it.jsonObject["type"]?.jsonPrimitive?.content in setOf("text", "tool_use")
-                }))
+                put("content", turn.replay)
             })
 
-            val textBlocks = assistantContent.filter {
-                it.jsonObject["type"]?.jsonPrimitive?.content == "text"
-            }
-            textBlocks.forEach {
-                val t = it.jsonObject["text"]?.jsonPrimitive?.content.orEmpty().trim()
-                if (t.isNotEmpty()) {
-                    appendAssistant(t)
-                    lastAssistantText = t
-                    // Read every assistant reply aloud — primary value
-                    // prop for blind users.
-                    AccessibilityHelper.speak(ctx, t, interrupt = false)
-                }
+            turn.texts.forEach { t ->
+                appendAssistant(t)
+                lastAssistantText = t
+                // Read every assistant reply aloud - primary value
+                // prop for blind users.
+                AccessibilityHelper.speak(ctx, t, interrupt = false)
             }
 
-            val toolUses = assistantContent.filter {
-                it.jsonObject["type"]?.jsonPrimitive?.content == "tool_use"
-            }
-
-            if (toolUses.isEmpty()) {
-                appendStatus("Model stopped without calling a tool.")
+            if (turn.toolCalls.isEmpty()) {
+                appendStatus(AgentProtocol.noActionStatus(response.stopReason))
                 AgentState.setState(RunState.Finished(success = false, summary = "Model returned no action."))
                 AgentState.setStatus("Stopped: no action from model")
                 return
@@ -127,20 +110,14 @@ class AgentLoop(
             val toolResults = mutableListOf<JsonObject>()
             var finished: RunState.Finished? = null
 
-            for (block in toolUses) {
-                val obj = block.jsonObject
-                val id = obj["id"]?.jsonPrimitive?.content ?: continue
-                val name = obj["name"]?.jsonPrimitive?.content ?: continue
-                val input = obj["input"]?.jsonObject ?: buildJsonObject { }
+            for (call in turn.toolCalls) {
+                appendAction("${call.name}(${call.input})")
+                AgentState.setStatus("Step $step: ${call.name}")
 
-                appendAction("$name(${input})")
-                AgentState.setStatus("Step $step: $name")
-
-                if (name == "finish") {
-                    val success = input["success"]?.jsonPrimitive?.content?.toBooleanStrictOrNull() ?: false
-                    val summary = input["summary"]?.jsonPrimitive?.content.orEmpty()
-                    finished = RunState.Finished(success, summary)
-                    toolResults.add(toolResult(id, "Acknowledged."))
+                val action = AgentActions.parse(call.name, call.input)
+                if (action is AgentAction.Finish) {
+                    finished = RunState.Finished(action.success, action.summary)
+                    toolResults.add(toolResult(call.id, "Acknowledged."))
                     break
                 }
 
@@ -148,7 +125,8 @@ class AgentLoop(
                 // model's most recent text mentions Send / Buy / Delete /
                 // etc., voice-warn and delay 1.5s so a blind user can
                 // hit Stop if it's wrong.
-                if (AccessibilityHelper.isAudioEnabled(ctx) &&
+                if (action !is AgentAction.Invalid &&
+                    AccessibilityHelper.isAudioEnabled(ctx) &&
                     AccessibilityHelper.confirmDestructive(ctx) &&
                     AccessibilityHelper.isLikelyDestructive(lastAssistantText)) {
                     AccessibilityHelper.haptic(ctx, AccessibilityHelper.Haptic.NEEDS_INPUT)
@@ -162,10 +140,10 @@ class AgentLoop(
                 }
 
                 // Detailed-verbosity per-action narration.
-                AccessibilityHelper.narrateDetailed(ctx, narrationFor(name, input))
+                AccessibilityHelper.narrateDetailed(ctx, AgentActions.narration(call.name, call.input))
 
                 val (ok, message) = try {
-                    executeAction(name, input)
+                    executeAction(action)
                 } catch (ce: CancellationException) {
                     return stopped()
                 } catch (t: Throwable) {
@@ -177,13 +155,13 @@ class AgentLoop(
 
                 val newShot = captureOrFail()
                 if (newShot == null) {
-                    toolResults.add(toolResult(id, "$message\n[screenshot unavailable]"))
+                    toolResults.add(toolResult(call.id, "$message\n[screenshot unavailable]"))
                     continue
                 }
 
                 toolResults.add(buildJsonObject {
                     put("type", JsonPrimitive("tool_result"))
-                    put("tool_use_id", JsonPrimitive(id))
+                    put("tool_use_id", JsonPrimitive(call.id))
                     put("is_error", JsonPrimitive(!ok))
                     put("content", buildJsonArray {
                         add(textBlock(message))
@@ -193,7 +171,9 @@ class AgentLoop(
                 newShot.recycle()
             }
 
-            trimScreenshotHistory()
+            val trimmed = AgentProtocol.trimScreenshotHistory(messages, KEEP_RECENT_SCREENSHOTS)
+            messages.clear()
+            messages.addAll(trimmed)
 
             messages.add(buildJsonObject {
                 put("role", JsonPrimitive("user"))
@@ -223,92 +203,49 @@ class AgentLoop(
         AccessibilityHelper.haptic(ctx, AccessibilityHelper.Haptic.ERROR)
     }
 
-    /**
-     * Detailed-verbosity narration for each step.
-     */
-    private fun narrationFor(name: String, input: JsonObject): String {
-        fun s(key: String): String = input[key]?.jsonPrimitive?.content.orEmpty()
-        return when (name) {
-            "tap" -> "Tapping."
-            "long_press" -> "Long-pressing."
-            "swipe" -> "Swiping."
-            "type_text" -> {
-                val text = s("text").take(60)
-                if (text.isBlank()) "Typing." else "Typing: $text"
-            }
-            "clear_text" -> "Clearing the text field."
-            "key" -> when (s("action")) {
-                "back" -> "Going back."
-                "home" -> "Going home."
-                "recents" -> "Opening recent apps."
-                "ime_enter" -> "Pressing enter."
-                else -> "Pressing a key."
-            }
-            "wait" -> "Waiting."
-            "read_screen_text" -> "Reading the screen."
-            "read_text_at" -> "Reading that area."
-            else -> "Working."
+    private suspend fun executeAction(action: AgentAction): Pair<Boolean, String> = when (action) {
+        is AgentAction.Tap -> {
+            val ok = service.tap(action.x, action.y)
+            ok to if (ok) "Tapped (${action.x.toInt()}, ${action.y.toInt()})" else "Tap failed"
         }
-    }
-
-    private suspend fun executeAction(name: String, input: JsonObject): Pair<Boolean, String> {
-        fun num(key: String, default: Float? = null): Float {
-            val v = input[key]?.jsonPrimitive?.content
-            return v?.toFloatOrNull() ?: default ?: 0f
+        is AgentAction.LongPress -> {
+            val ok = service.longPress(action.x, action.y, action.durationMs)
+            ok to if (ok) "Long-pressed (${action.x.toInt()}, ${action.y.toInt()})" else "Long press failed"
         }
-        fun str(key: String): String = input[key]?.jsonPrimitive?.content.orEmpty()
-
-        return when (name) {
-            "tap" -> {
-                val ok = service.tap(num("x"), num("y"))
-                ok to if (ok) "Tapped (${num("x").toInt()}, ${num("y").toInt()})" else "Tap failed"
+        is AgentAction.Swipe -> {
+            val ok = service.swipe(action.x1, action.y1, action.x2, action.y2, action.durationMs)
+            ok to if (ok) {
+                "Swiped (${action.x1.toInt()},${action.y1.toInt()}) → (${action.x2.toInt()},${action.y2.toInt()})"
+            } else {
+                "Swipe failed"
             }
-            "long_press" -> {
-                val duration = input["duration_ms"]?.jsonPrimitive?.content?.toLongOrNull() ?: 800L
-                val ok = service.longPress(num("x"), num("y"), duration)
-                ok to if (ok) "Long-pressed (${num("x").toInt()}, ${num("y").toInt()})" else "Long press failed"
-            }
-            "swipe" -> {
-                val duration = input["duration_ms"]?.jsonPrimitive?.content?.toLongOrNull() ?: 300L
-                val ok = service.swipe(num("x1"), num("y1"), num("x2"), num("y2"), duration)
-                ok to if (ok) "Swiped (${num("x1").toInt()},${num("y1").toInt()}) → (${num("x2").toInt()},${num("y2").toInt()})"
-                        else "Swipe failed"
-            }
-            "type_text" -> {
-                val ok = service.typeText(str("text"))
-                ok to if (ok) "Typed ${str("text").length} chars" else "No focused text field to type into"
-            }
-            "clear_text" -> {
-                val ok = service.clearText()
-                ok to if (ok) "Cleared text field" else "No focused text field"
-            }
-            "key" -> {
-                val action = str("action")
-                val ok = when (action) {
-                    "back" -> service.back()
-                    "home" -> service.home()
-                    "recents" -> service.recents()
-                    "ime_enter" -> service.pressImeEnter()
-                    else -> false
-                }
-                ok to if (ok) "Pressed $action" else "Key '$action' failed"
-            }
-            "wait" -> {
-                val ms = (input["ms"]?.jsonPrimitive?.content?.toLongOrNull() ?: 500L).coerceIn(0L, 3000L)
-                delay(ms)
-                true to "Waited ${ms}ms"
-            }
-            "read_screen_text" -> ocrAction(region = null)
-            "read_text_at" -> ocrAction(
-                region = android.graphics.Rect(
-                    num("x").toInt(),
-                    num("y").toInt(),
-                    num("x").toInt() + num("width").toInt(),
-                    num("y").toInt() + num("height").toInt(),
-                ),
-            )
-            else -> false to "Unknown tool: $name"
         }
+        is AgentAction.TypeText -> {
+            val ok = service.typeText(action.text)
+            ok to if (ok) "Typed ${action.text.length} chars" else "No focused text field to type into"
+        }
+        AgentAction.ClearText -> {
+            val ok = service.clearText()
+            ok to if (ok) "Cleared text field" else "No focused text field"
+        }
+        is AgentAction.Key -> {
+            val ok = when (action.key) {
+                "back" -> service.back()
+                "home" -> service.home()
+                "recents" -> service.recents()
+                "ime_enter" -> service.pressImeEnter()
+                else -> false
+            }
+            ok to if (ok) "Pressed ${action.key}" else "Key '${action.key}' failed"
+        }
+        is AgentAction.Wait -> {
+            delay(action.ms)
+            true to "Waited ${action.ms}ms"
+        }
+        AgentAction.ReadScreenText -> ocrAction(region = null)
+        is AgentAction.ReadTextAt -> ocrAction(region = action)
+        is AgentAction.Finish -> true to "Acknowledged."
+        is AgentAction.Invalid -> false to action.message
     }
 
     /**
@@ -316,10 +253,18 @@ class AgentLoop(
      * tools. Captures a screenshot, runs MlKit OCR (locally, no tokens
      * spent), speaks the result aloud, returns verbatim text.
      */
-    private suspend fun ocrAction(region: android.graphics.Rect?): Pair<Boolean, String> {
+    private suspend fun ocrAction(region: AgentAction.ReadTextAt?): Pair<Boolean, String> {
         val shot = captureOrFail() ?: return false to "Could not capture screen"
+        val shotWidth = shot.width
+        val shotHeight = shot.height
+        val crop = region?.let { AgentActions.cropRegion(it, shotWidth, shotHeight) }
+        if (region != null && crop == null) {
+            shot.recycle()
+            return false to "Region (${region.x}, ${region.y}, ${region.width}x${region.height}) " +
+                "is outside the ${shotWidth}x${shotHeight} screen"
+        }
         val text = try {
-            ScreenOcr.recognize(shot, region)
+            ScreenOcr.recognize(shot, crop)
         } finally {
             shot.recycle()
         }
@@ -327,45 +272,9 @@ class AgentLoop(
             return true to "No readable text found."
         }
         AccessibilityHelper.speak(ctx, text, interrupt = false)
-        val label = if (region == null) "Screen text" else
-            "Text at (${region.left}, ${region.top}, ${region.width()}x${region.height()})"
+        val label = if (crop == null) "Screen text" else
+            "Text at (${crop.left}, ${crop.top}, ${crop.width}x${crop.height})"
         return true to "$label:\n$text"
-    }
-
-    private fun trimScreenshotHistory() {
-        // Keep only the last KEEP_RECENT tool_result screenshots; replace older images with a marker.
-        val toolResultUserMsgs = messages.withIndex().filter { (_, m) ->
-            m["role"]?.jsonPrimitive?.content == "user" &&
-            (m["content"] as? JsonArray)?.any {
-                it.jsonObject["type"]?.jsonPrimitive?.content == "tool_result"
-            } == true
-        }
-        if (toolResultUserMsgs.size <= KEEP_RECENT_SCREENSHOTS) return
-        val toTrim = toolResultUserMsgs.dropLast(KEEP_RECENT_SCREENSHOTS)
-        toTrim.forEach { (index, msg) ->
-            val trimmedContent = (msg["content"] as JsonArray).map { trElement ->
-                val tr = trElement.jsonObject
-                if (tr["type"]?.jsonPrimitive?.content != "tool_result") return@map trElement
-                val id = tr["tool_use_id"]?.jsonPrimitive?.content.orEmpty()
-                val isError = tr["is_error"]?.jsonPrimitive?.content?.toBooleanStrictOrNull() ?: false
-                val summaryText = (tr["content"] as? JsonArray)
-                    ?.firstOrNull { it.jsonObject["type"]?.jsonPrimitive?.content == "text" }
-                    ?.jsonObject?.get("text")?.jsonPrimitive?.content
-                    ?: "[action completed]"
-                buildJsonObject {
-                    put("type", JsonPrimitive("tool_result"))
-                    put("tool_use_id", JsonPrimitive(id))
-                    put("is_error", JsonPrimitive(isError))
-                    put("content", buildJsonArray {
-                        add(textBlock("$summaryText\n[earlier screenshot omitted]"))
-                    })
-                }
-            }
-            messages[index] = buildJsonObject {
-                put("role", JsonPrimitive("user"))
-                put("content", JsonArray(trimmedContent))
-            }
-        }
     }
 
     private suspend fun captureOrFail(): Bitmap? {
@@ -424,44 +333,8 @@ class AgentLoop(
         put("content", buildJsonArray { add(textBlock(text)) })
     }
 
-    private fun systemPrompt(width: Int, height: Int): String {
-        val aliases = NameAliases.format(ctx)
-        val aliasBlock = if (aliases.isBlank()) "" else """
-
-Known name aliases for THIS user (resolve these to the listed entity when they appear in the task):
-$aliases
-
-When the user says one of these names, treat it as the resolved entity. If the alias resolution is ambiguous on the current screen, ask the user a one-sentence disambiguation question via finish(success=false, summary="Did you mean ...?") rather than guessing.
-"""
-        return """
-You are a mobile phone operator agent. You control a real Android phone on behalf of the user to complete tasks they describe in natural language.$aliasBlock
-
-At each step you receive the current screenshot of the phone. Decide the single best next action and call exactly one tool. After you call a tool you will receive a new screenshot showing the result.
-
-IMPORTANT - Coordinate system:
-The screenshot you receive is the full phone display at ${width} x ${height} pixels. Every coordinate you emit MUST be in this same pixel space. The top-left of the screenshot is (0, 0); the bottom-right is (${width - 1}, ${height - 1}). When you identify a UI element in the screenshot, emit its coordinates as they appear in the screenshot pixel grid - do not normalize, do not use image thumbnail coordinates.
-
-How to work:
-- Look carefully at the current screenshot before each action. Briefly (one short sentence) describe what you see and what you'll do, then call the tool.
-- Aim for the center of the button/element you want to tap.
-- To type into a text field you must first tap it so it is focused, then call type_text.
-- After typing, either tap a visible submit/search button or call key with action "ime_enter".
-- To scroll, use swipe. Swiping up (y2 < y1) scrolls content down; swiping down scrolls content up.
-- Use key "home" to return to the launcher and key "back" to go back.
-- If two consecutive taps at the same location have no visible effect, stop repeating - zoom your attention, re-measure the target's center, and try a clearly different coordinate.
-- When the task is complete, or you decide it cannot be completed, call finish with success and a short summary. Do not keep acting after calling finish.
-- Do not enter passwords, credit card numbers, or perform destructive actions (delete, uninstall, purchase, send money) without an explicit request from the user for that specific action.
-- Prefer fewer, higher-quality actions over many small ones. Wait only if the UI is still loading.
-- A small floating circular accessibility button (the Handy AI "H" icon) may appear in the screenshots near an edge. Ignore it; it is the system shortcut for this app, not part of the app you are operating on.
-- If an app is in a first-run/setup flow (welcome screens, permission dialogs), dismiss or complete them first, then continue the task.
-- If you encounter two or more plausible targets for an ambiguous user reference (e.g. "Send mom a message" but there are three "Mom" contacts, or "Open Bank" but the user has Chase Bank, BoA, and Bank of Hawaii installed), stop and disambiguate. Call finish(success=false, summary="I see three apps named Bank — Chase, BoA, or Hawaii. Which one?") — the host will read the question aloud and the user will re-issue the task. Do NOT pick one arbitrarily.
-- For tasks like "read me the screen", "read me the menu", "what does this notification say", or "read me this article", call read_screen_text instead of describing the screen yourself. The OCR result is read aloud verbatim to the user — fast and zero token cost.
-
-You have at most ${MAX_STEPS} steps total.
-""".trimIndent()
-    }
-
     companion object {
+        // The one place the model is chosen.
         private const val MODEL = "claude-opus-5-5"
         private const val MAX_STEPS = 40
         private const val KEEP_RECENT_SCREENSHOTS = 3

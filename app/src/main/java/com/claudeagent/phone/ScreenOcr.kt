@@ -1,7 +1,6 @@
 package com.claudeagent.phone
 
 import android.graphics.Bitmap
-import android.graphics.Rect
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.text.TextRecognition
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions
@@ -23,15 +22,10 @@ object ScreenOcr {
         TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
     }
 
-    suspend fun recognize(bitmap: Bitmap, region: Rect? = null): String {
-        val input = if (region != null) {
-            val cropped = Bitmap.createBitmap(
-                bitmap,
-                region.left.coerceAtLeast(0),
-                region.top.coerceAtLeast(0),
-                region.width().coerceAtMost(bitmap.width - region.left),
-                region.height().coerceAtMost(bitmap.height - region.top),
-            )
+    /** [crop] must lie inside [bitmap]; [AgentActions.cropRegion] produces one that does. */
+    suspend fun recognize(bitmap: Bitmap, crop: CropRect? = null): String {
+        val input = if (crop != null) {
+            val cropped = Bitmap.createBitmap(bitmap, crop.left, crop.top, crop.width, crop.height)
             InputImage.fromBitmap(cropped, 0)
         } else {
             InputImage.fromBitmap(bitmap, 0)
