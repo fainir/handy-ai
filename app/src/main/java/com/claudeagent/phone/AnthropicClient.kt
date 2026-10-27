@@ -13,6 +13,7 @@ import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.add
 import kotlinx.serialization.json.buildJsonArray
 import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
@@ -76,11 +77,11 @@ class AnthropicClient(private val apiKey: String) {
                 awaitCall(http.newCall(request)).use { resp ->
                     val text = resp.body?.string().orEmpty()
                     if (resp.code in RETRYABLE_STATUS) {
-                        lastError = RuntimeException("API ${resp.code}: ${text.take(200)}")
+                        lastError = RuntimeException(describeError(resp.code, text))
                         return@use
                     }
                     if (!resp.isSuccessful) {
-                        throw RuntimeException("Anthropic API error ${resp.code}: ${text.take(500)}")
+                        throw RuntimeException(describeError(resp.code, text))
                     }
                     val obj = json.parseToJsonElement(text).jsonObject
                     return@withContext AnthropicResponse(
@@ -124,5 +125,24 @@ class AnthropicClient(private val apiKey: String) {
         private const val MAX_ATTEMPTS = 4
         private val BACKOFF_MS = longArrayOf(1_500L, 4_000L, 10_000L)
         private val RETRYABLE_STATUS = setOf(408, 429, 500, 502, 503, 504, 529)
+
+        /**
+         * One-line, user-facing message for a failed Messages API call, built
+         * from the status code and the API's own error message. It is shown
+         * and spoken to the user, and never includes the request or the key.
+         */
+        fun describeError(code: Int, body: String): String {
+            val detail = runCatching {
+                Json.parseToJsonElement(body).jsonObject["error"]?.jsonObject
+                    ?.get("message")?.jsonPrimitive?.contentOrNull
+            }.getOrNull()?.takeIf { it.isNotBlank() }
+                ?: body.trim().take(300).ifEmpty { "(empty response)" }
+            return when (code) {
+                401 -> "Anthropic rejected the API key (401). Check the key in Settings."
+                429 -> "Rate limited by Anthropic (429): $detail"
+                529 -> "Anthropic is overloaded (529). Try again in a minute."
+                else -> "Anthropic API error $code: $detail"
+            }
+        }
     }
 }
