@@ -303,6 +303,14 @@ class SettingsActivity : AppCompatActivity() {
         binding.switchModeButton.setText(
             if (mode == Mode.SUBSCRIBED) R.string.switch_to_byo_key else R.string.switch_to_subscription,
         )
+        // Until a real Lemon Squeezy product exists the checkout URL 404s, so
+        // don't offer buttons that lead there. Someone already in SUBSCRIBED
+        // mode keeps the switch so they can get back to their own key.
+        val billing = BillingConfig.checkoutConfigured()
+        binding.manageSubscriptionButton.visibility =
+            if (billing) android.view.View.VISIBLE else android.view.View.GONE
+        binding.switchModeButton.visibility =
+            if (billing || mode == Mode.SUBSCRIBED) android.view.View.VISIBLE else android.view.View.GONE
     }
 
     private fun refreshHubStatus() {

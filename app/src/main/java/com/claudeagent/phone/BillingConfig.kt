@@ -25,6 +25,12 @@ object BillingConfig {
         return "$LEMONSQUEEZY_CHECKOUT_URL$sep$encoded=$userId"
     }
 
+    /**
+     * False while [LEMONSQUEEZY_CHECKOUT_URL] is still the placeholder, which
+     * 404s. Settings hides the buttons that would open it.
+     */
+    fun checkoutConfigured(): Boolean = !LEMONSQUEEZY_CHECKOUT_URL.contains("PLACEHOLDER")
+
     const val PRICE_LABEL = "\$9.99 / month"
     const val TRIAL_LABEL = "7 days free"
 
