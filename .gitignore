@@ -1,21 +1,27 @@
+# Gradle / Android Studio
 .gradle/
 build/
-/local.properties
 .idea/
 *.iml
-.DS_Store
 captures/
 .externalNativeBuild/
 .cxx/
+.DS_Store
+
+# Local SDK path and build-time secrets (see local.properties.example)
 local.properties
+
+# Release signing - never commit
 keystore.properties
 *.jks
 *.keystore
-app/handy-ai-release.jks
-local.properties
-.gradle/
-/build/
-app/build/
+
+# Android Studio "Generate Signed Bundle / APK" output
+app/release/
+
+# Temp AAB staging for browser upload (don't commit build artifacts long-term)
+release-staging/
+
 supabase/.temp/
 
 # Play Store recording intermediates (keep only *-final.mp4 committed)
@@ -27,6 +33,3 @@ playstore/video/handyai-disclosure-v2.mp4
 .claude/play-console-*.png
 .claude/tester-progress.log
 .claude/*.tmp
-
-# Temp AAB staging for browser-upload (don't commit build artifacts long-term)
-release-staging/
