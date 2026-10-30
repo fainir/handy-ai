@@ -2,6 +2,7 @@
 
 [![CI](https://github.com/fainir/handy-ai/actions/workflows/ci.yml/badge.svg)](https://github.com/fainir/handy-ai/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Listed in open-source-android-apps](https://img.shields.io/badge/listed%20in-open--source--android--apps-3ddc84)](https://github.com/pcqpcq/open-source-android-apps)
 
 An Android app that does tasks on your phone for you: say or type what you want, and it uses Claude to look at the screen and tap, type and swipe through your apps until the job is done. It is built first for blind, low-vision and motor-impaired users, and works for anyone who wants hands-free control of any app.
 
