@@ -76,13 +76,13 @@ object AgentTools {
         ))
         add(tool(
             name = "read_screen_text",
-            description = "Run on-device OCR over the entire current screen and return the recognized text in natural reading order. Use this when the user asked to 'read me the screen', 'read me the menu', 'read this article', or 'what does this notification say' — instead of describing the screen yourself, return the OCR text verbatim. Fast and free (no API tokens).",
+            description = "Run on-device OCR over the entire current screen and return the recognized text in natural reading order. Use this when the user asked to 'read me the screen', 'read me the menu', 'read this article', or 'what does this notification say' — instead of describing the screen yourself, return the OCR text verbatim. Fast and free (no API tokens). Reads Latin script only: if the text on screen is Hebrew, Greek, Arabic, Cyrillic or another non-Latin script, do not call it; read the text from the screenshot yourself and give it verbatim in finish(summary=...).",
             properties = emptyList(),
             required = emptyList(),
         ))
         add(tool(
             name = "read_text_at",
-            description = "Run on-device OCR over a small region of the screen. Use this to read a single label, notification, or focused element without picking up everything around it. Coordinates and dimensions are pixels.",
+            description = "Run on-device OCR over a small region of the screen. Use this to read a single label, notification, or focused element without picking up everything around it. Coordinates and dimensions are pixels. Latin script only, like read_screen_text.",
             properties = listOf(
                 numberProp("x", "Top-left X of the region to OCR."),
                 numberProp("y", "Top-left Y of the region to OCR."),

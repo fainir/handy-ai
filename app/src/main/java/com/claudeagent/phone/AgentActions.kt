@@ -118,6 +118,34 @@ object AgentActions {
         return CropRect(left, top, right - left, bottom - top)
     }
 
+    /** Phone languages whose text the Latin-only on-device OCR cannot read. */
+    private val NON_LATIN_LANGUAGES = setOf(
+        "he", "iw", "el", "ar", "fa", "ru", "uk", "bg", "zh", "ja", "ko", "hi", "th",
+    )
+
+    private val OCR_SCRIPTS = setOf(
+        Character.UnicodeScript.LATIN,
+        Character.UnicodeScript.COMMON,
+        Character.UnicodeScript.INHERITED,
+    )
+
+    /**
+     * ML Kit's bundled recognizer reads Latin script only; Hebrew, Greek and
+     * other scripts come back as junk. True when the task text or the phone's
+     * language points at such a script, so the model should read the
+     * screenshot itself instead of calling the OCR.
+     */
+    fun needsModelReading(task: String, deviceLanguage: String): Boolean {
+        if (deviceLanguage.lowercase() in NON_LATIN_LANGUAGES) return true
+        var i = 0
+        while (i < task.length) {
+            val cp = task.codePointAt(i)
+            if (Character.UnicodeScript.of(cp) !in OCR_SCRIPTS) return true
+            i += Character.charCount(cp)
+        }
+        return false
+    }
+
     /** Detailed-verbosity narration for each step. */
     fun narration(name: String, input: JsonObject): String {
         fun s(key: String): String = input.stringOrNull(key).orEmpty()

@@ -13,6 +13,7 @@ import kotlinx.serialization.json.add
 import kotlinx.serialization.json.buildJsonArray
 import kotlinx.serialization.json.buildJsonObject
 import java.io.ByteArrayOutputStream
+import java.util.Locale
 import kotlin.coroutines.coroutineContext
 
 class AgentLoop(
@@ -25,6 +26,10 @@ class AgentLoop(
     // before destructive actions ("I'll tap Send" → speak this aloud and add
     // a confirmation delay before the actual tap fires).
     private var lastAssistantText: String = ""
+
+    // The task being run, so the OCR tools can tell when its script is one
+    // the on-device recognizer cannot read.
+    private var currentTask: String = ""
 
     private val ctx: Context get() = service.applicationContext
 
@@ -41,6 +46,7 @@ class AgentLoop(
     }
 
     private suspend fun runSteps(task: String) {
+        currentTask = task
         AgentState.setState(RunState.Running)
         AgentState.setStatus("Preparing...")
 
@@ -254,6 +260,12 @@ class AgentLoop(
      * spent), speaks the result aloud, returns verbatim text.
      */
     private suspend fun ocrAction(region: AgentAction.ReadTextAt?): Pair<Boolean, String> {
+        if (AgentActions.needsModelReading(currentTask, Locale.getDefault().language)) {
+            return true to "On-device OCR reads Latin script only, and this task or phone " +
+                "language uses another script. Read the text from the latest screenshot " +
+                "yourself and give it verbatim, in natural reading order (right to left " +
+                "for Hebrew), in finish(summary=...)."
+        }
         val shot = captureOrFail() ?: return false to "Could not capture screen"
         val shotWidth = shot.width
         val shotHeight = shot.height

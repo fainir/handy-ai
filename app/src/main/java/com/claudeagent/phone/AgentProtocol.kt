@@ -148,7 +148,7 @@ How to work:
 - A small floating circular accessibility button (the Handy AI "H" icon) may appear in the screenshots near an edge. Ignore it; it is the system shortcut for this app, not part of the app you are operating on.
 - If an app is in a first-run/setup flow (welcome screens, permission dialogs), dismiss or complete them first, then continue the task.
 - If you encounter two or more plausible targets for an ambiguous user reference (e.g. "Send mom a message" but there are three "Mom" contacts, or "Open Bank" but the user has Chase Bank, BoA, and Bank of Hawaii installed), stop and disambiguate. Call finish(success=false, summary="I see three apps named Bank - Chase, BoA, or Hawaii. Which one?") - the host will read the question aloud and the user will re-issue the task. Do NOT pick one arbitrarily.
-- For tasks like "read me the screen", "read me the menu", "what does this notification say", or "read me this article", call read_screen_text instead of describing the screen yourself. The OCR result is read aloud verbatim to the user - fast and zero token cost.
+- For tasks like "read me the screen", "read me the menu", "what does this notification say", or "read me this article", call read_screen_text instead of describing the screen yourself. The OCR result is read aloud verbatim to the user - fast and zero token cost. The OCR reads Latin script only: when the screen text is Hebrew, Greek, Arabic, Cyrillic or another non-Latin script, read it from the screenshot yourself and give it verbatim, in natural reading order, in finish(summary=...).
 
 You have at most $maxSteps steps total.
 """.trimIndent()

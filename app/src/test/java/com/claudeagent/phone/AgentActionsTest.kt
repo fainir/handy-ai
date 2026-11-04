@@ -86,6 +86,18 @@ class AgentActionsTest {
     }
 
     @Test
+    fun nonLatinTasksAndPhoneLanguagesSkipTheLatinOnlyOcr() {
+        assertTrue(!AgentActions.needsModelReading("Read me the screen", "en"))
+        assertTrue(!AgentActions.needsModelReading("Leggimi lo schermo, per favore!", "it"))
+        assertTrue(!AgentActions.needsModelReading("Read 3 messages 👋", "en"))
+        assertTrue(AgentActions.needsModelReading("תקריא לי את המסך", "en"))
+        assertTrue(AgentActions.needsModelReading("Διάβασέ μου την οθόνη", "en"))
+        assertTrue(AgentActions.needsModelReading("Read me the screen", "he"))
+        assertTrue(AgentActions.needsModelReading("Read me the screen", "iw"))
+        assertTrue(AgentActions.needsModelReading("Read me the screen", "EL"))
+    }
+
+    @Test
     fun finishReadsSuccessAndSummary() {
         assertEquals(AgentAction.Finish(true, "Done"), parse("finish", """{"success":true,"summary":"Done"}"""))
         assertEquals(AgentAction.Finish(true, ""), parse("finish", """{"success":"true"}"""))
