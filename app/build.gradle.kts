@@ -24,14 +24,14 @@ fun secret(key: String, fallback: String): String =
 
 android {
     namespace = "com.claudeagent.phone"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.claudeagent.phone"
         minSdk = 30
-        targetSdk = 35
-        versionCode = 16
-        versionName = "1.5.6"
+        targetSdk = 36
+        versionCode = 17
+        versionName = "1.5.7"
 
         // These ship into BuildConfig.kt at compile time. See local.properties
         // for where to put real values. Safe-by-default placeholders make a
@@ -71,6 +71,10 @@ android {
     }
 
     buildTypes {
+        debug {
+            // Install QA alongside the existing Play app without touching its data.
+            if (providers.gradleProperty("isolatedQa").orNull == "true") applicationIdSuffix = ".qa"
+        }
         release {
             isMinifyEnabled = false
             signingConfig = signingConfigs.getByName("release")

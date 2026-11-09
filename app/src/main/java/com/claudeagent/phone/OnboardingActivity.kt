@@ -119,7 +119,10 @@ class OnboardingActivity : AppCompatActivity() {
             toast(getString(R.string.invalid_key_hint))
             return
         }
-        ApiKeyStore.save(this, key)
+        if (!ApiKeyStore.save(this, key)) {
+            toast(getString(R.string.api_key_storage_unavailable))
+            return
+        }
         UserState.setMode(this, Mode.BYO_KEY)
         UserState.setOnboarded(this, true)
         finishToMain()

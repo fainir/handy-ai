@@ -43,28 +43,29 @@
   <nav aria-label="Primary"><a href="index.html" class="logo"><span class="logo-mark" aria-hidden="true">H</span> Handy AI</a></nav>
   <main id="main">
   <h1>Privacy policy</h1>
-  <p class="date">Last updated: 22 May 2026</p>
+  <p class="date">Last updated: 9 November 2026</p>
 
   <p>Handy AI helps you carry out tasks on your Android phone by describing them in plain language. This page explains what data it handles and how.</p>
 
   <h2>What the app stores on your device</h2>
   <ul>
-    <li><strong>Your Anthropic API key</strong>. Encrypted via Android Keystore (AES-256-GCM). Never leaves your device and is never sent to us.</li>
-    <li><strong>Your chat history</strong> — the tasks you've asked for and the agent's log — saved locally so sessions persist across app launches. Stored in app-private storage. Never sent to us.</li>
+    <li><strong>Your Anthropic API key</strong>. The app stores it encrypted with Android Keystore and uses it only to authenticate direct requests to Anthropic. If you choose setup by computer, Dashob relays the key to your phone with a short-lived setup code. You can also enter it directly on your phone.</li>
+    <li><strong>Chat history</strong>. The app saves your tasks and action log in app-private storage. A running task sends the context it needs as described below.</li>
     <li><strong>Task descriptions and recent screenshots</strong>, only while a task is running. Kept in memory, not written to disk.</li>
   </ul>
 
   <h2>What leaves your device</h2>
   <ul>
-    <li><strong>Screenshots of the current screen</strong> and a short action history are sent to <strong>Anthropic</strong> (the company behind Claude) while a task is running, so the model can decide the next step. The requests go directly from your phone to Anthropic with your API key. We do not store, proxy, log, or train on them. See <a href="https://www.anthropic.com/legal/privacy" target="_blank" rel="noopener">anthropic.com/legal/privacy</a>.</li>
-    <li>Nothing else. The app makes no other network calls.</li>
+    <li><strong>With your own key.</strong> The phone sends task text, screenshots and action history directly to Anthropic while a task is running.</li>
+    <li><strong>With included Claude, in versions that offer it.</strong> After you agree in the app, Handy AI sends the current screenshot, task and recent actions through the Betterloop gateway to Anthropic. The gateway does not retain the request contents. It keeps pseudonymous profile and network digests, request IDs, timestamps and usage to enforce limits. The response is encrypted and available for recovery for up to one hour. Turn off included Claude in Settings to stop future requests in this mode.</li>
+    <li>Keep passwords, payment information and other sensitive details off screen while a task runs. <a href="https://www.anthropic.com/legal/privacy" target="_blank" rel="noopener">Anthropic privacy policy</a></li>
   </ul>
 
   <h2>What we do NOT collect</h2>
   <ul>
     <li>Contacts, SMS, calls, microphone (except during the brief voice-to-text call handled by Android itself), camera, location — no access, no collection.</li>
-    <li>No analytics, no tracking, no advertising profile.</li>
-    <li>No user accounts. There is no sign-up, no server-side profile.</li>
+    <li>The included trial does not build advertising profiles. Some builds use Sentry for crash reports if configured. Screenshot and key entry are separate from crash reporting.</li>
+    <li>Using included Claude or adding an Anthropic key does not require a Handy AI account. Optional sign-in and device pairing are separate features.</li>
   </ul>
 
   <h2>Accessibility permission</h2>
@@ -84,7 +85,7 @@
   <p>Not intended for children under 13. We do not knowingly collect data from children.</p>
 
   <h2>Contact</h2>
-  <p>Questions, deletion requests, or complaints: <a href="mailto:fainir2006@gmail.com">fainir2006@gmail.com</a></p>
+  <p>For questions or deletion requests, email <a href="mailto:hi@gethandyai.app">hi@gethandyai.app</a>.</p>
 
   <p class="muted" style="margin-top: 40px;">This policy may change. Material changes will be announced in-app.</p>
   </main>

@@ -147,6 +147,12 @@ class MainActivity : AppCompatActivity() {
         // Inline API-key bar: shown at the bottom (in place of the chat
         // input) until a key is saved. Tapping save validates the key, stores
         // it encrypted, and immediately swaps the chat input in.
+        binding.startIncludedClaude.setOnClickListener {
+            IncludedClaude.confirm(this) {
+                updateEmptyState(ChatStore.activeMessages.value.isEmpty())
+                binding.taskInput.requestFocus()
+            }
+        }
         val keyBarInput = binding.root.findViewById<EditText>(R.id.keyBarInput)
         binding.root.findViewById<View>(R.id.keyBarSaveButton).setOnClickListener {
             val key = keyBarInput.text?.toString()?.trim().orEmpty()
@@ -154,7 +160,10 @@ class MainActivity : AppCompatActivity() {
                 toast(getString(R.string.invalid_key_hint))
                 return@setOnClickListener
             }
-            ApiKeyStore.save(this, key)
+            if (!ApiKeyStore.save(this, key)) {
+                toast(getString(R.string.api_key_storage_unavailable))
+                return@setOnClickListener
+            }
             UserState.setMode(this, Mode.BYO_KEY)
             UserState.setOnboarded(this, true)
             keyBarInput.text?.clear()
@@ -257,12 +266,11 @@ class MainActivity : AppCompatActivity() {
     private fun resumePendingIfReady() {
         val queued = pendingTask ?: return
         if (currentlyRunning) return
-        val apiKey = ApiKeyStore.load(this).orEmpty()
-        if (apiKey.isBlank()) return
+        val client = IncludedClaude.client(this) ?: return
         if (!isAccessibilityEnabled()) return
         val service = AgentAccessibilityService.instance ?: return
         pendingTask = null
-        runAgent(apiKey, queued, service)
+        runAgent(client, queued, service)
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -301,22 +309,20 @@ class MainActivity : AppCompatActivity() {
         binding.heroText.visibility = if (showHero) View.VISIBLE else View.GONE
         binding.chatList.visibility = if (empty) View.GONE else View.VISIBLE
 
-        // First-run split: no key → the key-entry bar appears ABOVE the chat
-        // input, and the chat input itself is disabled (visible but grayed
-        // out) so the layout doesn't jump around when the key is saved. Once
-        // a key is saved the key-bar goes away and the example prompts show.
         val hasKey = !ApiKeyStore.load(this).isNullOrBlank()
+        val exhausted = IncludedClaude.exhausted(this)
+        val trial = IncludedClaude.consented(this) && !exhausted
+        val canRun = hasKey || trial || currentlyRunning
+        binding.startIncludedClaude.visibility = if (exhausted) View.GONE else View.VISIBLE
+        binding.trialLimitNotice.visibility = if (exhausted && !hasKey) View.VISIBLE else View.GONE
         binding.root.findViewById<View>(R.id.keySetupBar).visibility =
-            if (hasKey) View.GONE else View.VISIBLE
+            if (canRun) View.GONE else View.VISIBLE
         binding.root.findViewById<View>(R.id.heroExamples).visibility =
-            if (showHero && hasKey) View.VISIBLE else View.GONE
-
-        // Dim + disable the chat input until a key exists.
-        binding.taskInput.isEnabled = hasKey
-        binding.micButton.isEnabled = hasKey
-        binding.actionButton.isEnabled = hasKey
-        val dim = if (hasKey) 1.0f else 0.45f
-        binding.inputContainer.alpha = dim
+            if (showHero && canRun) View.VISIBLE else View.GONE
+        binding.taskInput.isEnabled = canRun
+        binding.micButton.isEnabled = canRun
+        binding.actionButton.isEnabled = canRun
+        binding.inputContainer.alpha = if (canRun) 1.0f else 0.45f
     }
 
     private fun startVoiceInput() {
@@ -371,15 +377,11 @@ class MainActivity : AppCompatActivity() {
         ChatStore.append("user", task)
         binding.taskInput.text?.clear()
 
-        val apiKey = ApiKeyStore.load(this)
-        if (apiKey.isNullOrBlank()) {
-            pendingTask = task
-            toast(getString(R.string.api_key_bar_hint))
-            AccessibilityHelper.speak(
-                this,
-                "I need an Anthropic API key to start. Use the key setup option to add one.",
-                interrupt = true,
-            )
+        val client = IncludedClaude.client(this)
+        if (client == null) {
+            val message = if (IncludedClaude.exhausted(this)) R.string.included_claude_exhausted else R.string.api_key_bar_hint
+            toast(getString(message))
+            AccessibilityHelper.speak(this, getString(message), interrupt = true)
             return
         }
 
@@ -416,7 +418,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         pendingTask = null
-        runAgent(apiKey, task, service)
+        runAgent(client, task, service)
     }
 
     /**
@@ -424,7 +426,7 @@ class MainActivity : AppCompatActivity() {
      * queued task without going through [sendTask] (which would double-append
      * the user message to the chat).
      */
-    private fun runAgent(apiKey: String, task: String, service: AgentAccessibilityService) {
+    private fun runAgent(client: AgentClient, task: String, service: AgentAccessibilityService) {
         // Flip the run state synchronously so the "Thinking…" row and the
         // stop button appear the instant the user hits send — without
         // waiting for the coroutine in AgentLoop.run to reach its own
@@ -432,40 +434,9 @@ class MainActivity : AppCompatActivity() {
         AgentState.setState(RunState.Running)
         AgentState.setStatus("Preparing…")
 
-        // Server-side entitlement check: only for SUBSCRIBED (trial/paid)
-        // users signed in against Supabase. BYO-key users bring their own
-        // Anthropic credentials and are never gated.
-        if (UserState.mode(this) == Mode.SUBSCRIBED && AuthStore.isSignedIn(this)) {
-            lifecycleScope.launch {
-                val ent = EntitlementClient.fetch(this@MainActivity)
-                if (ent != null && !ent.isEntitled) {
-                    ChatStore.append("status", "Trial ended. Subscribe to keep using Handy AI.")
-                    showTrialEndedDialog()
-                } else {
-                    service.startAgent(apiKey, task)
-                }
-            }
-        } else {
-            service.startAgent(apiKey, task)
-        }
-    }
-
-    private fun showTrialEndedDialog() {
-        AlertDialog.Builder(this)
-            .setTitle(R.string.trial_expired_title)
-            .setMessage(R.string.trial_expired_body)
-            .setPositiveButton(R.string.subscribe_now) { _, _ ->
-                startActivity(
-                    Intent(
-                        Intent.ACTION_VIEW,
-                        android.net.Uri.parse(
-                            BillingConfig.checkoutUrlFor(AuthStore.userId(this)),
-                        ),
-                    ),
-                )
-            }
-            .setNegativeButton(R.string.not_now, null)
-            .show()
+        // Both available clients carry their own entitlement: the gateway
+        // checks included steps, and a personal key is billed by Anthropic.
+        service.startAgent(client, task)
     }
 
     private fun stopTask() {

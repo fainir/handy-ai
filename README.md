@@ -8,7 +8,7 @@ An Android app that does tasks on your phone for you: say or type what you want,
 
 **[Install from Google Play](https://play.google.com/store/apps/details?id=com.claudeagent.phone)** · [Watch the 60-second captioned demo](https://youtu.be/SxnJstUEAJI) · [Setup and first task](#quick-start)
 
-You need Android 11 or later, accessibility permission and your own Anthropic API key. Anthropic bills API use and receives a screenshot at each step of a running task.
+You need Android 11 or later and accessibility permission. If your build offers included Claude, you can try 10 model steps per Android profile. Otherwise, or when those steps run out, add your own Anthropic API key. Anthropic bills personal-key usage.
 
 Phones assume you can see the screen and hit small targets. A screen reader tells you what is there, but a five-screen task like "message Sarah that I'm running late" is still dozens of precise gestures. Handy AI turns the sentence into those gestures, can read every step aloud, and stops when you tell it to.
 
@@ -20,10 +20,10 @@ Phones assume you can see the screen and hit small targets. A screen reader tell
 
 ## Quick start
 
-You need an Android 11+ phone and an [Anthropic API key](https://console.anthropic.com/settings/keys) (starts with `sk-ant-`; Anthropic bills you per use).
+You need an Android 11+ phone. For personal-key mode, use an [Anthropic API key](https://console.anthropic.com/settings/keys) (starts with `sk-ant-`; Anthropic bills you per use).
 
 1. **Install** from [Google Play](https://play.google.com/store/apps/details?id=com.claudeagent.phone), or download the signed APK from [gethandyai.app](https://gethandyai.app/HandyAI.apk) (about 64 MB) and open it. Your browser will ask you to allow installs from it once.
-2. **Add your key.** Open Handy AI, paste the key into the bar at the bottom and tap **Save key**. If pasting a long key is hard (for example with a screen reader), use **Settings > Set up via computer** instead: the phone shows a 6-character code (and speaks it if voice is on), and you paste the key on [gethandyai.app/setup](https://gethandyai.app/setup) on your computer.
+2. **Choose how to use Claude.** If offered, select **Try included Claude** and review the screen-sharing disclosure. To use your own key, open Handy AI, paste the key into the bar at the bottom and tap **Save key**. If pasting a long key is hard (for example with a screen reader), use **Settings > Set up via computer** instead: the phone shows a 6-character code (and speaks it if voice is on), and you paste the key on [gethandyai.app/setup](https://gethandyai.app/setup) on your computer.
 3. **Give a task.** Type or tap the mic, for example *"Open the camera and take a picture"*.
 4. **Turn on the accessibility service** when asked (first task only): Android **Settings > Accessibility > Handy AI > On** (on some phones Handy AI is under *Installed apps* or *Downloaded apps*). Come back and the task starts by itself.
    - If the switch is greyed out with "Restricted setting" (Android 13+ with a downloaded APK), open **Settings > Apps > Handy AI > ⋮ > Allow restricted settings** and try again.
@@ -77,7 +77,7 @@ All settings are in the app (gear icon). Nothing is configured with environment 
 
 | Setting | Default | What it does |
 |---|---|---|
-| Anthropic API key | none | Required. Saved from the key bar or Settings; must start with `sk-ant-` |
+| Anthropic API key | none | Required after included steps run out or if your build does not offer them. Saved from the key bar or Settings; must start with `sk-ant-` |
 | Voice mode | Auto | Off, On, or Auto (speak only while a screen reader such as TalkBack is on) |
 | Narration | Brief | How much of each step is spoken: Off, Brief, Detailed |
 | Voice-warn before destructive actions | On | Spoken warning and 1.5 s pause; needs voice to be on |
@@ -92,10 +92,10 @@ Agent constants live in code:
 |---|---|---|
 | Model | `claude-opus-5-5` | `AgentLoop.kt` (`MODEL`, the only place it is set) |
 | Effort / `max_tokens` per step | `low` / 8192 | `AnthropicClient.kt`, `AgentLoop.kt` |
-| Max steps per task | 40 | `AgentLoop.kt` |
+| Max steps per task | 10 included or 40 with your own key | `AgentLoop.kt` |
 | Screenshots kept in the conversation | the task's first one plus the 4 most recent; older ones become a text note | `AgentLoop.kt` |
 | Settle delay after each action | 700 ms | `AgentLoop.kt` |
-| Retries | up to 4 attempts on HTTP 408, 429, 500, 502-504, 529 and network errors | `AnthropicClient.kt` |
+| Personal-key retries | up to 4 attempts on HTTP 408, 429, 500, 502-504, 529 and network errors | `AnthropicClient.kt` |
 
 ## Permissions and privacy
 
@@ -114,6 +114,7 @@ The accessibility service only acts while a task you started is running. It does
 | When | What | Sent to |
 |---|---|---|
 | Every step of a running task | A JPEG screenshot of the **whole screen** (notifications and anything else visible included), your task text, your named aliases, earlier steps of this task, action results, and any text the OCR tools read | `api.anthropic.com`, directly from the phone with your key, under [Anthropic's API terms](https://www.anthropic.com/legal/privacy) |
+| Each step of an included Claude task after consent | Current JPEG screenshot, task, and recent actions | Betterloop’s guarded gateway forwards the request to Anthropic. Quota metadata is retained and the response is encrypted for up to one hour. |
 | Only if you use **Set up via computer** | Your API key, typed on your computer | Relayed to the phone through the author's server (`dashob.com`). The setup page says it is held in memory for at most 10 minutes and deleted when the phone collects it |
 | Only if you pair in **Settings > Cloudbot pairing** | A device token, a random device ID and your phone's model name | The author's hub server, over a WebSocket |
 
@@ -121,7 +122,7 @@ Apart from the optional rows above, nothing is sent while no task is running. OC
 
 **What stays on your phone**
 
-- The API key, in `EncryptedSharedPreferences` (AES-256, key in the Android Keystore). If the Keystore is unusable on a device, it falls back to plain app-private storage.
+- The API key, in `EncryptedSharedPreferences` (AES-256, key in the Android Keystore). New keys require working Keystore storage. Older fallback keys are migrated when Keystore becomes available.
 - Chat history (your tasks, Claude's replies, the tool calls including typed text), in app-private storage. Clear it by clearing the app's data.
 - Android backup is disabled, so none of this is copied to Google Drive.
 
@@ -133,10 +134,10 @@ Apart from the optional rows above, nothing is sent while no task is running. OC
  you: "take a picture"
         |
  MainActivity / EasyModeActivity
-        |  startAgent(key, task)
+        |  startAgent(client, task)
  AgentAccessibilityService ---- TaskRunner (one task at a time, Stop = cancel)
         |
- AgentLoop, up to 40 steps:
+ AgentLoop, up to 10 included steps or 40 with your own key:
    1. takeScreenshot()                       (Android 11+ accessibility API)
    2. POST /v1/messages                      (AnthropicClient: screenshot + history + tools)
    3. Claude replies with a tool call        (AgentProtocol parses it, AgentActions validates it)
@@ -166,18 +167,18 @@ Tools Claude can call: `tap`, `long_press`, `swipe`, `type_text`, `clear_text`, 
 
 - **Android 11 or newer** (the accessibility screenshot API).
 - **Cost and speed.** Every step is one Claude request with a full-screen image, plus a 700 ms settle delay. Longer tasks cost more; check usage in the Anthropic console.
-- **40 steps per task** at most.
+- **Up to 10 included steps per Android profile**, with shared availability limits. Tasks run for up to 40 steps with your own key.
 - **Some apps hide their content** from screenshots (common in banking and password screens); Claude may see a black screen there.
 - **Typing can fail** in web fields that do not accept accessibility text input. Claude can sometimes work around it by tapping the on-screen keyboard.
 - **Android may switch the service off** after an app update or under memory pressure. Turn it back on in Accessibility settings.
 - **The destructive-action warning is a keyword check** on Claude's last message, not a guarantee.
 - **High-contrast text has little visible effect** today: most layouts use fixed colors instead of theme colors.
 - **No in-app way to delete a single chat** yet; clear the app's data to remove all history.
-- **Bring your own key only.** The trial and subscription code paths are dormant.
+- **Two Claude modes.** The included offer uses the shared gateway and is available only when enabled by the operator. Your own key uses the direct Claude API.
 
 ## Build from source
 
-Requirements: JDK 17 and the Android SDK (platform 35). Android Studio provides both.
+Requirements: JDK 17 and the Android SDK (platform 36). Android Studio provides both.
 
 ```bash
 git clone https://github.com/fainir/handy-ai.git

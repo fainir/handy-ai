@@ -67,9 +67,9 @@ class AgentAccessibilityService : AccessibilityService() {
         super.onDestroy()
     }
 
-    fun startAgent(apiKey: String, task: String) {
+    fun startAgent(client: AgentClient, task: String) {
         runner.start {
-            AgentLoop(AnthropicClient(apiKey), this@AgentAccessibilityService).run(task)
+            AgentLoop(client, this@AgentAccessibilityService).run(task)
         }
     }
 

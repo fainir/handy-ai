@@ -201,4 +201,12 @@
     <string name="panel_pair_error">Panel not reachable: %1$s</string>
     <string name="panel_pair_code_fail">Couldn\'t get a code: %1$s</string>
     <string name="panel_pair_success">Paired with CloudBot panel</string>
+    <string name="included_claude_title">Try included Claude</string>
+    <string name="included_claude_disclosure">Try up to 10 free Claude steps on this Android profile. A task can use several steps. While a task is running, Handy AI sends the current screenshot, task and recent actions through its service to Anthropic. Keep sensitive information off screen. You can turn this off in Settings. When the trial ends, add your own Anthropic key to continue. Anthropic bills your own key separately.</string>
+    <string name="included_claude_accept">Agree and enable trial</string>
+    <string name="included_claude_exhausted">Your included Claude steps are used. Add your own Anthropic key to continue.</string>
+    <string name="included_claude_enabled">Included Claude enabled. Add your own Anthropic key whenever you prefer.</string>
+    <string name="included_claude_disable">Turn off included Claude</string>
+    <string name="included_claude_voice_ready">Trial enabled. Tap the mic to start a task.</string>
+    <string name="api_key_storage_unavailable">Secure key storage is unavailable. Try again after unlocking your device.</string>
 </resources>

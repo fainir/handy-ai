@@ -181,6 +181,23 @@
             app:layout_constraintBottom_toTopOf="@id/inputContainer">
 
             <com.google.android.material.button.MaterialButton
+                android:id="@+id/startIncludedClaude"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:minHeight="48dp"
+                android:text="@string/included_claude_title"
+                android:textAllCaps="false" />
+
+            <TextView
+                android:id="@+id/trialLimitNotice"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:accessibilityLiveRegion="polite"
+                android:text="@string/included_claude_exhausted"
+                android:textColor="@color/text_primary"
+                android:visibility="gone" />
+
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/getKeyLink"
                 style="@style/Widget.MaterialComponents.Button.TextButton"
                 android:layout_width="wrap_content"

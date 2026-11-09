@@ -123,8 +123,13 @@ class KeySetupActivity : AppCompatActivity() {
     }
 
     private fun onClaimed(apiKey: String) {
+        if (!ApiKeyStore.save(this, apiKey)) {
+            val message = getString(R.string.api_key_storage_unavailable)
+            statusView.text = message
+            AccessibilityHelper.speak(this, message, interrupt = true)
+            return
+        }
         AccessibilityHelper.haptic(this, AccessibilityHelper.Haptic.TASK_DONE)
-        ApiKeyStore.save(this, apiKey)
         UserState.setMode(this, Mode.BYO_KEY)
         UserState.setOnboarded(this, true)
         val msg = getString(R.string.key_setup_received)
