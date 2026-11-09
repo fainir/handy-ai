@@ -6,6 +6,10 @@
 
 An Android app that does tasks on your phone for you: say or type what you want, and it uses Claude to look at the screen and tap, type and swipe through your apps until the job is done. It is built first for blind, low-vision and motor-impaired users, and works for anyone who wants hands-free control of any app.
 
+**[Install from Google Play](https://play.google.com/store/apps/details?id=com.claudeagent.phone)** · [Watch the 60-second captioned demo](https://youtu.be/SxnJstUEAJI) · [Setup and first task](#quick-start)
+
+You need Android 11 or later, accessibility permission and your own Anthropic API key. Anthropic bills API use and receives a screenshot at each step of a running task.
+
 Phones assume you can see the screen and hit small targets. A screen reader tells you what is there, but a five-screen task like "message Sarah that I'm running late" is still dozens of precise gestures. Handy AI turns the sentence into those gestures, can read every step aloud, and stops when you tell it to.
 
 <p>
@@ -13,8 +17,6 @@ Phones assume you can see the screen and hit small targets. A screen reader tell
   &nbsp;
   <img src="playstore/screenshots/v1.5.1/07-easy-mode.png" width="260" alt="Easy Mode: one large microphone button on a black screen">
 </p>
-
-**[Watch the 60-second demo on YouTube](https://youtu.be/SxnJstUEAJI)**
 
 ## Quick start
 
@@ -27,7 +29,7 @@ You need an Android 11+ phone and an [Anthropic API key](https://console.anthrop
    - If the switch is greyed out with "Restricted setting" (Android 13+ with a downloaded APK), open **Settings > Apps > Handy AI > ⋮ > Allow restricted settings** and try again.
 5. **Watch it work.** Each step is shown in the chat (and spoken if voice is on). Tap the stop button to cancel at any time.
 
-The APK on the website can lag behind `main`. At the time of writing it is 1.5.5 (Claude Opus 4.7); `main` is 1.5.6 (Claude Opus 5.5). [Build from source](#build-from-source) for the latest.
+Google Play, the website APK and GitHub releases can be on different versions. To use the version in this repository, [build from source](#build-from-source).
 
 ## What a run looks like
 
