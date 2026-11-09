@@ -110,6 +110,12 @@ class AgentLoop(
             }
 
             if (turn.toolCalls.isEmpty()) {
+                val answer = turn.texts.joinToString("\n").trim()
+                if (client.included && response.stopReason == "end_turn" && answer.isNotEmpty()) {
+                    AgentState.setState(RunState.Finished(success = true, summary = answer))
+                    AgentState.setStatus("Claude answered without taking an action")
+                    return
+                }
                 appendStatus(AgentProtocol.noActionStatus(response.stopReason))
                 AgentState.setState(RunState.Finished(success = false, summary = "Model returned no action."))
                 AgentState.setStatus("Stopped: no action from model")
