@@ -4,6 +4,7 @@ import { pathToFileURL } from 'node:url';
 
 const [base, playwrightEntry] = process.argv.slice(2);
 const live = base === 'https://gethandyai.app';
+const realGoogleTag = process.argv.includes('--real-google-tag');
 assert(live || new URL(base).hostname === '127.0.0.1');
 const { chromium } = await import(pathToFileURL(playwrightEntry).href);
 const browser = await chromium.launch({ executablePath: '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' });
@@ -11,7 +12,7 @@ const signal = 'qa-private-sentinel';
 const provider = url => {
     const { hostname, pathname } = new URL(url);
     if (hostname === 'api.mixpanel.com' && pathname === '/track') return 'mixpanel';
-    if (hostname.endsWith('google-analytics.com') && pathname.endsWith('/collect')) return 'google';
+    if ((hostname.endsWith('google-analytics.com') || hostname === 'analytics.google.com') && pathname.endsWith('/collect')) return 'google';
     if (hostname === 'betterloopai.com' && pathname === '/api/ingest') return 'betterloop';
     return '';
 };
@@ -28,12 +29,12 @@ async function check(width, gpc = false) {
     if (!live) await context.route('**/*', async route => {
         const url = new URL(route.request().url());
         if (url.origin === base) return route.continue();
-        if (url.hostname === 'www.googletagmanager.com') return route.fulfill({ contentType: 'text/javascript', body: 'window.qaGoogleLoaded=true' });
+        if (url.hostname === 'www.googletagmanager.com') return realGoogleTag ? route.continue() : route.fulfill({ contentType: 'text/javascript', body: 'window.qaGoogleLoaded=true' });
         if (url.pathname === '/sdk.js' && url.hostname === 'betterloopai.com') return route.fulfill({ contentType: 'text/javascript', body: sdk });
         if (provider(url.href)) return route.fulfill({ headers: { 'Access-Control-Allow-Origin': '*' }, body: '1' });
         return route.abort();
     });
-    await page.goto(`${base}/?${signal}=1#${signal}`, { waitUntil: 'load' });
+    await page.goto(`${base}/?${signal}=1#${signal}`, { waitUntil: 'load', referer: `${base}/setup.html?${signal}=referrer` });
     assert.equal(requests.length, 0);
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
     assert.equal(await page.getByRole('link', { name: 'Contact support' }).getAttribute('href'), 'mailto:hi@gethandyai.app');
@@ -45,7 +46,7 @@ async function check(width, gpc = false) {
     const off = dialog.getByRole('button', { name: 'Keep off' });
     assert(await off.evaluate(el => el === document.activeElement));
     assert(await dialog.evaluate(el => el.scrollWidth <= innerWidth));
-    const receipts = gpc ? [] : (live ? ['google', 'mixpanel', 'betterloop'] : ['mixpanel', 'betterloop']).map(name =>
+    const receipts = gpc ? [] : (live || realGoogleTag ? ['google', 'mixpanel', 'betterloop'] : ['mixpanel', 'betterloop']).map(name =>
         page.waitForResponse(response => provider(response.url()) === name && response.ok(), { timeout: 20000 }));
     const all = Promise.all(receipts);
     all.catch(() => {});
@@ -60,10 +61,17 @@ async function check(width, gpc = false) {
     if (live) {
         assert.equal((await received[1].text()).trim(), '1');
         assert.equal((await received[2].json()).ok, true);
-    } else {
+    } else if (!realGoogleTag) {
         assert.equal(await page.evaluate(() => Object.prototype.toString.call(window.dataLayer.at(-1))), '[object Arguments]');
     }
     assert(requests.every(item => !decodeURIComponent(item.url + item.body).includes(signal)));
+    const googleRequests = requests.filter(item => item.name === 'google');
+    if (live || realGoogleTag) assert.equal(googleRequests.filter(item => new URL(item.url).searchParams.get('en') === 'page_view').length, 1);
+    for (const request of googleRequests) {
+        const fields = new URL(request.url).searchParams;
+        assert.equal(fields.get('dl'), base + '/');
+        assert.equal(fields.get('dr') ?? '', '');
+    }
     await opener.click();
     await off.click();
     assert(await opener.evaluate(el => el === document.activeElement));

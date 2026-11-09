@@ -64,6 +64,7 @@
         window['ga-disable-' + ga] = false;
         window.dataLayer = window.dataLayer || [];
         window.gtag = window.gtag || function () { window.dataLayer.push(arguments); };
+        window.gtag('set', { send_page_view: false, ...safePage() });
         window.gtag('consent', googleStarted ? 'update' : 'default', { analytics_storage: 'granted', ad_storage: 'denied', ad_user_data: 'denied', ad_personalization: 'denied' });
         window.gtag('js', new Date());
         window.gtag('config', ga, { send_page_view: false, allow_google_signals: false, allow_ad_personalization_signals: false, ...safePage() });
