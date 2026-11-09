@@ -43,7 +43,10 @@ object ApiKeyStore {
         val secure = prefs(context) ?: return false
         return runCatching {
             secure.edit().putString(KEY_API, key).commit().also { saved ->
-                if (saved) legacy(context).edit().remove(KEY_API).apply()
+                if (saved) {
+                    legacy(context).edit().remove(KEY_API).apply()
+                    IncludedClaude.revoke(context)
+                }
             }
         }.getOrDefault(false)
     }
