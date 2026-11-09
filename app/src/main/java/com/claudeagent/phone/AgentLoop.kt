@@ -20,7 +20,7 @@ class AgentLoop(
     private val client: AgentClient,
     private val service: AgentAccessibilityService,
 ) {
-    private val messages = mutableListOf<JsonObject>()
+    private var messages = emptyList<JsonObject>()
     private var screenshotScaleX = 1f
     private var screenshotScaleY = 1f
 
@@ -65,13 +65,13 @@ class AgentLoop(
 
         val firstBitmap = captureOrFail() ?: return fail("Could not capture initial screenshot")
 
-        messages.add(buildJsonObject {
+        messages += buildJsonObject {
             put("role", JsonPrimitive("user"))
             put("content", buildJsonArray {
                 add(textBlock("Task: $task"))
                 add(imageBlock(firstBitmap))
             })
-        })
+        }
         firstBitmap.recycle()
 
         val systemPrompt = AgentProtocol.systemPrompt(w, h, NameAliases.format(ctx), maxSteps)
@@ -85,7 +85,7 @@ class AgentLoop(
                     model = MODEL,
                     systemPrompt = systemPrompt,
                     tools = AgentTools.definitions,
-                    messages = JsonArray(messages.toList()),
+                    messages = JsonArray(messages),
                     // Opus 5.5 always thinks, and thinking shares this budget with the action.
                     maxTokens = 8192,
                 )
@@ -96,10 +96,10 @@ class AgentLoop(
             }
 
             val turn = AgentProtocol.parseAssistantTurn(response.content)
-            messages.add(buildJsonObject {
+            messages += buildJsonObject {
                 put("role", JsonPrimitive("assistant"))
                 put("content", turn.replay)
-            })
+            }
 
             turn.texts.forEach { t ->
                 appendAssistant(t)
@@ -188,14 +188,10 @@ class AgentLoop(
                 newShot.recycle()
             }
 
-            val trimmed = AgentProtocol.trimScreenshotHistory(messages, KEEP_RECENT_SCREENSHOTS)
-            messages.clear()
-            messages.addAll(trimmed)
-
-            messages.add(buildJsonObject {
+            messages = AgentProtocol.trimScreenshotHistory(messages, KEEP_RECENT_SCREENSHOTS) + buildJsonObject {
                 put("role", JsonPrimitive("user"))
                 put("content", JsonArray(toolResults))
-            })
+            }
 
             if (finished != null) {
                 AgentState.setState(finished)

@@ -108,7 +108,9 @@ private object SystemBarInsets : Application.ActivityLifecycleCallbacks {
                     WindowInsetsCompat.Type.ime(),
             )
             view.updatePadding(left = safe.left, top = safe.top, right = safe.right, bottom = safe.bottom)
-            insets
+            // The content already reserves this space. A child that fits system
+            // windows, such as DrawerLayout, would otherwise reserve it again.
+            WindowInsetsCompat.CONSUMED
         }
         ViewCompat.requestApplyInsets(content)
     }
