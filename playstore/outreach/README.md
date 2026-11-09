@@ -21,10 +21,7 @@ detects ghostwritten copy you lose the introduction permanently.
 
 ## Order of operations (highest leverage first)
 
-1. **Twitter thread** with `playstore/video/handyai-demo-wrapped.mp4`
-   attached. Costs nothing, takes 5 minutes, lives forever in your
-   pinned tweets, and drives the most traffic per minute of work.
-   The MP4 has been on disk un-posted since early May.
+1. **Twitter thread** as text. Use a clean Android test profile for any future marketing recording.
 
 2. **r/Blind**. Highest-density audience for the actual product. Read
    the mod-DM script in `r-blind-pitch.md` BEFORE posting — the sub has

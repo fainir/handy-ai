@@ -6,7 +6,7 @@
 
 An Android app that does tasks on your phone for you: say or type what you want, and it uses Claude to look at the screen and tap, type and swipe through your apps until the job is done. It is built first for blind, low-vision and motor-impaired users, and works for anyone who wants hands-free control of any app.
 
-**[Install from Google Play](https://play.google.com/store/apps/details?id=com.claudeagent.phone)** · [Watch the 60-second captioned demo](https://youtu.be/SxnJstUEAJI) · [Setup and first task](#quick-start)
+**[Install from Google Play](https://play.google.com/store/apps/details?id=com.claudeagent.phone)** · [Setup and first task](#quick-start)
 
 You need Android 11 or later and accessibility permission. If your build offers included Claude, you can try 10 model steps per Android profile. Otherwise, or when those steps run out, add your own Anthropic API key. Anthropic bills personal-key usage.
 

@@ -236,7 +236,7 @@ User-action items from the punch list were all done autonomously via Chrome MCP:
 
 - [x] **Rotated reviewer API key.** Created new key "play-store-reviewer-2026-05" at console.anthropic.com (sk-ant-api03-...3PiQAA). Probed against Anthropic /v1/messages -> HTTP 200 valid. Replaced the old invalid suffix (...wPtQAA) in Play Console -> App content -> App access -> Manage textarea. Saved + staged in Publishing overview.
 - [x] **Uploaded 6 v1.5.1 screenshots to Play Console.** Used the trick of fetching from raw.githubusercontent.com inside the browser context (file_upload tool blocks arbitrary local paths), constructing File objects via DataTransfer, assigning to the file input's `files` property, and dispatching 'change'. Removed the 3 old v1.4 screenshots that came up first via clicking the `button[aria-label="Remove"]` elements. Final state: 6/8 phone screenshots, all v1.5.1, in order: 01-hero, 07-easy-mode, 99-task-in-progress, 04-settings-voice, 06-keysetup (showing live code TPGS63), 05-aliases. Promotion-eligibility threshold (>=4) met with margin.
-- [x] **Uploaded demo MP4 to YouTube + wired URL into Play Console.** Same fetch-from-GitHub-Raw trick for the 4.7MB MP4. YouTube upload wizard: title "Handy AI - voice agent demo (60s, captioned)", description with beta + source links, "Not made for kids", visibility Unlisted, no ads. Published. URL: https://youtu.be/SxnJstUEAJI. Pasted into Play Console -> Default store listing -> Graphics -> Video field. Saved + staged.
+- [x] A marketing video was previously saved in Play Console under Default store listing → Graphics. That recording is retired.
 
 All four changes (description fix + reviewer key + screenshots + video) are now staged in Publishing overview as ONE batched submission. User just needs to click "Apply for production" + "Send for review" on ~May 26 when the 14-day clock completes.
 
@@ -267,7 +267,6 @@ write-up: `playstore/launch-punch-list.md`. Highlights:
 - [x] Replace stale "production access ~May 23" date in landing
   - docs/index.html install section now reads evergreen "rolling out as Google's review clears."
 - [ ] (User) Add 2+ phone screenshots to reach the >=4 promotion-eligibility floor (currently 3/8)
-- [ ] (User) Upload `playstore/video/handyai-demo-wrapped.mp4` to YouTube Unlisted + paste URL in Play Console -> Default store listing -> Graphics -> Video
 - [ ] (User, ~May 26) Click "Apply for production" + send the staged description change for review in one pass
 - [ ] (User, post-production-approval) Flip docs/index.html "Coming to Google Play / In review" pill to a real `<a href="https://play.google.com/store/apps/details?id=com.claudeagent.phone">` link
 
@@ -293,11 +292,9 @@ Closed testing alpha has v1.5.1 live in 177 countries since 2026-05-21 18:36 UTC
 - [x] Show HN posted
 - [~] Record demo video + wrap in Remotion + post Twitter thread (M)
   - DoD: 60-90s raw screen recording of Handy AI doing a task end-to-end on Pixel; wrapped in Remotion composition with phone bezel + text overlays + CTA card pointing to gethandyai.app; posted as Twitter thread with the rendered MP4; at least 1 new beta signup attributed to the post within 24h.
-  - [x] Pivoted from WhatsApp (personal data) → Chrome/HN task (neutral, no PII)
-  - [x] Raw capture: `playstore/remotion-demo/public/handyai-demo.mp4` — 58.5s, 720×1620, 91 frames (trimmed from 87s); shows empty chat → typed task → submit → home → Chrome → news.ycombinator.com typed → HN loaded
+  - [x] The original phone recording was retired. Use a clean Android test profile for new capture.
   - [x] Remotion composition (`playstore/remotion-demo/src/HandyDemo.tsx`) — 1080×1920 @ 30fps, 2s intro + 58.5s body + 3s outro = 63.5s total; Fraunces display + Instrument Sans body; phone bezel with inner 680×1530 @ 24px bezel; caption overlay + "JOIN THE BETA — gethandyai.app" outro card
-  - [x] Rendered output: `playstore/video/handyai-demo-wrapped.mp4` — 4.7 MB, 1080×1920, 63.5s, h264 yuv420p (Twitter-ready, well under 512MB/140s limits)
-  - [ ] User publishes Twitter thread with attached MP4 (Post 1 draft already in `playstore/launch-posts.md` lines 14–22; follow-ups Post 2 + Post 3 threaded below)
+  - [ ] User publishes a text-only Twitter thread (Post 1 draft already in `playstore/launch-posts.md` lines 14–22; follow-ups Post 2 + Post 3 threaded below)
   - [ ] Watch `handy_beta_signups` for traffic spike + new rows after post goes live
 
 ## Phase 11: Production rollout SUBMITTED [2026-05-29]
@@ -378,6 +375,6 @@ CONFIRMED LIVE via real browser at the public Play Store listing (welcometothebe
 - The critical mic/send-tap crash is now resolved for all users automatically. No further release work pending.
 
 Remaining open work is ACQUISITION, not engineering:
-- [ ] Twitter thread still UNPOSTED (draft: playstore/outreach/twitter-thread-v2.md + playstore/launch-posts.md; demo video youtu.be/SxnJstUEAJI). Publish = user-authorized action.
+- [ ] Twitter thread still unposted. The current drafts in `playstore/outreach/twitter-thread-v2.md` and `playstore/launch-posts.md` are text only.
 - [ ] Disability-community outreach unsent (r/Blind, NFB, ACB, RNIB pitches in playstore/outreach/).
 - Optional polish (non-blocking): upload deobfuscation mapping + native debug symbols to Play for readable crash reports.

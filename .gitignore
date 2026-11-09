@@ -29,6 +29,9 @@ playstore/video/handyai-disclosure-raw.mp4
 playstore/video/handyai-disclosure.mp4
 playstore/video/handyai-disclosure-v2.mp4
 playstore/video/handyai-disclosure-final.mp4
+playstore/video/handyai-demo-wrapped.mp4
+playstore/remotion-demo/public/handyai-demo.mp4
+playstore/remotion-demo/out/handy-demo.mp4
 
 # Transient session artifacts (Play Console screenshots, polling logs)
 .claude/play-console-*.png

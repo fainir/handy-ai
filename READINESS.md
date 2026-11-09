@@ -12,7 +12,8 @@ Android 11+ accessibility assistant. [Public Play listing](https://play.google.c
 | H6 | Put the signed candidate on Google Play's internal track | verified | Google Play showed 1.5.7, code 17, available to internal testers on November 9. |
 | H7 | Install the Play-distributed update and verify the public release | owner | An enrolled Android device needs to install version 17 from Google Play. Then check the signed app, send the updated declarations for review and verify the reviewed public version. |
 | H8 | Receive support mail | verified | Cloudflare's active catch-all forwards the support address to the owner. An external forwarding sample reached the owner's Gmail Inbox on April 23 and the rule was read back on November 9. The homepage, privacy and terms use the same address. |
-| H9 | Allow optional measurement on the public homepage | waiting | [Browser check](qa/check-website-analytics.mjs) covers default off, consent, safe payloads, withdrawal and setup exclusion at 375px and 1440px. Check all three provider responses on the Pages release. |
+| H9 | Allow optional measurement on the public homepage | verified | Live Chrome at 375px and 1440px received Google 204, Mixpanel 200/1 and Betterloop 200/ok after consent. Default off, safe payloads, withdrawal, setup exclusion and Global Privacy Control passed. [Browser check](qa/check-website-analytics.mjs) and [analytics release](https://github.com/fainir/handy-ai/pull/12). |
+| H10 | Keep personal recordings out of release media | verified | The three copies of the personal-phone marketing capture are excluded from the current tree and future Git staging. Publishing drafts use text. The clean Play review clip remains in place. Older public Git revisions retain the retired recordings. |
 
 ## Owner actions
 

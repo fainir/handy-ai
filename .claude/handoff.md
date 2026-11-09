@@ -22,7 +22,7 @@ Root cause confirmed from the device crash log: `SecurityException: ... android.
 
 ## OPEN / NEXT STEPS
 1. **Confirm v1.5.3 goes live.** Check the public Play Store URL in a browser (not curl) or Play Console -> Production -> "Active · Release 13 (1.5.3) in review" should flip to "in production". When live, the mic crash is resolved for everyone.
-2. **Acquisition is the real open work.** App is published but needs users/testers. Ready-to-send outreach assets are in `playstore/outreach/` (Twitter thread + r/Blind + NFB/ACB/RNIB newsletter pitches) and `playstore/launch-posts.md`. Demo video on YouTube (unlisted): https://youtu.be/SxnJstUEAJI — wired into the Play listing. Twitter thread still UN-posted.
+2. **Acquisition is the real open work.** App is published but needs users/testers. Ready-to-send outreach assets are in `playstore/outreach/` (Twitter thread + r/Blind + NFB/ACB/RNIB newsletter pitches) and `playstore/launch-posts.md`. The old marketing footage is retired. Twitter thread still unposted.
 3. **Optional polish (not blocking):** the 2 Play warnings (no deobfuscation mapping / no native debug symbols) are benign; upload mapping+symbols later for readable crash reports.
 
 ## KEY FACTS / GOTCHAS (save hours)

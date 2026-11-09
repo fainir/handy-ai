@@ -34,9 +34,7 @@ starting points, not finals.
 >
 > Anything it doesn't know? It asks. Big stop button cancels instantly.
 
-**Media:** Attach `playstore/video/handyai-demo-wrapped.mp4` (63s, 1080×1920,
-4.7 MB — intro + "Launch Chrome and navigate to news.ycombinator.com" demo
-wrapped in phone bezel + CTA card pointing to gethandyai.app).
+Publish this draft as text. Use a clean Android test profile for any future marketing recording.
 
 ---
 
