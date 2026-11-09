@@ -38,8 +38,10 @@ async function check(width, gpc = false) {
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
     assert.equal(await page.getByRole('link', { name: 'Contact support' }).getAttribute('href'), 'mailto:hi@gethandyai.app');
     const opener = page.getByRole('button', { name: 'Analytics choices' });
+    assert(await opener.evaluate(el => Boolean(el.closest('[data-betterloop-ignore]'))));
     await opener.click();
     const dialog = page.getByRole('dialog', { name: 'Optional website analytics' });
+    assert.equal(await dialog.getAttribute('data-betterloop-ignore'), '');
     const off = dialog.getByRole('button', { name: 'Keep off' });
     assert(await off.evaluate(el => el === document.activeElement));
     assert(await dialog.evaluate(el => el.scrollWidth <= innerWidth));
