@@ -162,7 +162,7 @@ that escalate**, not the default UI.
   vision, TalkBack, ALS, etc.)
 - Accessibility-services declaration: core purpose, App functionality,
   Motor + Vision + Cognitive disabilities, target users, demo video
-  URL (`https://youtube.com/shorts/v2uduk1sBkU`)
+  URL (retired)
 
 ---
 

@@ -97,7 +97,7 @@ Blind and low-vision users (who can't use small touch targets or read inaccessib
 
 ### Video instructions
 ```
-https://youtube.com/shorts/v2uduk1sBkU
+Retired. Use the current Accessibility review recording.
 ```
 
 ---
