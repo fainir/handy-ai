@@ -135,10 +135,17 @@ class EasyModeActivity : AppCompatActivity() {
         ChatStore.ensureActiveSession()
         ChatStore.append("user", task)
 
-        val apiKey = ApiKeyStore.load(this)
-        if (apiKey.isNullOrBlank()) {
-            AccessibilityHelper.speak(this, getString(R.string.easy_mode_no_key), interrupt = true)
-            statusView.text = getString(R.string.easy_mode_no_key)
+        val client = IncludedClaude.client(this)
+        if (client == null) {
+            if (IncludedClaude.exhausted(this)) {
+                statusView.setText(R.string.included_claude_exhausted)
+                AccessibilityHelper.speak(this, getString(R.string.included_claude_exhausted), interrupt = true)
+            } else {
+                IncludedClaude.confirm(this) {
+                    statusView.setText(R.string.included_claude_voice_ready)
+                    AccessibilityHelper.speak(this, getString(R.string.included_claude_voice_ready), interrupt = true)
+                }
+            }
             return
         }
 
@@ -157,7 +164,7 @@ class EasyModeActivity : AppCompatActivity() {
 
         AgentState.setState(RunState.Running)
         AgentState.setStatus("Working on it…")
-        service.startAgent(apiKey, task)
+        service.startAgent(client, task)
     }
 
     private fun isAccessibilityEnabled(): Boolean {

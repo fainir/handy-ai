@@ -17,10 +17,12 @@ import java.util.Locale
 import kotlin.coroutines.coroutineContext
 
 class AgentLoop(
-    private val client: AnthropicClient,
+    private val client: AgentClient,
     private val service: AgentAccessibilityService,
 ) {
-    private val messages = mutableListOf<JsonObject>()
+    private var messages = emptyList<JsonObject>()
+    private var screenshotScaleX = 1f
+    private var screenshotScaleY = 1f
 
     // Tracks the last user-facing text the model emitted, so we can voice-warn
     // before destructive actions ("I'll tap Send" → speak this aloud and add
@@ -46,6 +48,7 @@ class AgentLoop(
     }
 
     private suspend fun runSteps(task: String) {
+        val maxSteps = if (client.included) INCLUDED_STEPS_PER_TASK else MAX_STEPS
         currentTask = task
         AgentState.setState(RunState.Running)
         AgentState.setStatus("Preparing...")
@@ -62,18 +65,18 @@ class AgentLoop(
 
         val firstBitmap = captureOrFail() ?: return fail("Could not capture initial screenshot")
 
-        messages.add(buildJsonObject {
+        messages += buildJsonObject {
             put("role", JsonPrimitive("user"))
             put("content", buildJsonArray {
                 add(textBlock("Task: $task"))
                 add(imageBlock(firstBitmap))
             })
-        })
+        }
         firstBitmap.recycle()
 
-        val systemPrompt = AgentProtocol.systemPrompt(w, h, NameAliases.format(ctx), MAX_STEPS)
+        val systemPrompt = AgentProtocol.systemPrompt(w, h, NameAliases.format(ctx), maxSteps)
 
-        for (step in 1..MAX_STEPS) {
+        for (step in 1..maxSteps) {
             if (!coroutineContext.isActive) return stopped()
             AgentState.setStatus("Step $step: thinking...")
 
@@ -82,7 +85,7 @@ class AgentLoop(
                     model = MODEL,
                     systemPrompt = systemPrompt,
                     tools = AgentTools.definitions,
-                    messages = JsonArray(messages.toList()),
+                    messages = JsonArray(messages),
                     // Opus 5.5 always thinks, and thinking shares this budget with the action.
                     maxTokens = 8192,
                 )
@@ -93,10 +96,10 @@ class AgentLoop(
             }
 
             val turn = AgentProtocol.parseAssistantTurn(response.content)
-            messages.add(buildJsonObject {
+            messages += buildJsonObject {
                 put("role", JsonPrimitive("assistant"))
                 put("content", turn.replay)
-            })
+            }
 
             turn.texts.forEach { t ->
                 appendAssistant(t)
@@ -107,6 +110,12 @@ class AgentLoop(
             }
 
             if (turn.toolCalls.isEmpty()) {
+                val answer = turn.texts.joinToString("\n").trim()
+                if (client.included && response.stopReason == "end_turn" && answer.isNotEmpty()) {
+                    AgentState.setState(RunState.Finished(success = true, summary = answer))
+                    AgentState.setStatus("Claude answered without taking an action")
+                    return
+                }
                 appendStatus(AgentProtocol.noActionStatus(response.stopReason))
                 AgentState.setState(RunState.Finished(success = false, summary = "Model returned no action."))
                 AgentState.setStatus("Stopped: no action from model")
@@ -120,7 +129,9 @@ class AgentLoop(
                 appendAction("${call.name}(${call.input})")
                 AgentState.setStatus("Step $step: ${call.name}")
 
-                val action = AgentActions.parse(call.name, call.input)
+                val action = AgentActions.toDevicePixels(
+                    AgentActions.parse(call.name, call.input), screenshotScaleX, screenshotScaleY,
+                )
                 if (action is AgentAction.Finish) {
                     finished = RunState.Finished(action.success, action.summary)
                     toolResults.add(toolResult(call.id, "Acknowledged."))
@@ -177,14 +188,10 @@ class AgentLoop(
                 newShot.recycle()
             }
 
-            val trimmed = AgentProtocol.trimScreenshotHistory(messages, KEEP_RECENT_SCREENSHOTS)
-            messages.clear()
-            messages.addAll(trimmed)
-
-            messages.add(buildJsonObject {
+            messages = AgentProtocol.trimScreenshotHistory(messages, KEEP_RECENT_SCREENSHOTS) + buildJsonObject {
                 put("role", JsonPrimitive("user"))
                 put("content", JsonArray(toolResults))
-            })
+            }
 
             if (finished != null) {
                 AgentState.setState(finished)
@@ -204,7 +211,7 @@ class AgentLoop(
 
         AgentState.setState(RunState.Finished(false, "Reached step limit"))
         AgentState.setStatus("Stopped: step limit reached")
-        appendStatus("Reached max step limit ($MAX_STEPS)")
+        appendStatus("Reached max step limit ($maxSteps)")
         AccessibilityHelper.speak(ctx, "Reached step limit. Stopping.", interrupt = false)
         AccessibilityHelper.haptic(ctx, AccessibilityHelper.Haptic.ERROR)
     }
@@ -324,9 +331,27 @@ class AgentLoop(
     }
 
     private fun imageBlock(bitmap: Bitmap): JsonObject {
-        val bytes = ByteArrayOutputStream().use { out ->
-            bitmap.compress(Bitmap.CompressFormat.JPEG, JPEG_QUALITY, out)
-            out.toByteArray()
+        val longestEdge = maxOf(bitmap.width, bitmap.height)
+        val image = if (client.included && longestEdge > INCLUDED_IMAGE_EDGE) {
+            val ratio = INCLUDED_IMAGE_EDGE.toFloat() / longestEdge
+            Bitmap.createScaledBitmap(
+                bitmap, (bitmap.width * ratio).toInt().coerceAtLeast(1),
+                (bitmap.height * ratio).toInt().coerceAtLeast(1), true,
+            )
+        } else bitmap
+        screenshotScaleX = bitmap.width.toFloat() / image.width
+        screenshotScaleY = bitmap.height.toFloat() / image.height
+        val bytes = try {
+            ByteArrayOutputStream().use { out ->
+                image.compress(Bitmap.CompressFormat.JPEG, JPEG_QUALITY, out)
+                if (client.included && out.size() > 540_000) {
+                    out.reset()
+                    image.compress(Bitmap.CompressFormat.JPEG, 45, out)
+                }
+                out.toByteArray()
+            }
+        } finally {
+            if (image !== bitmap) image.recycle()
         }
         val b64 = Base64.encodeToString(bytes, Base64.NO_WRAP)
         return buildJsonObject {
@@ -349,6 +374,8 @@ class AgentLoop(
         // The one place the model is chosen.
         private const val MODEL = "claude-opus-5-5"
         private const val MAX_STEPS = 40
+        private const val INCLUDED_STEPS_PER_TASK = 10
+        private const val INCLUDED_IMAGE_EDGE = 1568
         private const val KEEP_RECENT_SCREENSHOTS = 3
         private const val POST_ACTION_DELAY_MS = 700L
         private const val JPEG_QUALITY = 75

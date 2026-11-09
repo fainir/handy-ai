@@ -25,13 +25,27 @@ class SettingsActivity : AppCompatActivity() {
 
         binding.toolbar.setNavigationOnClickListener { finish() }
 
+        binding.includedClaudeButton.setOnClickListener {
+            if (IncludedClaude.consented(this)) {
+                IncludedClaude.revoke(this)
+                refreshApiKeyStatus()
+            } else {
+                IncludedClaude.confirm(this) { refreshApiKeyStatus() }
+            }
+        }
+
         binding.saveKeyButton.setOnClickListener {
             val key = binding.apiKeyInput.text?.toString()?.trim().orEmpty()
             if (!key.startsWith("sk-ant-")) {
                 toast("Key should start with sk-ant-")
                 return@setOnClickListener
             }
-            ApiKeyStore.save(this, key)
+            if (!ApiKeyStore.save(this, key)) {
+                toast(getString(R.string.api_key_storage_unavailable))
+                return@setOnClickListener
+            }
+            UserState.setMode(this, Mode.BYO_KEY)
+            UserState.setOnboarded(this, true)
             binding.apiKeyInput.text?.clear()
             refreshApiKeyStatus()
             toast("API key saved")
@@ -273,11 +287,16 @@ class SettingsActivity : AppCompatActivity() {
 
     private fun refreshApiKeyStatus() {
         val saved = ApiKeyStore.load(this)
-        binding.apiKeyStatus.text = if (saved.isNullOrBlank()) {
-            getString(R.string.api_key_not_saved)
-        } else {
-            getString(R.string.api_key_saved_mask, maskKey(saved))
+        val enabled = IncludedClaude.consented(this)
+        val exhausted = IncludedClaude.exhausted(this)
+        binding.apiKeyStatus.text = when {
+            !saved.isNullOrBlank() -> getString(R.string.api_key_saved_mask, maskKey(saved))
+            exhausted -> getString(R.string.included_claude_exhausted)
+            enabled -> getString(R.string.included_claude_enabled)
+            else -> getString(R.string.api_key_not_saved)
         }
+        binding.includedClaudeButton.setText(if (enabled) R.string.included_claude_disable else R.string.included_claude_title)
+        binding.includedClaudeButton.isEnabled = enabled || !exhausted
     }
 
     private fun refreshAccessibilityStatus() {

@@ -30,7 +30,19 @@ data class AnthropicResponse(
     val usage: JsonObject?,
 )
 
-class AnthropicClient(private val apiKey: String) {
+interface AgentClient {
+    val included: Boolean get() = false
+
+    suspend fun sendMessage(
+        model: String,
+        systemPrompt: String,
+        tools: JsonArray,
+        messages: JsonArray,
+        maxTokens: Int,
+    ): AnthropicResponse
+}
+
+class AnthropicClient(private val apiKey: String) : AgentClient {
 
     private val http = OkHttpClient.Builder()
         .connectTimeout(30, TimeUnit.SECONDS)
@@ -40,12 +52,12 @@ class AnthropicClient(private val apiKey: String) {
 
     private val json = Json { ignoreUnknownKeys = true; encodeDefaults = true }
 
-    suspend fun sendMessage(
+    override suspend fun sendMessage(
         model: String,
         systemPrompt: String,
         tools: JsonArray,
         messages: JsonArray,
-        maxTokens: Int = 2048,
+        maxTokens: Int,
     ): AnthropicResponse = withContext(Dispatchers.IO) {
         val body = buildJsonObject {
             put("model", JsonPrimitive(model))

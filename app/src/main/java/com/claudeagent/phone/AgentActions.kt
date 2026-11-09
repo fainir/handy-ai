@@ -105,6 +105,20 @@ object AgentActions {
         }
     }
 
+    fun toDevicePixels(action: AgentAction, xScale: Float, yScale: Float): AgentAction = when (action) {
+        is AgentAction.Tap -> action.copy(x = action.x * xScale, y = action.y * yScale)
+        is AgentAction.LongPress -> action.copy(x = action.x * xScale, y = action.y * yScale)
+        is AgentAction.Swipe -> action.copy(
+            x1 = action.x1 * xScale, y1 = action.y1 * yScale,
+            x2 = action.x2 * xScale, y2 = action.y2 * yScale,
+        )
+        is AgentAction.ReadTextAt -> action.copy(
+            x = (action.x * xScale).toInt(), y = (action.y * yScale).toInt(),
+            width = (action.width * xScale).toInt(), height = (action.height * yScale).toInt(),
+        )
+        else -> action
+    }
+
     /**
      * Clips a read_text_at region to the screenshot. Returns null when nothing
      * of it is on screen (or its size is not positive).

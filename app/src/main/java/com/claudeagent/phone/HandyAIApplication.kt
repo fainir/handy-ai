@@ -1,6 +1,13 @@
 package com.claudeagent.phone
 
+import android.app.Activity
 import android.app.Application
+import android.os.Build
+import android.os.Bundle
+import android.view.View
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.updatePadding
 import io.sentry.SentryLevel
 import io.sentry.android.core.SentryAndroid
 import kotlinx.coroutines.CoroutineScope
@@ -29,6 +36,7 @@ class HandyAIApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        if (Build.VERSION.SDK_INT >= 35) registerActivityLifecycleCallbacks(SystemBarInsets)
 
         if (BuildConfig.SENTRY_DSN.isNotBlank()) {
             SentryAndroid.init(this) { opts ->
@@ -88,4 +96,30 @@ class HandyAIApplication : Application() {
         // panel, infrequent enough that relaunches don't spam the wire.
         private const val HEARTBEAT_MIN_INTERVAL_MS: Long = 10 * 60 * 1000L
     }
+}
+
+/** Android 15 and later draw app content behind the system bars. */
+private object SystemBarInsets : Application.ActivityLifecycleCallbacks {
+    override fun onActivityPostCreated(activity: Activity, savedInstanceState: Bundle?) {
+        val content = activity.findViewById<View>(android.R.id.content) ?: return
+        ViewCompat.setOnApplyWindowInsetsListener(content) { view, insets ->
+            val safe = insets.getInsets(
+                WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout() or
+                    WindowInsetsCompat.Type.ime(),
+            )
+            view.updatePadding(left = safe.left, top = safe.top, right = safe.right, bottom = safe.bottom)
+            // The content already reserves this space. A child that fits system
+            // windows, such as DrawerLayout, would otherwise reserve it again.
+            WindowInsetsCompat.CONSUMED
+        }
+        ViewCompat.requestApplyInsets(content)
+    }
+
+    override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) = Unit
+    override fun onActivityStarted(activity: Activity) = Unit
+    override fun onActivityResumed(activity: Activity) = Unit
+    override fun onActivityPaused(activity: Activity) = Unit
+    override fun onActivityStopped(activity: Activity) = Unit
+    override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) = Unit
+    override fun onActivityDestroyed(activity: Activity) = Unit
 }
