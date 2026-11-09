@@ -9,12 +9,7 @@ product for a real underserved audience. The accessibility positioning is
 also what the new landing copy, Play Store listing, and Phase 6 build all
 point to — every channel should now match.
 
-**Media:** Attach `playstore/video/handyai-demo-wrapped.mp4` (63s,
-1080×1920, 4.7 MB). Twitter accepts video up to 140s / 512MB — no
-re-encode needed.
-
-**Alt text for the video** (paste into the Twitter "Add description"
-field): see end of this file.
+Publish this draft as text. Use a clean Android test profile for any future marketing recording.
 
 ---
 
@@ -56,27 +51,11 @@ field): see end of this file.
 
 ---
 
-## Alt text for the demo video
-
-> Screen recording of an Android phone running Handy AI. The home
-> screen shows a chat interface with a microphone button. The user
-> taps the mic and speaks a task. The phone opens Chrome, types
-> "news.ycombinator.com" into the address bar, and loads Hacker News
-> — all without the user touching the screen again. A caption
-> overlay narrates each step. The video ends on a card reading "Join
-> the beta — gethandyai.app".
-
-(Under Twitter's 1,000-char alt-text limit.)
-
----
-
 ## Posting checklist
 
 - [ ] Replace placeholder mic-icon glyph in your draft if the
       bullets render with an unfamiliar dot in the Twitter
       composer.
-- [ ] Confirm the video has burned-in captions (it does, per the
-      Remotion composition in `playstore/remotion-demo/`).
 - [ ] First reply: pin Post 2 below Post 1.
 - [ ] Within 24h, reply with a short metric ("X signups so far") if
       anything notable happens — that's the social-proof reply that

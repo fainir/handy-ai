@@ -194,15 +194,9 @@ What to do:
 
 These are flagged required (asterisk) but Google often lets you ship phone-only. If your production application gets a "tablet screenshots missing" reject, the simplest fix is to upload the same phone screenshots resized to tablet aspect ratio. Don't pre-build tablet screenshots now - wait to see if Google flags it.
 
-### C. Demo video: not attached to Play Store listing
+### C. Optional store listing video
 
-The 63-second MP4 at `playstore/video/handyai-demo-wrapped.mp4` was rendered weeks ago and is sitting on disk. Play Store wants a YouTube URL. To wire it in:
-
-1. Upload `playstore/video/handyai-demo-wrapped.mp4` to YouTube as "Unlisted" (not Public, not Private). Title: "Handy AI - voice agent demo". Disable ads + comments + age restriction.
-2. Copy the YouTube URL.
-3. Play Console -> Default store listing -> Graphics -> Video -> paste URL.
-
-Play Store demo videos materially boost conversion (Google's own number: ~25% lift on first-time install). Worth doing before the production listing goes live.
+The [clean accessibility demonstration](video/handyai-accessibility-review.mp4) is for the permission review. A marketing video for the listing is optional. Use a clean Android test profile for any future marketing recording.
 
 ### D. Description fix: send for review when you Apply for production
 
@@ -224,7 +218,7 @@ Click "Publishing overview" in the left nav, you'll see one pending change ("Def
 |------|--------|-----|
 | Today (May 22) | DONE - description fix staged in Play Console | autonomous |
 | Today (May 22) | DONE - landing stale date fixed | autonomous |
-| May 22-25 | Add 2+ phone screenshots, upload demo MP4 to YouTube + paste URL | you |
+| May 22-25 | Add 2+ phone screenshots | you |
 | May 26 | Click "Apply for production" + send description change for review | you |
 | May 26 - early June | Google reviews | them |
 | Day production approves | Flip landing "Coming to Google Play" pill to real Play Store link | autonomous + you trigger |
