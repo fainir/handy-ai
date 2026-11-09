@@ -236,7 +236,7 @@ User-action items from the punch list were all done autonomously via Chrome MCP:
 
 - [x] **Rotated reviewer API key.** Created new key "play-store-reviewer-2026-05" at console.anthropic.com (sk-ant-api03-...3PiQAA). Probed against Anthropic /v1/messages -> HTTP 200 valid. Replaced the old invalid suffix (...wPtQAA) in Play Console -> App content -> App access -> Manage textarea. Saved + staged in Publishing overview.
 - [x] **Uploaded 6 v1.5.1 screenshots to Play Console.** Used the trick of fetching from raw.githubusercontent.com inside the browser context (file_upload tool blocks arbitrary local paths), constructing File objects via DataTransfer, assigning to the file input's `files` property, and dispatching 'change'. Removed the 3 old v1.4 screenshots that came up first via clicking the `button[aria-label="Remove"]` elements. Final state: 6/8 phone screenshots, all v1.5.1, in order: 01-hero, 07-easy-mode, 99-task-in-progress, 04-settings-voice, 06-keysetup (showing live code TPGS63), 05-aliases. Promotion-eligibility threshold (>=4) met with margin.
-- [x] **Uploaded demo MP4 to YouTube + wired URL into Play Console.** Same fetch-from-GitHub-Raw trick for the 4.7MB MP4. YouTube upload wizard: title "Handy AI - voice agent demo (60s, captioned)", description with beta + source links, "Not made for kids", visibility Unlisted, no ads. Published. URL: https://youtu.be/SxnJstUEAJI. Pasted into Play Console -> Default store listing -> Graphics -> Video field. Saved + staged.
+- [x] A marketing video was previously saved in Play Console under Default store listing → Graphics. That recording is retired.
 
 All four changes (description fix + reviewer key + screenshots + video) are now staged in Publishing overview as ONE batched submission. User just needs to click "Apply for production" + "Send for review" on ~May 26 when the 14-day clock completes.
 
@@ -375,6 +375,6 @@ CONFIRMED LIVE via real browser at the public Play Store listing (welcometothebe
 - The critical mic/send-tap crash is now resolved for all users automatically. No further release work pending.
 
 Remaining open work is ACQUISITION, not engineering:
-- [ ] Twitter thread still UNPOSTED (draft: playstore/outreach/twitter-thread-v2.md + playstore/launch-posts.md; demo video youtu.be/SxnJstUEAJI). Publish = user-authorized action.
+- [ ] Twitter thread still unposted. The current drafts in `playstore/outreach/twitter-thread-v2.md` and `playstore/launch-posts.md` are text only.
 - [ ] Disability-community outreach unsent (r/Blind, NFB, ACB, RNIB pitches in playstore/outreach/).
 - Optional polish (non-blocking): upload deobfuscation mapping + native debug symbols to Play for readable crash reports.
