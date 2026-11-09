@@ -89,7 +89,7 @@ manage API keys.
 - TestersCommunity app: https://www.testerscommunity.com/app-details/lkJAGIWzZ5dhLq6NYIAB
 - Landing page: https://gethandyai.app
 - Setup page (paired-laptop): https://gethandyai.app/setup.html
-- Demo video: https://youtube.com/shorts/v2uduk1sBkU
+- Demo video: Retired. Use the current Accessibility review recording.
 - Backend endpoint: https://cloudbot-ai.com/api/handy-key-setup/init
 
 ## Files on disk
