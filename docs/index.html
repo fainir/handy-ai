@@ -288,7 +288,8 @@
     margin-bottom: 8px;
   }
   .step p { color: var(--muted); font-size: 15px; }
-  .step a { color: var(--ink); font-weight: 500; }
+  .step a:not(.btn) { color: var(--ink); font-weight: 500; }
+  .install-alternative { margin-top: 24px; color: var(--muted); }
   .faq-item {
     border-top: 1px solid var(--border);
     padding: 24px 0;
@@ -498,26 +499,23 @@
   </section>
 
   <section id="install">
-    <h2>Install in 90 seconds.</h2>
-    <p class="lede">Live on <a href="https://play.google.com/store/apps/details?id=com.claudeagent.phone" target="_blank" rel="noopener">Google Play</a>, the easiest way to install and get updates. Prefer a direct install? Grab the signed APK below. <strong>Using a screen reader?</strong> Open <a href="/setup.html">gethandyai.app/setup</a> on your computer to send the API key to your phone via a 6-character code.</p>
+    <h2>Try your first task.</h2>
+    <p class="lede">For Android 11 and up.</p>
     <div class="install-steps">
       <div class="step">
-        <h3>Download</h3>
-        <p><a class="btn btn-primary" data-analytics-event="apk_clicked" href="HandyAI.apk" download style="padding: 12px 18px; font-size: 14px;">Download APK (63&nbsp;MB)</a></p>
+        <h3>Install Handy AI</h3>
+        <p><a class="btn btn-primary" data-analytics-event="play_clicked" href="https://play.google.com/store/apps/details?id=com.claudeagent.phone" target="_blank" rel="noopener">Get it on Google Play</a></p>
       </div>
       <div class="step">
-        <h3>Allow install</h3>
-        <p>Android will ask once — tap "Settings", toggle "Allow from this source", and back out.</p>
+        <h3>Set up Claude</h3>
+        <p>If your version offers included Claude, review the screen-sharing prompt before opting in. You can also use <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">your own Anthropic API key</a>. If you use a desktop screen reader, you can <a href="/setup.html">set up your key from a computer</a>.</p>
       </div>
       <div class="step">
-        <h3>Paste your key</h3>
-        <p>Handy AI uses Claude. Paste your Anthropic key (get one at <a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">console.anthropic.com</a>) — stored encrypted, on-device only.</p>
-      </div>
-      <div class="step">
-        <h3>Grant Accessibility</h3>
-        <p>After your first send, Handy asks for Accessibility permission. That's how it taps on your behalf. Revoke any time.</p>
+        <h3>Ask Handy AI to read your screen</h3>
+        <p>Say or type “Read the text on this screen.” If prompted, turn on Handy AI in Android’s Accessibility settings, then return to the app. Try it on a screen you’re comfortable sharing.</p>
       </div>
     </div>
+    <p class="install-alternative">You can also <a data-analytics-event="apk_clicked" href="HandyAI.apk" download>download the signed APK</a>. Android may ask you to allow installs from your browser.</p>
   </section>
 
   <section id="faq">
