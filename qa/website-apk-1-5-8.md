@@ -8,6 +8,8 @@ Local CI passed debug and release builds, Android lint, 38 JVM tests, a signed A
 
 The [website download](https://gethandyai.app/HandyAI.apk) for this release has SHA-256 `ab8a2e0f140a93631b0c1a3ba3591eebeead38ebb9499cf62ceae3163a58307e`. The old public APK was 1.5.5 (15) and used the same signing certificate.
 
+The 1.5.5 APK still embedded the retired account backend. Its sole configured Supabase hostname matched the [retirement record](../supabase/REBUILD.md). On 13 November both Google and Cloudflare returned NXDOMAIN, and the anonymous auth health request failed at DNS. The 1.5.8 build uses the documented default that hides legacy sign-in on fresh installs. Existing website users' on-device personal keys and chat history passed the signed upgrade check.
+
 ## Android and website checks
 
 - Android 16 installed the public 1.5.5 APK and upgraded it in place with the exact 1.5.8 release APK. The synthetic chat, the masked test key and the enabled Accessibility service survived. [Upgraded chat](website-apk-1-5-8-upgrade.png).
