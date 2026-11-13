@@ -315,7 +315,7 @@
   }
   footer a { text-decoration: none; }
   footer a:hover { color: var(--ink); }
-  .analytics-choice { border: 0; background: none; color: inherit; font: inherit; text-decoration: underline; cursor: pointer; }
+  .analytics-choice { min-height: 44px; border: 0; background: none; color: inherit; font: inherit; text-decoration: underline; cursor: pointer; }
   #analytics-dialog { width: min(34rem, calc(100% - 2rem)); max-width: none; padding: 1.5rem; border: 1px solid var(--ink); border-radius: 12px; background: #fff; color: var(--ink); }
   #analytics-dialog::backdrop { background: #0008; }
   #analytics-dialog h2 { margin-top: 0; }
@@ -395,7 +395,7 @@
       <a href="#how">How it works</a>
       <a href="#accessibility">Accessibility</a>
       <a href="#beta">Join beta</a>
-      <a href="#install">Install</a>
+      <a data-analytics-event="first_task_guide_clicked" href="#install">Install</a>
       <a href="#faq">FAQ</a>
     </div>
   </nav>
@@ -403,16 +403,13 @@
   <main id="main">
   <section class="hero" style="border: none; padding-top: 40px;">
     <h1>Talk to your phone.<br><em>It does the rest.</em></h1>
-    <p class="sub">A voice-first AI agent for Android. Speak a task — Handy AI watches your screen, narrates each step aloud, and taps, types, and swipes through your apps until it's done. <strong>Built for people with vision or motor impairments.</strong></p>
+    <p class="sub">Handy AI helps people with vision or motor impairments use their Android phone by voice. Start by asking it to read the text on your screen.</p>
     <div class="cta-row">
       <a class="btn btn-primary" data-analytics-event="play_clicked" href="https://play.google.com/store/apps/details?id=com.claudeagent.phone" target="_blank" rel="noopener">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false"><path d="M3.5 2.1a1 1 0 0 0-.5.87v18.06a1 1 0 0 0 .5.87l10.8-9.9L3.5 2.1zm12.2 9.17L5.4 21.34l9.1-5.22 2.7 2.48a.85.85 0 0 0 1.18-.04l2.32-2.12a.93.93 0 0 0 0-1.35l-3.12-2.86zm0-2.53l3.12-2.86a.93.93 0 0 0 0-1.35L16.5 2.41a.85.85 0 0 0-1.18-.04L5.4 2.66l10.3 6.08z"/></svg>
         <span class="store-label">Get it on Google Play<small>Android 11+ · free app</small></span>
       </a>
-      <a class="btn btn-secondary" data-analytics-event="apk_clicked" href="HandyAI.apk" download>
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-        <span class="store-label">Download APK<small>Direct install · Android 11+</small></span>
-      </a>
+      <a class="btn btn-secondary" data-analytics-event="first_task_guide_clicked" href="#install">See the first task</a>
     </div>
 
     <div class="hero-art">
@@ -453,15 +450,6 @@
     </div>
   </section>
 
-  <section id="voices" aria-labelledby="voices-heading">
-    <h2 id="voices-heading">Voices from the beta.</h2>
-    <p class="lede">This is where real beta testers' quotes go. We're not going to put words in anyone's mouth — this section stays empty until the first organic feedback comes in from blind, low-vision, motor-impaired, and abled testers actually using Handy AI.</p>
-    <div style="border: 1px dashed var(--border); border-radius: 16px; padding: 32px; text-align: center; margin-top: 24px;">
-      <p style="font-family: 'Fraunces', serif; font-size: 22px; font-weight: 600; margin-bottom: 12px;">No quotes yet.</p>
-      <p style="color: var(--muted); max-width: 520px; margin: 0 auto;">Are you a beta tester? Reply to the welcome email with a one-sentence quote and the name + use case you'd want attributed (or "anonymous"). We'll post it here with your permission, exactly as you wrote it.</p>
-    </div>
-  </section>
-
   <section id="how">
     <h2>Describe it. Handy does it.</h2>
     <p class="lede">No macros, no workflows you have to build. Handy AI looks at your screen, one step at a time, decides the next tap, and keeps going until the task is done.</p>
@@ -498,13 +486,13 @@
     </div>
   </section>
 
-  <section id="install">
-    <h2>Try your first task.</h2>
+  <section id="install" tabindex="-1" aria-labelledby="install-heading">
+    <h2 id="install-heading">Try your first task.</h2>
     <p class="lede">For Android 11 and up.</p>
     <div class="install-steps">
       <div class="step">
         <h3>Install Handy AI</h3>
-        <p><a class="btn btn-primary" data-analytics-event="play_clicked" href="https://play.google.com/store/apps/details?id=com.claudeagent.phone" target="_blank" rel="noopener">Get it on Google Play</a></p>
+        <p><a class="btn btn-primary" data-analytics-event="play_clicked" href="https://play.google.com/store/apps/details?id=com.claudeagent.phone&amp;utm_source=gethandyai.app&amp;utm_campaign=first_task_guide" target="_blank" rel="noopener">Get it on Google Play</a></p>
       </div>
       <div class="step">
         <h3>Set up Claude</h3>
@@ -558,7 +546,7 @@
 
 <dialog id="analytics-dialog" aria-labelledby="analytics-title" data-betterloop-ignore>
   <h2 id="analytics-title">Optional website analytics</h2>
-  <p>Choose whether to share homepage visits, install button clicks and website diagnostics. You can change this choice here at any time. <a href="privacy.html#website-analytics">Read our privacy policy</a>.</p>
+  <p>Choose whether to share homepage visits, clicks on the first-task guide and install links, and website diagnostics. You can change this choice here at any time. <a href="privacy.html#website-analytics">Read our privacy policy</a>.</p>
   <p data-analytics-summary>Optional website analytics is off.</p>
   <p data-analytics-status role="status"></p>
   <div class="analytics-actions">
