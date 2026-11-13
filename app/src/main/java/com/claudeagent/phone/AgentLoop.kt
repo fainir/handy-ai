@@ -372,7 +372,7 @@ class AgentLoop(
 
     companion object {
         // The one place the model is chosen.
-        private const val MODEL = "claude-opus-5-5"
+        internal const val MODEL = "claude-opus-5-5"
         private const val MAX_STEPS = 40
         private const val INCLUDED_STEPS_PER_TASK = 10
         private const val INCLUDED_IMAGE_EDGE = 1568

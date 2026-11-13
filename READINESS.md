@@ -16,9 +16,18 @@ Android 11+ accessibility assistant. [Public Play listing](https://play.google.c
 | H10 | Keep personal recordings out of release media | verified | The three copies of the personal-phone marketing capture are excluded from the current tree and future Git staging. Publishing drafts use text. The clean Play review clip remains in place. Older public Git revisions retain the retired recordings. |
 | H11 | Load a screen-reading example after Claude and Accessibility setup | verified | Android 16 verified consent, setup with a draft, cancelled work, touch, keyboard and explicit Start. The signed 1.5.8 APK also passed the first-task flow on a fresh profile and upgraded the signed website 1.5.5 install with its data intact. [Native checks](qa/first-screen-task.md) · [Signed APK checks](qa/website-apk-1-5-8.md). |
 | H12 | Verify first-task adoption and Play delivery | waiting | Confirm one outside screen-reading task and a return within seven days through a voluntary support report. Check the next Play-delivered build independently. [Measurement](qa/website-apk-1-5-8.md#measurement). |
+| F1 | Select Handy AI as the default Android phone app and return to chat | owner | The candidate exposes the Android picker and opens Phone from chat or a dial command. Verify role accept, decline and return on the Pixel. [Device checks](qa/handy-phone.md). |
+| F2 | Place and end calls through the device's carrier account | owner | Candidate picks a SIM and delegates emergency routing to Android. Check caller ID and both sides of a real test call on the Pixel. [Device checks](qa/handy-phone.md). |
+| F3 | Answer or decline calls and control call audio and DTMF | owner | Candidate implements Telecom call UI and alerts. Check lock screen, Do Not Disturb, call waiting and controls on the Pixel. [Device checks](qa/handy-phone.md). |
+| F4 | Browse contacts and recents and call back | owner | Candidate queries local Android data and scopes history to the default role. Check permission refusal and callback on the Pixel. [Device checks](qa/handy-phone.md). |
+| F5 | Ask for help during a call while staying in Handy AI | owner | JVM test confirmed the draft request contains only the typed prompt and no tools. Check draft and cancel during a test call. [Device checks](qa/handy-phone.md). |
+| F6 | AI converses and screens callers on the SIM line | owner | Test the Pixel's Live Caption typed replies on a consented call and confirm which interfaces Android exposes to a third-party dialer. [Android audio rules](https://developer.android.com/media/platform/sharing-audio-input#voice-call). |
+| F7 | Verify and release the dialer | todo | Device evidence, signed build acceptance and Play permission declarations follow F1–F6. [Device checks](qa/handy-phone.md). |
 
 ## Owner actions
 
 1. On an enrolled Android device, open the [internal testing link](https://play.google.com/apps/internaltest/4700905524999567377), install or update through Google Play and confirm that Handy AI shows 1.5.7. This unblocks Play-distributed device verification.
+
+2. Connect the Pixel 10 to this Mac by USB for Android debugging. This unblocks installing the isolated Phone candidate and verifying F1–F6.
 
 Use the [existing guarded Claude gateway](https://github.com/fainir/betterloop/blob/main/readiness/claude-beta.md) with a server-selected model and toolset. [Google Play's AccessibilityService policy](https://support.google.com/googleplay/android-developer/answer/10964491) governs the release disclosure. Existing Play and APK users retain their current build until a verified update ships.
