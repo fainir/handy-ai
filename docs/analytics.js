@@ -2,7 +2,7 @@
 (() => {
     const PRODUCT = 'Handy AI', KEY = 'handyai.analytics.v1';
     const PATHS = new Set(['/']);
-    const EVENTS = new Set(['play_clicked', 'apk_clicked']);
+    const EVENTS = new Set(['play_clicked', 'apk_clicked', 'first_task_guide_clicked']);
     const config = window.SiteAnalyticsConfig || {};
     const ga = /^G-[A-Z0-9]+$/.test(config.gaId || '') ? config.gaId : '';
     const token = /^[a-f0-9]{32}$/i.test(config.mixpanelToken || '') ? config.mixpanelToken : '';

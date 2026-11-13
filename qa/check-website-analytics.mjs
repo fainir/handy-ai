@@ -18,7 +18,7 @@ const provider = url => {
 };
 const sdk = `window.Betterloop={init(o){if(this.started)return;this.started=true;fetch(o.endpoint,{method:'POST',body:JSON.stringify({path:location.pathname})});},shutdown(){this.started=false;}};`;
 async function check(width, gpc = false) {
-    const context = await browser.newContext({ viewport: { width, height: 820 } });
+    const context = await browser.newContext({ viewport: { width, height: 820 }, hasTouch: width === 375 });
     const page = await context.newPage(), requests = [], errors = [];
     page.on('pageerror', error => errors.push(error.message));
     page.on('request', req => {
@@ -37,6 +37,23 @@ async function check(width, gpc = false) {
     await page.goto(`${base}/?${signal}=1#${signal}`, { waitUntil: 'load', referer: `${base}/setup.html?${signal}=referrer` });
     assert.equal(requests.length, 0);
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
+    const guide = page.getByRole('link', { name: 'See the first task' });
+    const install = page.getByRole('region', { name: 'Try your first task.' });
+    if (width === 375) await guide.tap();
+    else {
+        await guide.focus();
+        await guide.press('Enter');
+    }
+    assert.equal(new URL(page.url()).hash, '#install');
+    assert(await install.evaluate(element => element === document.activeElement));
+    assert(await install.getByText('Read the text on this screen.', { exact: false }).isVisible());
+    assert.equal(requests.length, 0);
+    const play = new URL(await install.getByRole('link', { name: 'Get it on Google Play' }).getAttribute('href'));
+    assert.equal(play.origin + play.pathname, 'https://play.google.com/store/apps/details');
+    assert.equal(play.searchParams.get('id'), 'com.claudeagent.phone');
+    assert.equal(play.searchParams.get('utm_source'), 'gethandyai.app');
+    assert.equal(play.searchParams.get('utm_campaign'), 'first_task_guide');
+    assert.equal(await install.getByRole('link', { name: 'download the signed APK' }).getAttribute('href'), 'HandyAI.apk');
     assert.equal(await page.getByRole('link', { name: 'Contact support' }).getAttribute('href'), 'mailto:hi@gethandyai.app');
     const opener = page.getByRole('button', { name: 'Analytics choices' });
     assert(await opener.evaluate(el => Boolean(el.closest('[data-betterloop-ignore]'))));
@@ -52,6 +69,7 @@ async function check(width, gpc = false) {
     all.catch(() => {});
     await dialog.getByRole('button', { name: 'Allow analytics' }).click();
     if (gpc) {
+        await guide.click();
         assert.equal(requests.length, 0);
         assert.equal(await page.evaluate(() => Boolean(localStorage.getItem('handyai.analytics.v1.device'))), false);
         await context.close();
@@ -72,16 +90,24 @@ async function check(width, gpc = false) {
         assert.equal(fields.get('dl'), base + '/');
         assert.equal(fields.get('dr') ?? '', '');
     }
+    const guideReceipt = page.waitForResponse(response => {
+        if (provider(response.url()) !== 'mixpanel' || !response.ok()) return false;
+        const body = new URLSearchParams(response.request().postData() ?? '');
+        return JSON.parse(body.get('data') ?? '{}').event === 'first_task_guide_clicked';
+    });
+    await Promise.all([guideReceipt, guide.click()]);
+    assert(requests.every(item => !decodeURIComponent(item.url + item.body).includes(signal)));
     await opener.click();
     await off.click();
     assert(await opener.evaluate(el => el === document.activeElement));
     assert.equal(await page.evaluate(() => localStorage.getItem('handyai.analytics.v1.device')), null);
     const count = requests.length;
+    await guide.click();
     await page.reload({ waitUntil: 'load' });
     await page.goto(base + '/setup.html', { waitUntil: 'domcontentloaded' });
     assert.equal(requests.length, count);
     assert.deepEqual(errors, []);
-    console.log(`${width}px: support link, default off, consent, ${received.map(response => provider(response.url()) + ' ' + response.status()).join(', ')}, safe payload, withdrawal and setup exclusion`);
+    console.log(`${width}px: first-task guide, focused section, tagged Play link, support, opt-in guide event, ${received.map(response => provider(response.url()) + ' ' + response.status()).join(', ')}, withdrawal and setup exclusion`);
     await context.close();
 }
 try {
