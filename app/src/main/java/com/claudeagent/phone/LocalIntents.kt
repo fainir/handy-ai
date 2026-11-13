@@ -1,5 +1,7 @@
 package com.claudeagent.phone
 
+import com.claudeagent.phone.dialer.PhoneNumbers
+
 /**
  * Requests that [MainActivity] answers on the device, without an API call:
  * "what did you do" (read back recent activity) and "what can you do"
@@ -33,6 +35,18 @@ object LocalIntents {
 
     // "Hey Handy, what can you do?" - greetings and the app's name are not part of the request.
     private val LEADING_FILLER = Regex("^(?:(?:hey|hi|hello|ok|okay|so)\\b[\\s,]*)?(?:handy(?: ai)?\\b[\\s,]*)?")
+
+    fun opensPhone(task: String): Boolean = normalize(task) in setOf("open phone", "open the phone app", "open the dialer")
+
+    fun numberToDial(task: String): String? {
+        val request = normalize(task)
+        val number = when {
+            request.startsWith("call ") -> request.removePrefix("call ")
+            request.startsWith("dial ") -> request.removePrefix("dial ")
+            else -> return null
+        }
+        return PhoneNumbers.normalize(number)
+    }
 
     fun isAuditLogRequest(task: String): Boolean = matches(task, AUDIT_EXACT, AUDIT_PREFIXES)
 

@@ -28,6 +28,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.claudeagent.phone.databinding.ActivityMainBinding
+import com.claudeagent.phone.dialer.PhoneActivity
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
@@ -292,6 +293,10 @@ class MainActivity : AppCompatActivity() {
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
+            R.id.action_phone -> {
+                startActivity(Intent(this, PhoneActivity::class.java))
+                true
+            }
             R.id.action_settings -> {
                 startActivity(Intent(this, SettingsActivity::class.java))
                 true
@@ -367,6 +372,13 @@ class MainActivity : AppCompatActivity() {
      * as soon as the user returns with the permission granted.
      */
     private fun sendTask(task: String) {
+        val number = LocalIntents.numberToDial(task)
+        if (number != null || LocalIntents.opensPhone(task)) {
+            binding.taskInput.text?.clear()
+            startActivity(PhoneActivity.intent(this, number))
+            return
+        }
+
         // Tier-4 audit-log voice intent — blind users can't visually
         // scroll the chat, so they ask "what did you do" to hear a
         // summary of recent activity. Resolved locally, no API tokens.
@@ -518,7 +530,7 @@ class MainActivity : AppCompatActivity() {
             "whatsapp" to "Send a WhatsApp message to someone — say their name.",
             "messages" to "Reply to my last text message with what I'm about to say.",
             "messaging" to "Reply to my last text with a quick note.",
-            "google.android.dialer" to "Call someone — just say their name.",
+            "google.android.dialer" to "Open Phone to call a contact, or say call followed by the number.",
             "doordash" to "Reorder my usual from DoorDash.",
             "ubereats" to "Open Uber Eats and find dinner.",
             "uber" to "Book an Uber to a place I'll name.",
@@ -540,7 +552,7 @@ class MainActivity : AppCompatActivity() {
         }
         val fallback = listOf(
             "Send a message to someone — say their name.",
-            "Call a contact.",
+            "Open Phone to call a contact.",
             "Set a reminder or timer.",
             "Read me the screen aloud.",
             "Search the web.",

@@ -1,10 +1,23 @@
 package com.claudeagent.phone
 
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class LocalIntentsTest {
+
+    @Test
+    fun simplePhoneRequestsOpenTheKeypadWithAnExplicitNumber() {
+        assertTrue(LocalIntents.opensPhone("Hey Handy, open the dialer!"))
+        assertEquals("+972501234567", LocalIntents.numberToDial("Hey Handy, call +972 (50) 123-4567."))
+        assertEquals("5550101", LocalIntents.numberToDial("Dial 5550101"))
+        assertNull(LocalIntents.numberToDial("Call Maya and reschedule for Tuesday"))
+        assertNull(LocalIntents.numberToDial("Call 5550101;123"))
+        assertFalse(LocalIntents.opensPhone("Open Phone and find the last missed call"))
+    }
+
 
     @Test
     fun recognisesQuestionsAboutRecentActivity() {

@@ -12,6 +12,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import com.claudeagent.phone.dialer.PhoneActivity
 import com.google.android.material.button.MaterialButton
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -132,6 +133,12 @@ class EasyModeActivity : AppCompatActivity() {
     }
 
     private fun sendTask(task: String) {
+        val number = LocalIntents.numberToDial(task)
+        if (number != null || LocalIntents.opensPhone(task)) {
+            startActivity(PhoneActivity.intent(this, number))
+            return
+        }
+
         ChatStore.ensureActiveSession()
         ChatStore.append("user", task)
 
