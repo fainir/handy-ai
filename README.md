@@ -22,7 +22,7 @@ Phones assume you can see the screen and hit small targets. A screen reader tell
 
 You need an Android 11+ phone. For personal-key mode, use an [Anthropic API key](https://console.anthropic.com/settings/keys) (starts with `sk-ant-`; Anthropic bills you per use).
 
-1. **Install** from [Google Play](https://play.google.com/store/apps/details?id=com.claudeagent.phone), or download the signed APK from [gethandyai.app](https://gethandyai.app/HandyAI.apk) (about 64 MB) and open it. Your browser will ask you to allow installs from it once.
+1. **Install** from [Google Play](https://play.google.com/store/apps/details?id=com.claudeagent.phone), or download the [signed website APK](https://gethandyai.app/HandyAI.apk) and open it. Your browser will ask you to allow installs from it once.
 2. **Choose how to use Claude.** If offered, select **Try included Claude** and review the screen-sharing disclosure. To use your own key, open Handy AI, paste the key into the bar at the bottom and tap **Save key**. If pasting a long key is hard (for example with a screen reader), use **Settings > Set up via computer** instead: the phone shows a 6-character code (and speaks it if voice is on), and you paste the key on [gethandyai.app/setup](https://gethandyai.app/setup) on your computer.
 3. **Give a task.** Type or tap the mic, for example *"Open the camera and take a picture"*.
 4. **Turn on the accessibility service** when asked (first task only): Android **Settings > Accessibility > Handy AI > On** (on some phones Handy AI is under *Installed apps* or *Downloaded apps*). Come back and the task starts by itself.

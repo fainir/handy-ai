@@ -30,8 +30,8 @@ android {
         applicationId = "com.claudeagent.phone"
         minSdk = 30
         targetSdk = 36
-        versionCode = 17
-        versionName = "1.5.7"
+        versionCode = 18
+        versionName = "1.5.8"
 
         // These ship into BuildConfig.kt at compile time. See local.properties
         // for where to put real values. Safe-by-default placeholders make a
@@ -76,7 +76,7 @@ android {
             if (providers.gradleProperty("isolatedQa").orNull == "true") applicationIdSuffix = ".qa"
         }
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
             signingConfig = signingConfigs.getByName("release")
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
             // NOTE: do NOT abiFilter the release build type. v1.5.1 did
