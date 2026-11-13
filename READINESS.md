@@ -14,6 +14,7 @@ Android 11+ accessibility assistant. [Public Play listing](https://play.google.c
 | H8 | Receive support mail | verified | Cloudflare's active catch-all forwards the support address to the owner. An external forwarding sample reached the owner's Gmail Inbox on April 23 and the rule was read back on November 9. The homepage, privacy and terms use the same address. |
 | H9 | Allow optional measurement on the public homepage | verified | Live Chrome at 375px and 1440px received Google 204, Mixpanel 200/1 and Betterloop 200/ok after consent. Default off, safe payloads, withdrawal, setup exclusion and Global Privacy Control passed. [Browser check](qa/check-website-analytics.mjs) and [analytics release](https://github.com/fainir/handy-ai/pull/12). |
 | H10 | Keep personal recordings out of release media | verified | The three copies of the personal-phone marketing capture are excluded from the current tree and future Git staging. Publishing drafts use text. The clean Play review clip remains in place. Older public Git revisions retain the retired recordings. |
+| H11 | Load a screen-reading example after Claude and Accessibility setup | waiting | Android 16 isolated app verified consent, setup with a draft, cancelled work, touch, keyboard and explicit Start. All 38 JVM tests passed. Verify the signed build through the next Play release and then check one outside first task and return. [Native checks](qa/first-screen-task.md). |
 
 ## Owner actions
 

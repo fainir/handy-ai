@@ -18,9 +18,10 @@
     <string name="task_hint_short">Tell me what to do on your phone…</string>
     <string name="hero_prompt">What should I do on your phone?</string>
     <string name="hero_subtitle">Type or tap the mic. I\'ll open the apps, tap, type, and swipe until it\'s done.</string>
-    <string name="hero_example_1">\"Message Sarah on WhatsApp that I\'m running late.\"</string>
-    <string name="hero_example_2">\"Open Instagram and save the top post on my feed.\"</string>
-    <string name="hero_example_3">\"Search Google Maps for sushi near me.\"</string>
+    <string name="first_task_load">Use screen-reading example</string>
+    <string name="first_task_prompt">Read the text on this screen.</string>
+    <string name="first_task_review">Review the prompt before starting. Use a screen you’re comfortable sharing.</string>
+    <string name="first_task_accessibility">Turn on Handy AI in Android Accessibility, then return to try the example.</string>
     <string name="save_key">Save key</string>
     <string name="clear_key">Clear key</string>
     <string name="grant_accessibility">Open Accessibility settings</string>

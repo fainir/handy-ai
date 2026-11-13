@@ -20,6 +20,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.view.GravityCompat
+import androidx.core.view.isVisible
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
@@ -134,7 +135,7 @@ class MainActivity : AppCompatActivity() {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
             override fun afterTextChanged(s: Editable?) {
-                if (!currentlyRunning) updateActionButton(false)
+                if (!currentlyRunning) updateComposerControls(false)
             }
         })
         binding.addKeyButton.setOnClickListener {
@@ -142,6 +143,17 @@ class MainActivity : AppCompatActivity() {
         }
         binding.grantAccessibilityButton.setOnClickListener {
             startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
+        }
+        binding.firstTaskButton.setOnClickListener {
+            if (!isAccessibilityEnabled()) {
+                // This shortcut opens setup without authorizing a queued task.
+                pendingTask = null
+                startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
+            } else if (binding.taskInput.text.isNullOrBlank()) {
+                binding.taskInput.requestFocus()
+                binding.taskInput.setText(R.string.first_task_prompt)
+                binding.taskInput.setSelection(binding.taskInput.length())
+            }
         }
 
         // Inline API-key bar: shown at the bottom (in place of the chat
@@ -196,7 +208,7 @@ class MainActivity : AppCompatActivity() {
                     AgentState.state.collectLatest { s ->
                         val running = s is RunState.Running
                         currentlyRunning = running
-                        updateActionButton(running)
+                        updateComposerControls(running)
                         binding.statusChip.visibility = if (running) View.VISIBLE else View.GONE
                     }
                 }
@@ -296,12 +308,15 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun updateActionButton(running: Boolean) {
+    private fun updateComposerControls(running: Boolean) {
         val hasText = !binding.taskInput.text?.toString()?.trim().isNullOrEmpty()
         val iconRes = if (running) R.drawable.ic_stop else R.drawable.ic_send
         binding.actionButton.icon = ContextCompat.getDrawable(this, iconRes)
-        binding.actionButton.isEnabled = running || hasText
-        binding.micButton.isEnabled = !running
+        val canCompose = binding.taskInput.isEnabled && !running
+        binding.actionButton.isEnabled = running || (canCompose && hasText)
+        binding.micButton.isEnabled = canCompose
+        binding.firstTaskButton.isEnabled = canCompose && binding.firstTaskActions.isVisible &&
+            (!hasText || !isAccessibilityEnabled())
     }
 
     private fun updateEmptyState(empty: Boolean) {
@@ -317,12 +332,15 @@ class MainActivity : AppCompatActivity() {
         binding.trialLimitNotice.visibility = if (exhausted && !hasKey) View.VISIBLE else View.GONE
         binding.root.findViewById<View>(R.id.keySetupBar).visibility =
             if (canRun) View.GONE else View.VISIBLE
-        binding.root.findViewById<View>(R.id.heroExamples).visibility =
-            if (showHero && canRun) View.VISIBLE else View.GONE
+        binding.firstTaskActions.isVisible = showHero && canRun
+        if (showHero && canRun) {
+            val accessibilityEnabled = isAccessibilityEnabled()
+            binding.firstTaskButton.setText(if (accessibilityEnabled) R.string.first_task_load else R.string.open_accessibility)
+            binding.firstTaskHint.setText(if (accessibilityEnabled) R.string.first_task_review else R.string.first_task_accessibility)
+        }
         binding.taskInput.isEnabled = canRun
-        binding.micButton.isEnabled = canRun
-        binding.actionButton.isEnabled = canRun
         binding.inputContainer.alpha = if (canRun) 1.0f else 0.45f
+        updateComposerControls(currentlyRunning)
     }
 
     private fun startVoiceInput() {
@@ -401,6 +419,7 @@ class MainActivity : AppCompatActivity() {
                 .setNegativeButton(R.string.not_now) { _, _ ->
                     pendingTask = null
                 }
+                .setOnCancelListener { pendingTask = null }
                 .show()
             return
         }
