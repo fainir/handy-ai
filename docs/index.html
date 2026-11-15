@@ -293,13 +293,16 @@
   .apk-accessibility-help {
     max-width: 65ch;
     margin-top: 24px;
-    padding-inline-start: 16px;
+    padding-inline: 16px 8px;
     border-inline-start: 2px solid var(--border);
     scroll-margin-top: 92px;
   }
   .apk-accessibility-help h3 { margin-bottom: 8px; }
   .apk-accessibility-help p { margin-top: 8px; color: var(--muted); }
-  .apk-accessibility-help:focus-visible { outline-offset: 5px; }
+  .apk-accessibility-help:focus-visible {
+    border-inline-start-color: transparent;
+    outline-offset: 5px;
+  }
   .faq-item {
     border-top: 1px solid var(--border);
     padding: 24px 0;
@@ -518,7 +521,7 @@
       <h3 id="apk-accessibility-heading">Accessibility says “Restricted setting”</h3>
       <p>On Android 13 and up, this can appear after an APK install. Google Play is the recommended install route when available.</p>
       <p>If you installed the official signed Handy AI APK and trust the app, open <strong>Settings → Apps</strong> and select <strong>Handy AI</strong>. Look under <strong>See all apps</strong> or <strong>App info</strong> if needed.</p>
-      <p>Tap <strong>More → Allow restricted settings</strong> and follow Android’s prompts. Then go back to <strong>Settings → Accessibility → Handy AI</strong> and enable the service. Return to Handy AI to try your first task.</p>
+      <p>Tap <strong>More → Allow restricted settings</strong> and follow Android’s prompts. Then enable Handy AI under <strong>Settings → Accessibility</strong>. On some phones, open <strong>Installed apps</strong> to find it. Return to Handy AI to try your first task.</p>
       <p>Accessibility lets Handy AI read screen content and interact with apps on your behalf. <a href="https://support.google.com/android/answer/12623953?hl=en">Read Android’s guidance on restricted settings</a>.</p>
     </div>
   </section>
