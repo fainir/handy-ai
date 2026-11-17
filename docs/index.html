@@ -319,15 +319,16 @@
     background: #171614;
     border-radius: 12px;
   }
-  .apk-accessibility-help {
+  .apk-accessibility-help, .workflow-review {
     max-width: 65ch;
     margin-top: 24px;
     padding-inline: 16px 8px;
     border-inline-start: 2px solid var(--border);
     scroll-margin-top: 92px;
   }
-  .apk-accessibility-help h3 { margin-bottom: 8px; }
-  .apk-accessibility-help p { margin-top: 8px; color: var(--muted); }
+  .apk-accessibility-help h3, .workflow-review h3 { margin-bottom: 8px; }
+  .apk-accessibility-help p, .workflow-review p { margin-top: 8px; color: var(--muted); }
+  .workflow-review .btn { margin-top: 12px; }
   .apk-accessibility-help:focus-visible {
     border-inline-start-color: transparent;
     outline-offset: 5px;
@@ -572,6 +573,11 @@
       <p>Tap <strong>More → Allow restricted settings</strong> and follow Android’s prompts. Then enable Handy AI under <strong>Settings → Accessibility</strong>. On some phones, open <strong>Installed apps</strong> to find it. Return to Handy AI to try your first task.</p>
       <p>Accessibility lets Handy AI read screen content and interact with apps on your behalf. <a href="https://support.google.com/android/answer/12623953?hl=en">Read Android’s guidance on restricted settings</a>.</p>
     </div>
+    <section class="workflow-review" id="workflow-review" aria-labelledby="workflow-review-heading">
+      <h3 id="workflow-review-heading">Plan a repeatable Android task</h3>
+      <p>If your team repeats a task on Android, describe the apps, the steps, and where a person should check the result. AI Your Work reviews feasibility and agrees a scope with you before any paid work starts.</p>
+      <a class="btn btn-secondary" href="https://aiyourwork.chat/services?utm_source=gethandyai.app&amp;utm_medium=first-task-guide&amp;utm_campaign=implementation-services#implementation-request">Request a workflow review</a>
+    </section>
   </section>
 
   <section id="faq">

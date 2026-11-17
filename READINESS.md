@@ -16,6 +16,7 @@ Android 11+ accessibility assistant. [Public Play listing](https://play.google.c
 | H10 | Keep personal recordings out of release media | verified | The three copies of the personal-phone marketing capture are excluded from the current tree and future Git staging. Publishing drafts use text. The clean Play review clip remains in place. Older public Git revisions retain the retired recordings. |
 | H11 | Load a screen-reading example after Claude and Accessibility setup | verified | Android 16 verified consent, setup with a draft, cancelled work, touch, keyboard and explicit Start. The signed 1.5.8 APK also passed the first-task flow on a fresh profile and upgraded the signed website 1.5.5 install with its data intact. [Native checks](qa/first-screen-task.md) · [Signed APK checks](qa/website-apk-1-5-8.md). |
 | H12 | Verify first-task adoption and Play delivery | waiting | Confirm one outside screen-reading task and a return within seven days through a voluntary support report. Check the next Play-delivered build independently. [Measurement](qa/website-apk-1-5-8.md#measurement). |
+| H13 | Ask for review of a repeatable Android work task from the existing first-task guide | doing | Qualify interest through the existing consented AI Your Work form. Verify both screen widths, saved source in isolated D1 and the published destination. Google Play reports 1K+ lifetime downloads. [Listing](https://play.google.com/store/apps/details?id=com.claudeagent.phone). |
 
 ## Owner actions
 
