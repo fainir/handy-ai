@@ -39,14 +39,23 @@ async function check(width, gpc = false) {
     assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
     const guide = page.getByRole('link', { name: 'See the first task' });
     const install = page.getByRole('region', { name: 'Try your first task.' });
+    const walkthrough = page.getByRole('region', { name: 'Watch how to start a screen read' });
     if (width === 375) await guide.tap();
     else {
         await guide.focus();
         await guide.press('Enter');
     }
-    assert.equal(new URL(page.url()).hash, '#install');
-    assert(await install.evaluate(element => element === document.activeElement));
-    assert(await install.getByText('Read the text on this screen.', { exact: false }).isVisible());
+    assert.equal(new URL(page.url()).hash, '#first-task-walkthrough');
+    assert(await walkthrough.evaluate(element => element === document.activeElement));
+    await page.waitForFunction(() => {
+        const { top, bottom } = document.querySelector('#first-task-walkthrough video').getBoundingClientRect();
+        return top < innerHeight && bottom > 0;
+    });
+    const steps = walkthrough.getByText('Read the setup steps', { exact: true });
+    await steps.press('Enter');
+    const prompt = walkthrough.getByRole('listitem').filter({ hasText: 'Say or type “Read the text on this screen.”' });
+    assert(await prompt.isVisible());
+    await steps.press('Enter');
     assert.equal(requests.length, 0);
     const play = new URL(await install.getByRole('link', { name: 'Get it on Google Play' }).getAttribute('href'));
     assert.equal(play.origin + play.pathname, 'https://play.google.com/store/apps/details');
