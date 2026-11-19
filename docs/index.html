@@ -143,56 +143,29 @@
     max-width: 540px;
     margin: 0;
   }
-  .beta-form {
+  .beta-actions {
     display: flex;
     gap: 10px;
     flex-wrap: wrap;
+    align-items: center;
     max-width: 520px;
   }
-  .beta-form input {
-    flex: 1 1 240px;
-    padding: 14px 18px;
-    border-radius: 10px;
-    border: 1px solid rgba(244,233,212,0.2);
-    background: rgba(244,233,212,0.08);
-    color: var(--cream);
-    font-family: inherit;
-    font-size: 15px;
-    min-width: 0;
-  }
-  .beta-form input::placeholder { color: rgba(244,233,212,0.7); }
-  .beta-form input:focus {
-    outline: none;
-    border-color: var(--cream);
-    background: rgba(244,233,212,0.14);
-  }
-  /* The signup is a mailto link now, not a submit button, so this has to match an <a> as well -
-     otherwise the call to action renders as bare blue underlined text. */
-  .beta-form button,
-  .beta-form a {
-    background: var(--cream);
-    color: var(--ink);
-    border: 0;
+  .beta-actions a {
     padding: 14px 22px;
     border-radius: 10px;
-    font-family: inherit;
     font-size: 15px;
     font-weight: 600;
-    cursor: pointer;
-    transition: transform 0.12s ease, background 0.12s ease;
   }
-  .beta-form button:hover,
-  .beta-form a:hover { background: #fff; }
-  .beta-form button:active,
-  .beta-form a:active { transform: translateY(1px); }
-  .beta-form button:disabled { opacity: 0.6; cursor: wait; }
-  .beta-status {
-    min-height: 20px;
-    color: var(--cream-2);
-    font-size: 14px;
+  .beta-install {
+    background: var(--cream);
+    color: var(--ink);
+    text-decoration: none;
   }
-  .beta-status.error { color: #FFB4A1; }
-  .beta-status.ok { color: #B9F5C1; }
+  .beta-install:hover { background: #fff; }
+  .beta-help {
+    color: var(--cream);
+    text-decoration: underline;
+  }
   .btn small {
     display: block;
     font-size: 11px;
@@ -437,7 +410,7 @@
     <div class="nav-links">
       <a href="#how">How it works</a>
       <a href="#accessibility">Accessibility</a>
-      <a href="#beta">Join beta</a>
+      <a href="#beta">Try beta</a>
       <a data-analytics-event="first_task_guide_clicked" href="#install">Install</a>
       <a href="#faq">FAQ</a>
     </div>
@@ -512,20 +485,14 @@
     </div>
   </section>
 
-  <section id="beta" style="border: none; padding: 40px 0 0;">
+  <section id="beta" aria-labelledby="beta-heading" style="border: none; padding: 40px 0 0;">
     <div class="beta">
-      <h2 id="beta-heading">Join the Handy AI beta.</h2>
-      <!-- The form used to POST to an API on cloudbot-ai.com. That product was retired and its
-           backend shut down, so the form had stopped working - it accepted an address and silently
-           dropped it. A mailto goes to an inbox that is actually read, needs no server, and cannot
-           rot the same way. Restore a real form only alongside a backend that is verified live. -->
-      <p>Handy AI is live on <a href="https://play.google.com/store/apps/details?id=com.claudeagent.phone" target="_blank" rel="noopener" style="color:inherit">Google Play</a>. Email us to join the beta and we'll help you set it up. Beta testers get a direct line to us and shape what ships next.</p>
-      <div class="beta-form">
-        <a data-betterloop-ignore href="mailto:hi@gethandyai.app?subject=Handy%20AI%20beta&amp;body=Hi%20-%20I'd%20like%20to%20join%20the%20Handy%20AI%20beta.%0A%0AName%3A%20%0A"
-           id="betaSubmit"
-           style="display:inline-block;text-decoration:none;text-align:center;">Email us to join the beta</a>
+      <h2 id="beta-heading">Try the Handy AI beta.</h2>
+      <p>Available on Android 11 and up. Start with a screen-reading task to see how Handy AI works.</p>
+      <div class="beta-actions">
+        <a class="beta-install" href="#install" data-analytics-event="beta_install_guide_clicked">Open the install guide</a>
+        <a class="beta-help" data-betterloop-ignore href="mailto:hi@gethandyai.app?subject=Handy%20AI%20beta&amp;body=Hi%2C%20I%27d%20like%20help%20setting%20up%20Handy%20AI.">Email for setup help</a>
       </div>
-      <div class="beta-status" id="betaStatus" aria-live="polite"></div>
     </div>
   </section>
 
@@ -630,6 +597,6 @@
   </div>
 </dialog>
 <script src="analytics-config.js" defer></script>
-<script src="analytics.js" defer></script>
+<script src="analytics.js?v=20261119" defer></script>
 </body>
 </html>
