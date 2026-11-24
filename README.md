@@ -31,6 +31,12 @@ You need an Android 11+ phone. For personal-key mode, use an [Anthropic API key]
 
 Google Play, the website APK and GitHub releases can be on different versions. To use the version in this repository, [build from source](#build-from-source).
 
+### Plan a repeatable Android task
+
+Once your first task works, [request an optional Android workflow review](https://gethandyai.app/?utm_source=github&utm_medium=readme&utm_campaign=android-workflow-review#workflow-review) for a job your team repeats. For example, the review can check whether an on-screen inventory count could become a draft restock note for someone to approve.
+
+AI Your Work provides the implementation service. Describe the apps, steps and human review point. The form asks for a work email and permission to follow up. Paid work starts after you agree to a scope and quote.
+
 ## What a run looks like
 
 This is the run in the screenshot above, copied from the app's chat log (v1.5.1 on a Pixel 10). Indented lines are a status row and the tool calls Claude made:
