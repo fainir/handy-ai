@@ -4,7 +4,16 @@
     const PATHS = new Set(['/']);
     const EVENTS = new Set([
         'play_clicked', 'apk_clicked', 'first_task_guide_clicked', 'beta_install_guide_clicked',
+        'github_workflow_review_viewed', 'github_workflow_review_clicked',
     ]);
+    const githubWorkflowTags = {
+        utm_source: 'github', utm_medium: 'readme', utm_campaign: 'android-workflow-review',
+    };
+    const query = new URLSearchParams(location.search);
+    const fromGithubWorkflow = Object.entries(githubWorkflowTags).every(([key, expected]) => {
+        const values = query.getAll(key);
+        return values.length === 1 && values[0] === expected;
+    });
     const config = window.SiteAnalyticsConfig || {};
     const ga = /^G-[A-Z0-9]+$/.test(config.gaId || '') ? config.gaId : '';
     const token = /^[a-f0-9]{32}$/i.test(config.mixpanelToken || '') ? config.mixpanelToken : '';
@@ -41,6 +50,7 @@
         if (!token || !device || !permitted()) return;
         const data = { event, properties: { token, distinct_id: device, product: PRODUCT, path: path(), $insert_id: crypto.randomUUID(), time: Math.floor(Date.now() / 1000) } };
         void fetch('https://api.mixpanel.com/track?ip=0', { method: 'POST', credentials: 'omit', referrerPolicy: 'no-referrer',
+            keepalive: event === 'github_workflow_review_clicked',
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: new URLSearchParams({ data: JSON.stringify(data), ip: '0' }).toString(),
         }).catch(() => { /* Optional analytics cannot interrupt the product. */ });
     }
@@ -90,10 +100,16 @@
             catch { stop(); status('This browser could not save the choice. Analytics remains off.'); return; }
         }
         active = true; startGoogle(); startBetterloop();
-        if (pageSent !== path()) { pageSent = path(); if (ga) window.gtag('event', 'page_view', safePage()); mixpanel('page_view'); }
+        if (pageSent !== path()) {
+            pageSent = path();
+            if (ga) window.gtag('event', 'page_view', safePage());
+            mixpanel('page_view');
+            analytics.track('github_workflow_review_viewed');
+        }
     }
     const analytics = { track(event) {
         if (!active || !permitted() || !EVENTS.has(event)) return;
+        if (event.startsWith('github_workflow_review_') && !fromGithubWorkflow) return;
         if (ga && window.gtag) window.gtag('event', event, safePage());
         mixpanel(event); if (betterloopReady) window.Betterloop?.track?.(event);
     } };

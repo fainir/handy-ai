@@ -105,7 +105,15 @@ async function check(width, gpc = false) {
         const body = new URLSearchParams(response.request().postData() ?? '');
         return JSON.parse(body.get('data') ?? '{}').event === 'first_task_guide_clicked';
     });
-    await Promise.all([guideReceipt, guide.click()]);
+    const guideReceipts = [guideReceipt];
+    if (live || realGoogleTag) {
+        guideReceipts.push(page.waitForResponse(response => {
+            if (provider(response.url()) !== 'google' || !response.ok()) return false;
+            const params = new URLSearchParams(new URL(response.url()).search + '&' + (response.request().postData() ?? ''));
+            return params.get('en') === 'first_task_guide_clicked';
+        }));
+    }
+    await Promise.all([...guideReceipts, guide.click()]);
     assert(requests.every(item => !decodeURIComponent(item.url + item.body).includes(signal)));
     await opener.click();
     await off.click();
